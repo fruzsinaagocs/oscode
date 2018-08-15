@@ -22,7 +22,7 @@ class solution
 };
 
 solution::solution(){
-    // default construction for a solution object (does nothing)
+    // default constructor for a solution object (does nothing)
 }
 
 solution::solution(de_system de_sys, V ic, double t_ini, double t_fin){
@@ -38,3 +38,11 @@ solution::solution(de_system de_sys, V ic, double t_ini, double t_fin){
 
 };
 
+void solution::evolve(){
+    // function to compute full numerical solution of the de_system.
+};
+
+void solution::step(){
+    // function to take a single step in the numerical solution of the
+    // de_system.
+};

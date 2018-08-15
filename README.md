@@ -16,5 +16,5 @@ Restructured version of cRKWKB.
 ## Testing
 
 - `test.cpp` is used for testing various features of the RKWKB solver.
-- to compile, `make test`
+- to compile, `make test` (or just `make`)
 - to run, `./test`

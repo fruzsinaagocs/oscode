@@ -11,7 +11,8 @@ class RKFsolver
     RKFsolver(de_system);
 
     // class data
-    
+    de_system sys;    
+
     // class functions
     void step();
 
@@ -21,22 +22,16 @@ class RKFsolver
 
 RKFsolver::RKFsolver(){
     // Default constructor of RKFsolver (does nothing)
-}
-
+};
 
 RKFsolver::RKFsolver(de_system system){
     // Constructor for an RKFsolver from a system of differential equations
     std::cout << "Constructed an RKFsolver object" << std::endl;
-    
-    V y(2);
-    y << 3.0, 2.0;
-    
-    std::cout << "F(y): " << system.F(y) << std::endl; 
+    sys = system;
 };
 
 void RKFsolver::step(){
     // Stepper function using the RKF method   
-    
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -55,14 +50,13 @@ class WKBsolver
     de_system sys;
     
     // class methods
-    
+    void step(); 
 
 };
 
 WKBsolver::WKBsolver(){
     // Default constructor for a WKBsolver (does nothing)
-}
-
+};
 
 WKBsolver::WKBsolver(de_system system){
     // Constructor for a WKBsolver from a system of differential equations
@@ -70,5 +64,7 @@ WKBsolver::WKBsolver(de_system system){
     sys = system;
 };
 
-
+void WKBsolver::step(){
+    // Stepper function using the RKF method   
+};
 
