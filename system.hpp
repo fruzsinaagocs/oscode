@@ -42,7 +42,6 @@ namespace RKWKB
         //g = gam;
         //Dg = Dgam;
         //DDg = DDgam;
-        std::cout << "Constructed a de_system object" << std::endl;
     }
 }
 

@@ -1,9 +1,13 @@
 # include "system.hpp"
 namespace RKWKB{
+    
     struct Step
     {
         // data structure to store the result of a step and its error.
         Vector y, error;
+        bool wkb;
+        // default constructor does nothing
+        Step(){};
         // constructor takes in size and resizes y, error
         Step(int d){
             y.resize(d);
@@ -11,9 +15,24 @@ namespace RKWKB{
         };
     };
     
-    ////////////////////////////////////////////////////////////////////////////
+    class Method
+    {
+        protected:
+
+        public:
+        // default constructor
+        Method();  
+        // class functions
+        virtual Step step(Vectorfn F, Vector y, double h)=0;
+    };
     
-    class RKFsolver
+    Method::Method(){
+        // Default constructor of a Method (does nothing)
+    };
+
+    ////////////////////////////////////RKF/////////////////////////////////////
+    
+    class RKFsolver : public Method
     {
         private:
     
@@ -32,8 +51,6 @@ namespace RKWKB{
         Step step(Vectorfn F, Vector y, double h);
     
     };
-    
-    ///////////////////////////////////////////////////////////////////////////
     
     RKFsolver::RKFsolver(){
         // Default constructor of RKFsolver (does nothing)
@@ -59,21 +76,33 @@ namespace RKWKB{
         butcher_b5 << 16.0/135.0 , 0.0 , 6656.0/12825.0 , 28561.0/56430.0, -9.0/50.0, 2.0/55.0;
         butcher_r << 1.0/360.0, 0.0, -128/4275.0, -2197/75240.0, 1/50.0, 2/55.0; 
     
-        std::cout << "Constructed an RKFsolver object" << std::endl;
     };
     
     Step RKFsolver::step(Vectorfn F, Vector y, double h){
         // Stepper function using the RKF method
         
         int d = y.size();
+        Matrix k(6,d);
         Step result(d);
-        std::cout << "Took a step!" << std::endl;
+
+        k.row(0) = h*F(y);
+        for(int s=1; s<=5; s++){
+            for(int i=0; i<=(s-1); i++)
+                y += butcher_a(s-1, i)*k.row(i);
+            k.row(s) = h*F(y);
+        } 
+        for(int j=0; j<=5; j++){
+            result.y += butcher_b5(j)*k.row(j);
+            result.error += (butcher_b4(j) - butcher_b5(j))*k.row(j);
+        }   
+        result.wkb = false;
+
         return result;
     };
     
-    ///////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////WKB////////////////////////////////////
     
-    class WKBsolver
+    class WKBsolver : public Method
     {
         private:
     
@@ -87,7 +116,7 @@ namespace RKWKB{
         de_system sys;
         
         // class methods
-        void step(); 
+        Step step(Vectorfn F, Vector y, double h);
     
     };
     
@@ -98,10 +127,15 @@ namespace RKWKB{
     WKBsolver::WKBsolver(de_system system){
         // Constructor for a WKBsolver from a system of differential equations
         sys = system;
-        std::cout << "Constructed a WKBsolver object" << std::endl;
     };
     
-    void WKBsolver::step(){
+    Step WKBsolver::step(Vectorfn F, Vector y, double h){
         // Stepper function using the RKF method   
+    
+    int d = y.size();
+    Step result(d);
+    result.wkb = false;
+    
+    return result;
     };
 }

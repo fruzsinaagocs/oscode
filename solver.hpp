@@ -1,50 +1,59 @@
 #include "integrators.hpp"
 
 namespace RKWKB{
-    class solution
+    class Solution
     {
         private:
     
     
         public:
         // default constructor
-        solution();
+        Solution();
         // constructor overloads
-        solution(de_system, Vector, double, double);
+        Solution(de_system de_sys, Vector ic, double t_ini, double t_fin, double r_tol=1e-4, double a_tol=0.0, double stepsize=1.0);
     
         // class data 
-        double t_i, t_f, rtol, atol, h_i;
-        Vector y_i;
+        double t_i, t_f, rtol, atol, h; // current stepsize
+        Vector y; // current solution vector
+        Vector error; // current error on solution vector
+        de_system de_sys;
+        RKFsolver rkfsolver;
+        WKBsolver wkbsolver;
     
         // class functions
         void evolve();
-        void step();
-    
+        Step step(Method * method, Vector Y, double H);
+        
     };
     
-    solution::solution(){
+    Solution::Solution(){
         // default constructor for a solution object (does nothing)
     }
     
-    solution::solution(de_system de_sys, Vector ic, double t_ini, double t_fin){
+    Solution::Solution(de_system system, Vector ic, double t_ini, double t_fin, double r_tol, double a_tol, double stepsize){
         // constructor for solution of a system of differential equations
         
-        y_i = ic;
+        y = ic;
         t_i = t_ini;
         t_f = t_fin;
-        rtol = 1e-4;
-        atol = 0.0;
-        h_i = 1.0;
-        std::cout << "Constructed a solution object with properties: ic " << y_i << ", ti " << t_i << ", atol " << atol;
-    
+        rtol = r_tol;
+        atol = a_tol;
+        h = stepsize;
+
+        de_sys = system;
+        rkfsolver = RKFsolver(de_sys.F);
+        wkbsolver = WKBsolver(de_sys.F);
     };
     
-    void solution::evolve(){
+    void Solution::evolve(){
         // function to compute full numerical solution of the de_system.
     };
     
-    void solution::step(){
-        // function to take a single step in the numerical solution of the
-        // de_system.
+    Step Solution::step(Method * method, Vector Y, double H){
+        // function to take a single RKWKB step in the numerical solution of the
+        // de_system, from y with stepsize h.
+    
+        Step s = method->step(de_sys.F, Y, H);
+        return s;
     };
 }
