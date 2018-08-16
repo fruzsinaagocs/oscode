@@ -1,6 +1,6 @@
 CXX = g++ 
 CXXFLAGS = -g -Wall
-DEPS = solver.hpp integrators.hpp system.hpp
+DEPS = solver.hpp integrators.hpp system.hpp typedefs.hpp
 
 test: test.o
 	$(CXX) $(CXXFLAGS) -o $@ $^
