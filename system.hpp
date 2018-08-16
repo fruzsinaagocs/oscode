@@ -25,14 +25,13 @@ class de_system
         
         // class functions
         Vfn F;
-        //V F(V);
-        //M DF(V);
-        //S w(V);
-        //V Dw(V);
-        //M DDw(V);
-        //S g(V);
-        //V Dg(V);
-        //M DDg(V);
+        Mfn DF;
+        Sfn w;
+        Vfn Dw;
+        Mfn DDw;
+        Sfn g;
+        Vfn Dg;
+        Mfn DDg;
 
 };
 

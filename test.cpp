@@ -16,8 +16,9 @@ int main(){
     V y(2);
     y << 2.0, 3.0;
     de_system my_system(F);
-    WKBsolver my_solver(my_system);
-    std::cout << "F(y): " << my_solver.sys.F(y) << std::endl;
+    RKFsolver my_solver(my_system);
+    my_solver.step(my_solver.sys.F, y, 1.0);
+    //std::cout << "F(y): " << my_solver.sys.F(y) << std::endl;
 
 }
 
