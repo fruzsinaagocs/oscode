@@ -9,11 +9,11 @@ class solution
     // default constructor
     solution();
     // constructor overloads
-    solution(de_system, V, double, double);
+    solution(de_system, Vector, double, double);
 
     // class data 
     double t_i, t_f, rtol, atol, h_i;
-    V y_i;
+    Vector y_i;
 
     // class functions
     void evolve();
@@ -25,7 +25,7 @@ solution::solution(){
     // default constructor for a solution object (does nothing)
 }
 
-solution::solution(de_system de_sys, V ic, double t_ini, double t_fin){
+solution::solution(de_system de_sys, Vector ic, double t_ini, double t_fin){
     // constructor for solution of a system of differential equations
     
     y_i = ic;

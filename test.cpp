@@ -1,10 +1,10 @@
 #include "test.hpp"
 //#include <cstdio> 
 
-V F(V y){
+Vector F(Vector y){
     // A trial function to describe the background evolution. 
 
-    V result(y.size());
+    Vector result(y.size());
     result << 0.25*std::pow(y(0),-3), 0.25*std::pow(y(1),-3);
     return result;
 
@@ -13,7 +13,7 @@ V F(V y){
 
 int main(){
 
-    V y(2);
+    Vector y(2);
     y << 2.0, 3.0;
     de_system my_system(F);
     RKFsolver my_solver(my_system);

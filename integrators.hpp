@@ -3,7 +3,7 @@
 struct Step
 {
     // data structure to store the result of a step and its error.
-    V y, error;
+    Vector y, error;
     // constructor takes in size and resizes y, error
     Step(int d){
         y.resize(d);
@@ -25,11 +25,11 @@ class RKFsolver
 
     // class data
     de_system sys;
-    M butcher_a;
-    V butcher_c, butcher_b4, butcher_b5, butcher_r;
+    Matrix butcher_a;
+    Vector butcher_c, butcher_b4, butcher_b5, butcher_r;
     
     // class functions
-    Step step(Vfn F, V y, double h);
+    Step step(Vectorfn F, Vector y, double h);
 
 };
 
@@ -62,7 +62,7 @@ RKFsolver::RKFsolver(de_system system){
     std::cout << "Constructed an RKFsolver object" << std::endl;
 };
 
-Step RKFsolver::step(Vfn F, V y, double h){
+Step RKFsolver::step(Vectorfn F, Vector y, double h){
     // Stepper function using the RKF method
     
     int d = y.size();

@@ -2,14 +2,14 @@
 #include <iostream>
 
 // complex numbers, vectors, matrices
-typedef Eigen::VectorXcd V;
-typedef V::Scalar S;
-typedef Eigen::MatrixXcd M;
+typedef Eigen::VectorXcd Vector;
+typedef Vector::Scalar Scalar;
+typedef Eigen::MatrixXcd Matrix;
 
 // complex-valued functions
-typedef S (* Sfn)(V);
-typedef V (* Vfn)(V);
-typedef M (* Mfn)(V);
+typedef Scalar (* Scalarfn)(Vector);
+typedef Vector (* Vectorfn)(Vector);
+typedef Matrix (* Matrixfn)(Vector);
 
 class de_system
 {
@@ -19,19 +19,19 @@ class de_system
         // default constructor
         de_system();        
         // constructor overloads
-        de_system(Vfn);//, Mfn, Sfn, Vfn, Mfn, Sfn, Vfn, Mfn);
+        de_system(Vectorfn);//, Mfn, Sfn, Vfn, Mfn, Sfn, Vfn, Mfn);
         
         // class data
         
         // class functions
-        Vfn F;
-        Mfn DF;
-        Sfn w;
-        Vfn Dw;
-        Mfn DDw;
-        Sfn g;
-        Vfn Dg;
-        Mfn DDg;
+        Vectorfn F;
+        Matrixfn DF;
+        Scalarfn w;
+        Vectorfn Dw;
+        Matrixfn DDw;
+        Scalarfn g;
+        Vectorfn Dg;
+        Matrixfn DDg;
 
 };
 
@@ -39,7 +39,7 @@ de_system::de_system(){
     // Default constructor of de_system (does nothing)
 }
 
-de_system::de_system(Vfn f){//, Mfn Df, Sfn freq, Vfn Dfreq, Mfn DDfreq, Sfn gam, Vfn Dgam, Mfn DDgam){
+de_system::de_system(Vectorfn f){//, Mfn Df, Sfn freq, Vfn Dfreq, Mfn DDfreq, Sfn gam, Vfn Dgam, Mfn DDgam){
     // default constructor for a system of differential equations
 
     F = f;
