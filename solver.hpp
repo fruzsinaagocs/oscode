@@ -1,4 +1,5 @@
 #include "integrators.hpp"
+#include <fstream>
 
 namespace RKWKB{
     
@@ -11,7 +12,7 @@ namespace RKWKB{
         // default constructor
         Solution();
         // constructor overloads
-        Solution(de_system de_sys, Vector ic, double t_ini, event F_end, double r_tol=1e-4, double a_tol=0.0, double stepsize=1.0);
+        Solution(de_system de_sys, Vector ic, double t_ini, event F_end, double r_tol=1e-4, double a_tol=0.0, double stepsize=1.0, std::string output="output.txt");
     
         // class data 
         double t_i, rtol, h; // current stepsize
@@ -23,11 +24,12 @@ namespace RKWKB{
         RKFsolver rkfsolver;
         WKBsolver wkbsolver;
         event f_end; // function s.t. solution terminates at f(y,t)=0
+        std::string outputfile;
     
         // class functions
         void evolve();
         Step step(Method * method, Vector Y, double H); 
-        void write();
+        void write(std::string output);
         void update_h(Vector err, Vector scale, bool wkb, bool success);
 
     };
@@ -36,7 +38,7 @@ namespace RKWKB{
         // default constructor for a solution object (does nothing)
     };
     
-    Solution::Solution(de_system system, Vector ic, double t_ini, event F_end, double r_tol, double a_tol, double stepsize){
+    Solution::Solution(de_system system, Vector ic, double t_ini, event F_end, double r_tol, double a_tol, double stepsize, std::string output){
         // constructor for solution of a system of differential equations
         
         y = ic;
@@ -47,10 +49,13 @@ namespace RKWKB{
         t = t_i;
         f_end = F_end;
         error = Vector::Zero(y.size());
+        outputfile = output;
 
         de_sys = system;
         rkfsolver = RKFsolver(de_sys.F);
         wkbsolver = WKBsolver(de_sys.F);
+
+        write(outputfile);
     };
                 
     void Solution::evolve(){
@@ -104,6 +109,7 @@ namespace RKWKB{
                 // update stepsize
                 update_h(error_next, scale, wkb, true);
                 std::cout << "time: " << t << ", solution: " << y << std::endl;
+                write(outputfile);
                 if(abs(end_error) < 1e-4)
                     break;
             };
@@ -135,8 +141,18 @@ namespace RKWKB{
         };
     };
 
-    void Solution::write(){
+    void Solution::write(std::string output){
         // write current step to file
+
+        std::ofstream fout;
+        fout.open(output, std::ios_base::app); // appends at the end of outputfile
+        fout << t << " ";
+        for(int i=0; i<y.size(); i++)
+            fout << y(i) << " ";
+        for(int i=0; i<error.size(); i++) 
+            fout << error(i) << " ";
+        fout << std::endl;
+        fout.close();
     };
 
 }
