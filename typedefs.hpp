@@ -10,4 +10,5 @@ namespace RKWKB{
     typedef std::function<Scalar(Vector)> Scalarfn;
     typedef std::function<Vector(Vector)> Vectorfn;
     typedef std::function<Matrix(Vector)> Matrixfn;
+    typedef std::function<Scalar(Vector, Scalar)> event;
 }

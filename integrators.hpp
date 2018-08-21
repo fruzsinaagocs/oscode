@@ -84,19 +84,23 @@ namespace RKWKB{
         int d = y.size();
         Matrix k(6,d);
         Step result(d);
+        Vector yarg = y;
 
         k.row(0) = h*F(y);
         for(int s=1; s<=5; s++){
+            yarg = y;
             for(int i=0; i<=(s-1); i++)
-                y += butcher_a(s-1, i)*k.row(i);
-            k.row(s) = h*F(y);
+                yarg += butcher_a(s-1, i)*k.row(i);
+            k.row(s) = h*F(yarg);
         } 
+        result.y = y;
+        result.error = Vector::Zero(d);
         for(int j=0; j<=5; j++){
             result.y += butcher_b5(j)*k.row(j);
             result.error += (butcher_b4(j) - butcher_b5(j))*k.row(j);
         }   
         result.wkb = false;
-
+        
         return result;
     };
     
