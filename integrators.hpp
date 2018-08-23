@@ -119,19 +119,27 @@ namespace RKWKB{
         // class data
         de_system sys;
         int order;
-        
+        //Vector S, dS, ddS;
+        Scalar fp, fm, dfp, dfm, ddfp, ddfm;
+        Scalar ap, am, bp, bm;
+        Vector y0, y1; // solution vector at beginning and end of current step
+        Vector error0, error1; // error on solution vector at beginning and end of current step  
+
         // class methods
+        virtual Vector ddS(Vector y);
+        virtual Vector dS(Vector y);
+        virtual Vector S_odd(Vector y);
         Step step(Vectorfn F, Vector y, double h);
-//        Scalar fp(Vector);
-//        Scalar fm(Vector);
-//        Scalar dfp();
-//        dfm, 
-//        ddfp,
-//        ddfm;
-//        Scalar Ap, 
-//        Am,
-//        Bp,
-//        Bm;
+        Scalar Fp();
+        Scalar Fm();
+        Scalar dFp();
+        Scalar dFm(); 
+        Scalar ddFp();
+        Scalar ddFm();
+        Scalar Ap();
+        Scalar Am();
+        Scalar Bp();
+        Scalar Bm();
     };
     
     WKBsolver::WKBsolver(){
@@ -147,19 +155,76 @@ namespace RKWKB{
     Step WKBsolver::step(Vectorfn F, Vector y, double h){
         // Stepper function using the RKF method   
     
-        int d = y.size();
+        int d = y0.size();
+        // Background y and its error before step 
+//        Vector y0_bg = y0.segment(2, d-2-(order+2)/2);
+//        Vector error0_bg = error0.segment(2, d-2-(order+2)/2);
+        // Background after step
+//        Vector y1_bg = y1.segment(2, d-2-(order+2)/2);
+        
+//        Scalar ddx = -y0(0)*std::pow(sys.w(y0_bg),2) - 2.0*y0(1)*sys.g(y0_bg);
+        Vector ds = dS(y);
+        std::cout << "dS(y): " << ds << std::endl;
+
+
+
+
         Step result(d);
-        result.wkb = false;
-    
+        result.wkb = true; 
         return result;
     };
 
-//    Scalar WKBsolver::Ap(Vector y){
-//        return 1.0;
-//    };
+    Vector WKBsolver::ddS(Vector y){
+        return y;
+    };
+    
+    Vector WKBsolver::dS(Vector y){
+        return y;
+    };
+
+    Vector WKBsolver::S_odd(Vector y){
+        return y;
+    };
+
 
     class WKBsolver1 : public WKBsolver
     {
+        private:
+         
+        public:
+        // default constructor
+        WKBsolver1();
+        // constructor overloads
+        WKBsolver1(de_system, int o=1);
+        // class functions
+        Vector ddS(Vector y);
+        Vector dS(Vector y);
+        Vector S_odd(Vector y);
+
+    };
+
+    WKBsolver1::WKBsolver1(){
+    };
+
+    WKBsolver1::WKBsolver1(de_system system, int o) : WKBsolver(system, o){
+    };
+
+    Vector WKBsolver1::ddS(Vector y){
+        Vector result(2);
+        result << std::complex<double>(0.0, 1.0)*sys.dw(y), -sys.g(y)-0.5*sys.ddw(y)/sys.w(y)+0.5*std::pow(sys.dw(y),2)/std::pow(sys.w(y),2);
+        return result;
+    };
+    
+    Vector WKBsolver1::dS(Vector y){
+        Vector result(2);
+        result << std::complex<double>(0.0, 1.0)*sys.w(y), -sys.g(y)-0.5*sys.dw(y)/sys.w(y);
+        return result;
+    };
+
+    Vector WKBsolver1::S_odd(Vector y){
+        Vector result(1);
+        result << -0.5*std::log(sys.w(y));
+        return result;
     };
     
     class WKBsolver2 : public WKBsolver

@@ -65,7 +65,11 @@ int main(){
     std::cout << "dg: " << my_system.dg(y) << std::endl;
     std::cout << "ddw: " << my_system.ddw(y) << std::endl;
     std::cout << "ddg: " << my_system.ddg(y) << std::endl;
-
+    Solution my_solution(my_system, y, 1.0, f_end);
+    Step wkb_step = my_solution.wkbsolver1.step(F, y, 1.0);
+    std::cout << "wkb step: " << wkb_step.y << " " << wkb_step.error << " " << wkb_step.wkb << std::endl;
+    //Vector my_dS = my_solution.wkbsolver1.dS(y);
+    //std::cout << "dS: " << my_dS << std::endl;
     return 0;
 };
 

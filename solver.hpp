@@ -22,7 +22,7 @@ namespace RKWKB{
         Vector atol;
         de_system de_sys;
         RKFsolver rkfsolver;
-        WKBsolver wkbsolver;
+        WKBsolver1 wkbsolver1;
         event f_end; // function s.t. solution terminates at f(y,t)=0
         std::string outputfile;
     
@@ -54,7 +54,7 @@ namespace RKWKB{
 
         de_sys = system;
         rkfsolver = RKFsolver(de_sys);
-        wkbsolver = WKBsolver(de_sys);
+        wkbsolver1 = WKBsolver1(de_sys, 1);
 
         write(outputfile);
     };
