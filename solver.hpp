@@ -27,11 +27,12 @@ namespace RKWKB{
         std::string outputfile;
     
         // class functions
+        Vector F_tot(Vector); // gives time-derivative of all variables propagated
         void evolve();
-        Step step(Method * method, Vector Y, double H); 
+        Step step(Method * method, Vectorfn F, Vector Y, double H); 
         void write(std::string output);
         void update_h(Vector err, Vector scale, bool wkb, bool success);
-
+        
     };
     
     Solution::Solution(){
@@ -52,8 +53,8 @@ namespace RKWKB{
         outputfile = output;
 
         de_sys = system;
-        rkfsolver = RKFsolver(de_sys.F);
-        wkbsolver = WKBsolver(de_sys.F);
+        rkfsolver = RKFsolver(de_sys);
+        wkbsolver = WKBsolver(de_sys);
 
         write(outputfile);
     };
@@ -74,8 +75,8 @@ namespace RKWKB{
         while(true){
             // keep updating stepsize until step is successful
             while(true){
-                step_rkf = step(&rkfsolver, y, h);
-                step_wkb = step(&rkfsolver, y, h); // for testing, only take RKF steps.
+                step_rkf = step(&rkfsolver, de_sys.F, y, h);
+                step_wkb = step(&rkfsolver, de_sys.F, y, h); // for testing, only take RKF steps.
                 wkb = step_rkf.error.norm() > step_wkb.error.norm();
                 if(wkb){
                     y_next = step_rkf.y;
@@ -116,11 +117,11 @@ namespace RKWKB{
         };
     };
 
-    Step Solution::step(Method * method, Vector Y, double H){
+    Step Solution::step(Method * method, Vectorfn F, Vector Y, double H){
         // function to take a single step with a given method in the numerical solution of the
         // de_system, from y with stepsize h.
     
-        Step s = method->step(de_sys.F, Y, H);
+        Step s = method->step(F, Y, H);
         return s;
     };
     
@@ -153,6 +154,11 @@ namespace RKWKB{
             fout << error(i) << " ";
         fout << std::endl;
         fout.close();
+    };
+
+    Vector Solution::F_tot(Vector z){
+        // time-derivative of all variables propagated. z = [x, x', y, S_i]
+        return z;
     };
 
 }

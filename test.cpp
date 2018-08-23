@@ -1,11 +1,51 @@
-#include "test.hpp"
+#include "test.hpp" 
 using namespace RKWKB;
 
 Vector F(Vector z){
-    // A trial function to describe the background evolution. 
-
     Vector result(z.size());
     result << 0.25*std::pow(z(0),-3), 0.25*std::pow(z(1),-3);
+    return result;
+};
+
+Matrix DF(Vector z){
+    Matrix result(z.size(),z.size());
+    result << -0.75*std::pow(z(0), -4), 0.0,
+               0.0, -0.75*std::pow(z(1), -4);
+    return result;
+
+};
+
+Scalar w(Vector z){
+    return z(0)*z(1);
+};
+
+Vector Dw(Vector z){
+    Vector result(z.size());
+    result << z(1), z(0);
+    return result;
+}
+
+Matrix DDw(Vector z){
+    Matrix result(z.size(), z.size());
+    result << 0.0, 1.0,
+              1.0, 0.0;
+    return result;
+}
+
+Scalar g(Vector z){
+    return 0.0;
+};
+
+Vector Dg(Vector z){
+    Vector result(z.size());
+    result << 0.0, 0.0;
+    return result;
+};
+
+Matrix DDg(Vector z){
+    Matrix result(z.size(), z.size());
+    result << 0.0, 0.0,
+              0.0, 0.0;
     return result;
 };
 
@@ -19,9 +59,17 @@ int main(){
 
     Vector y(2);
     y << 1.0, 1.0;
-    de_system my_system(F);
-    Solution my_solution(my_system, y, 1.0, f_end); 
-    my_solution.evolve();
+    de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);
+    std::cout << "DE system: " << std::endl;
+    std::cout << "w: " << my_system.w(y) << std::endl;
+    std::cout << "g: " << my_system.g(y) << std::endl;
+    std::cout << "F: " << my_system.F(y) << std::endl;
+    std::cout << "Dw: " << my_system.Dw(y) << std::endl;
+    std::cout << "Dg: " << my_system.Dg(y) << std::endl;
+    std::cout << "DF: " << my_system.DF(y) << std::endl;
+    std::cout << "DDw: " << my_system.DDw(y) << std::endl;
+    std::cout << "DDg: " << my_system.DDg(y) << std::endl;
+
     return 0;
 };
 

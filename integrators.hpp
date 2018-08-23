@@ -114,32 +114,62 @@ namespace RKWKB{
         // default constructor
         WKBsolver();    
         // constructor overloads
-        WKBsolver(de_system);
+        WKBsolver(de_system system, int o=1);
     
         // class data
         de_system sys;
+        int order;
         
         // class methods
         Step step(Vectorfn F, Vector y, double h);
-    
+//        Scalar fp(Vector);
+//        Scalar fm(Vector);
+//        Scalar dfp();
+//        dfm, 
+//        ddfp,
+//        ddfm;
+//        Scalar Ap, 
+//        Am,
+//        Bp,
+//        Bm;
     };
     
     WKBsolver::WKBsolver(){
         // Default constructor for a WKBsolver (does nothing)
     };
     
-    WKBsolver::WKBsolver(de_system system){
+    WKBsolver::WKBsolver(de_system system, int o){
         // Constructor for a WKBsolver from a system of differential equations
         sys = system;
+        order = o;
     };
     
     Step WKBsolver::step(Vectorfn F, Vector y, double h){
         // Stepper function using the RKF method   
     
-    int d = y.size();
-    Step result(d);
-    result.wkb = false;
+        int d = y.size();
+        Step result(d);
+        result.wkb = false;
     
-    return result;
+        return result;
     };
+
+//    Scalar WKBsolver::Ap(Vector y){
+//        return 1.0;
+//    };
+
+    class WKBsolver1 : public WKBsolver
+    {
+    };
+    
+    class WKBsolver2 : public WKBsolver
+    {
+    };
+    
+    class WKBsolver3 : public WKBsolver
+    {
+    };
+
+
+
 }
