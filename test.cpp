@@ -61,14 +61,10 @@ int main(){
     y << 1.0, 1.0;
     de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);
     std::cout << "DE system: " << std::endl;
-    std::cout << "w: " << my_system.w(y) << std::endl;
-    std::cout << "g: " << my_system.g(y) << std::endl;
-    std::cout << "F: " << my_system.F(y) << std::endl;
-    std::cout << "Dw: " << my_system.Dw(y) << std::endl;
-    std::cout << "Dg: " << my_system.Dg(y) << std::endl;
-    std::cout << "DF: " << my_system.DF(y) << std::endl;
-    std::cout << "DDw: " << my_system.DDw(y) << std::endl;
-    std::cout << "DDg: " << my_system.DDg(y) << std::endl;
+    std::cout << "dw: " << my_system.dw(y) << std::endl;
+    std::cout << "dg: " << my_system.dg(y) << std::endl;
+    std::cout << "ddw: " << my_system.ddw(y) << std::endl;
+    std::cout << "ddg: " << my_system.ddg(y) << std::endl;
 
     return 0;
 };

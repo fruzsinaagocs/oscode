@@ -14,16 +14,23 @@ namespace RKWKB
             de_system(Vectorfn, Matrixfn, Scalarfn, Vectorfn, Matrixfn, Scalarfn, Vectorfn, Matrixfn, Rank3Tfn=std::function<Rank3T(Vector)>{}, Rank3Tfn=std::function<Rank3T(Vector)>{}, Rank3Tfn=std::function<Rank3T(Vector)>{}, Rank4Tfn=std::function<Rank4T(Vector)>{}, Rank4Tfn=std::function<Rank4T(Vector)>{}, Rank4Tfn=std::function<Rank4T(Vector)>{});
             
             // class data
-            
-            // class functions
             Vectorfn F, Dw, Dg;
             Matrixfn DF, DDw, DDg;
-            Scalarfn w, g, dw, dg, ddw, ddg;
+            Scalarfn w, g;
             // optional for higher order solvers (if not given but called, will
             // give bad_function_call
             Rank3Tfn D3w, D3g, DDF;
             Rank4Tfn D4w, D4g, D3F;
-            Scalarfn d3w, d4w, d3g, d4g;
+            
+            // class functions
+            Scalar dw(Vector);
+            Scalar dg(Vector);
+            Scalar ddw(Vector);
+            Scalar ddg(Vector);
+            Scalar d3w(Vector);
+            Scalar d4w(Vector);
+            Scalar d3g(Vector);
+            Scalar d4g(Vector);
     };
     
     de_system::de_system(){
@@ -49,14 +56,30 @@ namespace RKWKB
         D3F = D3f;
     };
     
-    Scalar dw(Vector y){
-        return 1.0;
+    Scalar de_system::dw(Vector y){
+        return Dw(y).transpose()*(F(y));
     };
 
-    Scalar dg(Vector y){
-        return 1.0;
+    Scalar de_system::dg(Vector y){
+        return Dg(y).transpose()*(F(y));
     };
 
+    Scalar de_system::ddw(Vector y){
+        Matrix m = DDw(y)*(F(y)*F(y).transpose());
+        Scalar num = Dw(y).transpose()*(DF(y).transpose()*F(y));
+        return m.trace() + num; 
+    };
+
+    Scalar de_system::ddg(Vector y){
+        Matrix m = DDg(y)*(F(y)*F(y).transpose());
+        Scalar num = Dg(y).transpose()*(DF(y).transpose()*F(y));
+        return m.trace() + num; 
+    };
+
+//    Scalar de_system::d3w(Vector y){};
+//    Scalar de_system::d4w(Vector y){};
+//    Scalar de_system::d3g(Vector y){};
+//    Scalar de_system::d4g(Vector y){};
 }
 
 
