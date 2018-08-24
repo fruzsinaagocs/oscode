@@ -58,7 +58,7 @@ Scalar f_end(Vector y, Scalar t){
 int main(){
 
     Vector y(2);
-    y << 1.0, 1.0;
+    y << 4.0, 4.0;
     de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);
     std::cout << "DE system: " << std::endl;
     std::cout << "dw: " << my_system.dw(y) << std::endl;
@@ -66,6 +66,11 @@ int main(){
     std::cout << "ddw: " << my_system.ddw(y) << std::endl;
     std::cout << "ddg: " << my_system.ddg(y) << std::endl;
     Solution my_solution(my_system, y, 1.0, f_end);
+    Vector y_tot0(5), y_tot1(5);
+    y_tot0 << std::complex<double>(0.2, 1.0), std::complex<double>(3e-5, -2.0), y, 0.0;
+    y_tot1 << 3.0, 4.0, 4.07, 4.07, std::complex<double>(0,3e-4);
+    my_solution.wkbsolver1.y0 = y_tot0;
+    my_solution.wkbsolver1.y1 = y_tot1;
     Step wkb_step = my_solution.wkbsolver1.step(F, y, 1.0);
     std::cout << "wkb step: " << wkb_step.y << " " << wkb_step.error << " " << wkb_step.wkb << std::endl;
     //Vector my_dS = my_solution.wkbsolver1.dS(y);
