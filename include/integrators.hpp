@@ -129,7 +129,9 @@ namespace RKWKB{
         // class methods
         virtual Vector ddS(Vector y); // to be overridden by higher order derived classes
         virtual Vector dS(Vector y);
+        virtual Vector dS_even(Vector y);
         virtual Vector S_odd(Vector y);
+        virtual Vector truncation_error();
         Step step(Vectorfn F, Vector y, double h);
         Scalar Fp();
         Scalar Fm();
@@ -158,7 +160,10 @@ namespace RKWKB{
     
         int d = y0.size();
         Vector y0_bg = y0.segment(2, d-2-(order+2)/2); // Background y and its error before step 
-        Vector y1_bg = y1.segment(2, d-2-(order+2)/2); // Background after step
+        Vector bg_error0 = error0.segment(2, d-2-(order+2)/2);
+        Vector y1_bg = y1.segment(2, d-2-(order+2)/2); // Background and its errorafter step
+        Vector bg_error1 = error1.segment(2, d-2-(order+2)/2);
+
         ddx = -y0(0)*std::pow(sys.w(y0_bg),2) - 2.0*y0(1)*sys.g(y0_bg);
         dx = y0(1);
         x = y0(0);
@@ -176,14 +181,15 @@ namespace RKWKB{
         am = Am();
         bp = Bp();
         bm = Bm();
-        std::cout << "at y0: " << std::endl;
-        std::cout << "ddx: " << ddx << ", dx: " << dx << ", x: " << x << std::endl;
-        std::cout << "ds: " << ds << std::endl;
-        std::cout << "fp " << fp << ", fm: " << fm << std::endl;
-        std::cout << "dfp: " << dfp << ", dfm: " << dfm << std::endl;
-        std::cout << "ddfp: " << ddfp << ", ddfm: " << ddfm << std::endl;
-        std::cout << "ap: " << ap << ", am: " << am << std::endl;
-        std::cout << "bp: " << bp << ", bm: " << bm << std::endl;
+
+        // Error on quantities at y0
+        Scalar error_x = error0(0);
+        Scalar error_dx = error0(1);
+        Scalar error_ddx = -2.0*sys.g(y0_bg)*error_dx - std::pow(sys.w(y0_bg),2)*error_x;
+        Scalar error_ap = (error_dx - dfm*error_x)/(dfp - dfm);
+        Scalar error_am = (error_dx - dfp*error_x)/(dfm - dfp);
+        Scalar error_bp = (error_ddx - ddfm*error_dx)/(ddfp*dfm - ddfm*dfp);
+        Scalar error_bm = (error_ddx - ddfp*error_dx)/(ddfm*dfp - ddfp*dfm);
 
         Vector s_odd = S_odd(y1_bg) - S_odd(y0_bg);
         for(int i=0; i<(order+1); i++){
@@ -192,24 +198,30 @@ namespace RKWKB{
             else
                 s(i) = s_odd(i/2); 
         };
-        std::cout << "s at y1: " << s << std::endl;
         ds = dS(y1_bg);
         dds = ddS(y1_bg);
         fp = Fp();
         fm = Fm();
         dfp = dFp();
         dfm = dFm();
-        std::cout << "at y1: " << std::endl;
-        std::cout << "ds: " << ds << std::endl;
-        std::cout << "fp " << fp << ", fm: " << fm << std::endl;
-        std::cout << "dfp: " << dfp << ", dfm: " << dfm << std::endl;
         x = ap*fp + am*fm;
         dx = bp*dfp + bm*dfm;
 
-//        Vector error0_bg = error0.segment(2, d-2-(order+2)/2);
+        // Error on quantities at y1
+        Vector error_s = Vector::Zero(order+1);
+        for(int i=0; i<(order+1); i++)
+            if(i%2==0)
+                error_s(i) = error1(d - (order+2)/2 + i/2);
+        Scalar error_fp = error_s.sum()*fp;
+        Scalar error_fm = std::conj(error_s.sum())*fm;
+        Scalar error_dfp = ds.sum()*error_fp;
+        Scalar error_dfm = std::conj(ds.sum())*error_fm;
+        error1(0) = error_ap*fp + error_am*fm + ap*error_fp + am*error_fm;
+        error1(1) = error_bp*dfp + error_bm*dfm + bp*error_dfp + bm*error_dfm;
 
         Step result(d);
         result.y << x, dx, y1.tail(d-2);
+        result.error << error1;
         result.wkb = true; 
         return result;
     };
@@ -225,6 +237,10 @@ namespace RKWKB{
         result << std::complex<double>(0.0, 1.0)*sys.w(y);
         return result;
     };
+
+    Vector WKBsolver::dS_even(Vector y){
+        return dS(y); 
+    }
 
     Vector WKBsolver::S_odd(Vector y){
         Vector result;
@@ -271,6 +287,11 @@ namespace RKWKB{
         return (ddx*dfp - dx*ddfp)/(ddfm*dfp - ddfp*dfm);
     };
 
+    Vector WKBsolver::truncation_error(){
+        Vector result;
+        return result;
+    };
+
     class WKBsolver1 : public WKBsolver
     {
         private:
@@ -283,6 +304,7 @@ namespace RKWKB{
         // class functions
         Vector ddS(Vector y);
         Vector dS(Vector y);
+        Vector dS_even(Vector y);
         Vector S_odd(Vector y);
 
     };
@@ -305,6 +327,12 @@ namespace RKWKB{
         return result;
     };
 
+    Vector WKBsolver1::dS_even(Vector y){
+        Vector result(1);
+        result << std::complex<double>(0.0, 1.0)*sys.w(y);
+        return result;
+    }
+
     Vector WKBsolver1::S_odd(Vector y){
         Vector result(1);
         result << -0.5*std::log(sys.w(y));
@@ -313,12 +341,89 @@ namespace RKWKB{
     
     class WKBsolver2 : public WKBsolver
     {
+        private:
+         
+        public:
+        // default constructor
+        WKBsolver2();
+        // constructor overloads
+        WKBsolver2(de_system, int o=2);
+        // class functions
+        Vector ddS(Vector y);
+        Vector dS(Vector y);
+        Vector dS_even(Vector y);
+        Vector S_odd(Vector y);
+    };
+
+    WKBsolver2::WKBsolver2(){
+    };
+
+    WKBsolver2::WKBsolver2(de_system system, int o) : WKBsolver(system, o){
+    };
+
+    Vector WKBsolver2::ddS(Vector y){
+        Vector result(2);
+        result << std::complex<double>(0.0, 1.0)*sys.dw(y), -sys.g(y)-0.5*sys.ddw(y)/sys.w(y)+0.5*std::pow(sys.dw(y),2)/std::pow(sys.w(y),2);
+        return result;
     };
     
-    class WKBsolver3 : public WKBsolver
-    {
+    Vector WKBsolver2::dS(Vector y){
+        Vector result(2);
+        result << std::complex<double>(0.0, 1.0)*sys.w(y), -sys.g(y)-0.5*sys.dw(y)/sys.w(y);
+        return result;
     };
 
+    Vector WKBsolver2::dS_even(Vector y){
+        return y;
+    };
 
+    Vector WKBsolver2::S_odd(Vector y){
+        Vector result(1);
+        result << -0.5*std::log(sys.w(y));
+        return result;
+    };
 
+    class WKBsolver3 : public WKBsolver
+    {
+        private:
+        
+        public:
+        // default constructor
+        WKBsolver3();
+        // constructor overloads
+        WKBsolver3(de_system, int o=3);
+        // class functions
+        Vector ddS(Vector y);
+        Vector dS(Vector y);
+        Vector dS_even(Vector y);
+        Vector S_odd(Vector y);
+    };
+
+    WKBsolver3::WKBsolver3(){
+    };
+
+    WKBsolver3::WKBsolver3(de_system system, int o) : WKBsolver(system, o){
+    };
+
+    Vector WKBsolver3::ddS(Vector y){
+        Vector result(2);
+        result << std::complex<double>(0.0, 1.0)*sys.dw(y), -sys.g(y)-0.5*sys.ddw(y)/sys.w(y)+0.5*std::pow(sys.dw(y),2)/std::pow(sys.w(y),2);
+        return result;
+    };
+    
+    Vector WKBsolver3::dS(Vector y){
+        Vector result(2);
+        result << std::complex<double>(0.0, 1.0)*sys.w(y), -sys.g(y)-0.5*sys.dw(y)/sys.w(y);
+        return result;
+    };
+    
+    Vector WKBsolver3::dS_even(Vector y){
+        return y;
+    };
+
+    Vector WKBsolver3::S_odd(Vector y){
+        Vector result(1);
+        result << -0.5*std::log(sys.w(y));
+        return result;
+    }; 
 }
