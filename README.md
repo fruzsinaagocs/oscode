@@ -19,6 +19,6 @@ Restructured version of cRKWKB.
 
 ## Testing
 
-- is done with catch2
+- is done with (catch2)[https://github.com/catchorg/Catch2]
 - `test-airy.cpp` is used for testing an RKWKB solver on the Airy equation.
     - `make test-airy`, then `./test-airy`.
