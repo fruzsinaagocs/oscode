@@ -32,6 +32,7 @@ namespace RKWKB{
     
         // class functions
         Vector F_tot(Vector); // gives time-derivative of all variables propagated
+        Vectorfn f_tot;
         void evolve();
         Step step(Integrator * method, Vectorfn F, Vector Y, double H); 
         void write(std::string output);
@@ -58,7 +59,7 @@ namespace RKWKB{
         f_end = F_end;
         error = Vector::Zero(y.size());
         outputfile = output;
-
+        f_tot = std::bind(&Solution::F_tot, this, std::placeholders::_1);
 
         de_sys = system;
         rkfsolver = RKFsolver(de_sys);
@@ -92,8 +93,8 @@ namespace RKWKB{
         while(true){
             // keep updating stepsize until step is successful
             while(true){
-                step_rkf = step(&rkfsolver, de_sys.F, y, h);
-                step_wkb = step(&rkfsolver, de_sys.F, y, h); // for testing, only take RKF steps.
+                step_rkf = step(&rkfsolver, f_tot, y, h);
+                step_wkb = step(wkbsolver, de_sys.F, y, h); // for testing, only take RKF steps.
                 wkb = step_rkf.error.norm() > step_wkb.error.norm();
                 if(wkb){
                     y_next = step_rkf.y;
