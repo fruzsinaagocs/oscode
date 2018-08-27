@@ -19,6 +19,6 @@ Restructured version of cRKWKB.
 
 ## Testing
 
-- `test.cpp` is used for testing various features of the RKWKB solver.
-- to compile, `make test` (or just `make`)
-- to run, `./test`
+- is done with catch2
+- `test-airy.cpp` is used for testing an RKWKB solver on the Airy equation.
+    `make test-airy`, then `./test-airy`.
