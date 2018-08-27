@@ -21,4 +21,4 @@ Restructured version of cRKWKB.
 
 - is done with catch2
 - `test-airy.cpp` is used for testing an RKWKB solver on the Airy equation.
-    `make test-airy`, then `./test-airy`.
+    - `make test-airy`, then `./test-airy`.
