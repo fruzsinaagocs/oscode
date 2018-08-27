@@ -1,4 +1,5 @@
 #include "include/solver.hpp"
+#include <boost/math/special_functions/airy.hpp>
 #include "include/catch.hpp"
 
 using namespace RKWKB;

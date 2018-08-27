@@ -12,9 +12,10 @@ namespace RKWKB{
         // default constructor
         Solution();
         // constructor overloads
-        Solution(de_system de_sys, Vector ic, double t_ini, event F_end, double r_tol=1e-4, double a_tol=0.0, double stepsize=1.0, std::string output="output.txt");
+        Solution(de_system de_sys, Vector ic, double t_ini, event F_end, int o=1, double r_tol=1e-4, double a_tol=0.0, double stepsize=1.0, std::string output="output.txt");
     
         // class data 
+        int d, order; // size of solution vector, order of WKB solution
         double t_i, rtol, h; // current stepsize
         double t; // current time
         Vector y; // current solution vector
@@ -22,7 +23,10 @@ namespace RKWKB{
         Vector atol;
         de_system de_sys;
         RKFsolver rkfsolver;
+        WKBsolver * wkbsolver;
         WKBsolver1 wkbsolver1;
+        WKBsolver2 wkbsolver2;
+        WKBsolver3 wkbsolver3;
         event f_end; // function s.t. solution terminates at f(y,t)=0
         std::string outputfile;
     
@@ -39,10 +43,13 @@ namespace RKWKB{
         // default constructor for a solution object (does nothing)
     };
     
-    Solution::Solution(de_system system, Vector ic, double t_ini, event F_end, double r_tol, double a_tol, double stepsize, std::string output){
+    Solution::Solution(de_system system, Vector ic, double t_ini, event F_end, int o, double r_tol, double a_tol, double stepsize, std::string output){
         // constructor for solution of a system of differential equations
         
-        y = ic;
+        order = o;
+        d = ic.size() + (order+2)/2;
+        y.resize(d);
+        y << ic, Vector::Zero((order+2)/2);
         t_i = t_ini;
         rtol = r_tol;
         atol = a_tol*Vector::Ones(y.size());
@@ -52,11 +59,21 @@ namespace RKWKB{
         error = Vector::Zero(y.size());
         outputfile = output;
 
+
         de_sys = system;
         rkfsolver = RKFsolver(de_sys);
-        wkbsolver1 = WKBsolver1(de_sys, 1);
-
-        write(outputfile);
+        switch(order){
+            case 1: wkbsolver1 = WKBsolver1(de_sys,1);
+                    wkbsolver = &wkbsolver1;
+                    break;
+            case 2: wkbsolver2 = WKBsolver2(de_sys,2);
+                    wkbsolver = &wkbsolver2;
+                    break;
+            case 3: wkbsolver3 = WKBsolver3(de_sys,3);
+                    wkbsolver = &wkbsolver3;
+                    break;
+        };
+        //write(outputfile);
     };
                 
     void Solution::evolve(){
@@ -98,7 +115,7 @@ namespace RKWKB{
 
             // check if f_end has changed sign
             next_sign = (f_end(y_next, t_next).real() <= 0.0);
-            end_error = abs(f_end(y_next, t_next));
+            end_error = std::abs(f_end(y_next, t_next));
             if(next_sign != sign){
                 h = (t_next - t)/2.0;
                 t_next = t;
@@ -111,17 +128,17 @@ namespace RKWKB{
                 update_h(error_next, scale, wkb, true);
                 std::cout << "time: " << t << ", solution: " << y << std::endl;
                 write(outputfile);
-                if(abs(end_error) < 1e-4)
+                if(std::abs(end_error) < 1e-4)
                     break;
             };
         };
     };
 
-    Step Solution::step(Integrator * method, Vectorfn F, Vector Y, double H){
+    Step Solution::step(Integrator * integrator, Vectorfn F, Vector Y, double H){
         // function to take a single step with a given method in the numerical solution of the
         // de_system, from y with stepsize h.
     
-        Step s = method->step(F, Y, H);
+        Step s = integrator->step(F, Y, H);
         return s;
     };
     
@@ -158,7 +175,10 @@ namespace RKWKB{
 
     Vector Solution::F_tot(Vector z){
         // time-derivative of all variables propagated. z = [x, x', y, S_i]
-        return z;
+        Vector result(d);
+        Vector z_bg = z.segment(2, d-2-(order+2)/2);
+        result << z(1), -z(0)*std::pow(de_sys.w(z_bg),2) -2.0*z(1)*de_sys.g(z_bg), de_sys.F(z_bg), wkbsolver->dS_even(z_bg);
+        return result;
     };
 
 }

@@ -1,33 +1,60 @@
 #include "test-airy.hpp"
 
+Vector background(Scalar t, int d){
+    // Gives background at a given time t
+    Vector result = Vector::Ones(d);
+    return result*std::pow(t, 1.0/4.0);
+};
+
+Vector ana_s(Scalar t, int order){
+    Vector result(4);
+    result << std::complex<double>(0.0, 1.0)*2.0/3.0*std::pow(t, 3.0/2.0), -1.0/4.0*std::log(t), std::complex<double>(0.0, 1.0)*(-5.0)/48.0*std::pow(t, -3.0/2.0), -5.0/64.0*std::pow(t, -3.0);
+    return result.head(order+1);
+}
+
+Vector ana_ds(Scalar t, int order){
+    Vector result(4);
+    result << std::complex<double>(0.0, 1.0)*std::pow(t, 1/2.0), -1.0/(4.0*t), std::complex<double>(0.0, 1.0)*5.0/32.0*std::pow(t, -5.0/2.0), 5.0/192.0*std::pow(t, -4);
+    return result.head(order+1);
+}
+
+Vector airy(double t){
+    Vector result(2);
+    result << boost::math::airy_ai(-t), -boost::math::airy_ai_prime(-t);
+    return result; 
+}
+
+
 TEST_CASE("setting up a system of ODEs"){
     
-    Scalar t = 6.0;
-    Vector y(2);                                        
-    y << std::pow(t, 1/4.0), std::pow(t, 1/4.0);
+    double t = 1.0;
+    Vector ic(4);                                        
+    ic << 1.0, 1.0, std::pow(t, 1/4.0), std::pow(t, 1/4.0);
+    Vector y = ic.tail(2);
     de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);
      
-    REQUIRE( std::abs(my_system.w(y) - std::pow(t, 1/2.0)) <= 1e-14 );
-    REQUIRE( std::abs(my_system.dw(y) - 1/2.0*std::pow(t, -1/2.0)) <= 1e-14 );
-    REQUIRE( std::abs(my_system.ddw(y) - -1/4.0*std::pow(t, -3/2.0)) <= 1e-14 );
-    REQUIRE( std::abs(my_system.dg(y) - 0.0) <= 1e-14 );
-    REQUIRE( std::abs(my_system.ddg(y)- 0.0) <= 1e-14 );
+    REQUIRE( std::real(my_system.w(y)) == Approx(std::pow(t, 1/2.0)) );
+    REQUIRE( std::real(my_system.dw(y)) == Approx(1/2.0*std::pow(t, -1/2.0)) );
+    REQUIRE( std::real(my_system.ddw(y)) == Approx(-1/4.0*std::pow(t, -3/2.0)) );
+    REQUIRE( std::real(my_system.dg(y)) == Approx(0.0) );
+    REQUIRE( std::real(my_system.ddg(y)) == Approx(0.0) );
 
-    Solution my_solution(my_system, y, 1.0, f_end);
-    Vector y_tot0(5), y_tot1(5);
-    y_tot0 << std::complex<double>(0.2, 1.0), std::complex<double>(3e-5, -2.0), y, 0.0;
-    y_tot1 << 3.0, 4.0, 4.07, 4.07, std::complex<double>(0,3e-4);
-    my_solution.wkbsolver1.y0 = y_tot0;
-    my_solution.wkbsolver1.y1 = y_tot1;
-    Step wkb_step = my_solution.wkbsolver1.step(F, y, 1.0);
-    //std::cout << "wkb step: " << wkb_step.y << " " << wkb_step.error << " " << wkb_step.wkb << std::endl;
-    Vector my_dS = my_solution.wkbsolver1.dS(y);
-    Vector my_S_odd = my_solution.wkbsolver1.S_odd(y);
-    
-    Vector analytic_dS(2);
-    analytic_dS << std::complex<double>(0.0, 1.0)*std::pow(t, 1/2.0), -1.0/(4.0*t);
-    REQUIRE( analytic_dS.size() == my_dS.size());
-    for(int i=0; i<analytic_dS.size(); i++)
-            REQUIRE( std::abs(my_dS(i) - analytic_dS(i)) <= 1e-14 );
+};
 
-}
+TEST_CASE("pure RKF integration"){};
+
+TEST_CASE("setting up a solution object"){
+
+    int order = 1;
+    double t = 1.0;
+    Vector ic(4);                                      
+    int d = ic.size()+order;
+    ic << airy(t), std::pow(t, 1/4.0), std::pow(t, 1/4.0);
+    de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);   
+    Solution my_solution(my_system, ic, 1.0, f_end);
+    Vector y_bg = my_solution.y.segment(2, d-(order+2)/2-2);
+    for(int i=0; i<(order+1); i++){
+        CHECK(std::real(my_solution.wkbsolver->dS(y_bg)(i)) == Approx(std::real(ana_ds(t,order)(i))) );
+        CHECK(std::imag(my_solution.wkbsolver->dS(y_bg)(i)) == Approx(std::imag(ana_ds(t,order)(i))) );
+    };
+};
