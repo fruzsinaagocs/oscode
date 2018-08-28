@@ -126,12 +126,17 @@ namespace RKWKB{
         Vector y0, y1; // solution vector at beginning and end of current step
         Vector error0, error1; // error on solution vector at beginning and end of current step  
 
+        // for error estimation           
+        Scalar error_x, error_dx, error_ddx, error_ap, error_am, error_bp, error_bm, error_fp, error_fm, error_dfp, error_dfm;
+        Vector error_s;
+
         // class methods
         virtual Vector ddS(Vector y); // to be overridden by higher order derived classes
         virtual Vector dS(Vector y);
         virtual Vector dS_even(Vector y);
         virtual Vector S_odd(Vector y);
-        virtual Vector truncation_error();
+        Vector truncation_error(bool);
+        void error(bool, Vector);
         Step step(Vectorfn F, Vector y, double h);
         Scalar Fp();
         Scalar Fm();
@@ -161,7 +166,7 @@ namespace RKWKB{
         int d = y0.size();
         Vector y0_bg = y0.segment(2, d-2-(order+2)/2); // Background y and its error before step 
         Vector bg_error0 = error0.segment(2, d-2-(order+2)/2);
-        Vector y1_bg = y1.segment(2, d-2-(order+2)/2); // Background and its errorafter step
+        Vector y1_bg = y1.segment(2, d-2-(order+2)/2); // Background and its error after step
         Vector bg_error1 = error1.segment(2, d-2-(order+2)/2);
 
         ddx = -y0(0)*std::pow(sys.w(y0_bg),2) - 2.0*y0(1)*sys.g(y0_bg);
@@ -183,14 +188,8 @@ namespace RKWKB{
         bm = Bm();
 
         // Error on quantities at y0
-        Scalar error_x = error0(0);
-        Scalar error_dx = error0(1);
-        Scalar error_ddx = -2.0*sys.g(y0_bg)*error_dx - std::pow(sys.w(y0_bg),2)*error_x;
-        Scalar error_ap = (error_dx - dfm*error_x)/(dfp - dfm);
-        Scalar error_am = (error_dx - dfp*error_x)/(dfm - dfp);
-        Scalar error_bp = (error_ddx - ddfm*error_dx)/(ddfp*dfm - ddfm*dfp);
-        Scalar error_bm = (error_ddx - ddfp*error_dx)/(ddfm*dfp - ddfp*dfm);
-
+        error(true, y0_bg);
+        
         Vector s_odd = S_odd(y1_bg) - S_odd(y0_bg);
         for(int i=0; i<(order+1); i++){
             if(i%2==0)
@@ -208,17 +207,8 @@ namespace RKWKB{
         dx = bp*dfp + bm*dfm;
 
         // Error on quantities at y1
-        Vector error_s = Vector::Zero(order+1);
-        for(int i=0; i<(order+1); i++)
-            if(i%2==0)
-                error_s(i) = error1(d - (order+2)/2 + i/2);
-        Scalar error_fp = error_s.sum()*fp;
-        Scalar error_fm = std::conj(error_s.sum())*fm;
-        Scalar error_dfp = ds.sum()*error_fp;
-        Scalar error_dfm = std::conj(ds.sum())*error_fm;
-        error1(0) = error_ap*fp + error_am*fm + ap*error_fp + am*error_fm;
-        error1(1) = error_bp*dfp + error_bm*dfm + bp*error_dfp + bm*error_dfm;
-
+        error(false, y1_bg); 
+        
         Step result(d);
         result.y << x, dx, y1.tail(d-2);
         result.error << error1;
@@ -287,7 +277,33 @@ namespace RKWKB{
         return (ddx*dfp - dx*ddfp)/(ddfm*dfp - ddfp*dfm);
     };
 
-    Vector WKBsolver::truncation_error(){
+    void WKBsolver::error(bool before, Vector y0_bg){
+        // Error or on quantities at y0
+        if(before){
+            error_x = error0(0);
+            error_dx = error0(1);
+            error_ddx = -2.0*sys.g(y0_bg)*error_dx - std::pow(sys.w(y0_bg),2)*error_x;
+            error_ap = (error_dx - dfm*error_x)/(dfp - dfm);
+            error_am = (error_dx - dfp*error_x)/(dfm - dfp);
+            error_bp = (error_ddx - ddfm*error_dx)/(ddfp*dfm - ddfm*dfp);
+            error_bm = (error_ddx - ddfp*error_dx)/(ddfm*dfp - ddfp*dfm);
+        }
+        // Error on quantities at y1
+        else{
+            error_s = Vector::Zero(order+1);
+            for(int i=0; i<(order+1); i++)
+                if(i%2==0)
+                    error_s(i) = error1(y1.size() - (order+2)/2 + i/2);
+            error_fp = error_s.sum()*fp;
+            error_fm = std::conj(error_s.sum())*fm;
+            error_dfp = ds.sum()*error_fp;
+            error_dfm = std::conj(ds.sum())*error_fm;
+            error1(0) = error_ap*fp + error_am*fm + ap*error_fp + am*error_fm;
+            error1(1) = error_bp*dfp + error_bm*dfm + bp*error_dfp + bm*error_dfm;
+        };
+    };
+    
+    Vector WKBsolver::truncation_error(bool before){
         Vector result;
         return result;
     };
