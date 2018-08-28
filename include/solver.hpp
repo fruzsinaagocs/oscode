@@ -1,5 +1,6 @@
 #include "integrators.hpp"
 #include <fstream>
+#include <boost/math/special_functions/airy.hpp>
 
 namespace RKWKB{
     
@@ -36,7 +37,7 @@ namespace RKWKB{
         void evolve();
         Step step(Integrator * method, Vectorfn F, Vector Y, double H); 
         void write(std::string output);
-        void update_h(Vector err, Vector scale, bool wkb, bool success);
+        void update_h(double err, bool wkb, bool success);
         
     };
     
@@ -89,12 +90,18 @@ namespace RKWKB{
         Step step_rkf, step_wkb;
         double end_error;
         bool wkb=false;
+        double maxerr=0.0;
+        Scalar maxerr_c=0.0;
                                 
         while(true){
             // keep updating stepsize until step is successful
             while(true){
+                wkbsolver->y0 = y;
+                wkbsolver->error0 = error;
                 step_rkf = step(&rkfsolver, f_tot, y, h);
-                step_wkb = step(wkbsolver, de_sys.F, y, h); // for testing, only take RKF steps.
+                wkbsolver->y1 = step_rkf.y;
+                wkbsolver->error1 = step_rkf.error;
+                step_wkb = step(wkbsolver, de_sys.F, y, h);
                 wkb = step_rkf.error.norm() > step_wkb.error.norm();
                 if(wkb){
                     y_next = step_rkf.y;
@@ -104,13 +111,16 @@ namespace RKWKB{
                     y_next = step_wkb.y;
                     error_next = step_wkb.error;
                 }
-                scale = rtol*y_next + atol; 
-                if(error_next.norm() <= scale.norm()){
+                // check if step is accepted
+                scale = rtol*y_next + atol;
+                maxerr_c = error_next.cwiseProduct(scale.cwiseInverse()).cwiseAbs().maxCoeff();
+                maxerr = std::real(maxerr_c);
+                if(maxerr <= 1.0){
                     t_next += h;   
                     break;
                 }
                 else{
-                    update_h(error_next, scale, wkb, false);
+                    update_h(maxerr, wkb, false);
                 };
             };
 
@@ -126,8 +136,8 @@ namespace RKWKB{
                 t = t_next;
                 error = error_next;
                 // update stepsize
-                update_h(error_next, scale, wkb, true);
-                std::cout << "time: " << t << ", solution: " << y << std::endl;
+                std::cout << "time: " << t << ", solution: " << y(0) << "(" << boost::math::airy_ai(-t) << ")" <<  "," << y(1) << "(" << -boost::math::airy_ai_prime(-t) << ")" << ", wkb?: " << wkb << ", h: " << h << std::endl;
+                update_h(maxerr, wkb, true);
                 write(outputfile);
                 if(std::abs(end_error) < 1e-4)
                     break;
@@ -143,20 +153,21 @@ namespace RKWKB{
         return s;
     };
     
-    void Solution::update_h(Vector err, Vector scale, bool wkb, bool success){
+    void Solution::update_h(double err, bool wkb, bool success){
         // updates stepsize.
 
+        // TODO: deal with NaNs in the following line
         if(success){
             if(wkb)
-                h*=1;
+                h*=std::pow(err, -1.0/(order+1));
             else
-                h*=pow(err.norm()/scale.norm(), -1/5.0);
+                h*=std::pow(err, -1/5.0);
         }
         else{
             if(wkb)
-                h*=1;
+                h*=std::pow(err, -1.0/(order));
             else
-                h*=pow(err.norm()/scale.norm(), -1/4.0);
+                h*=std::pow(err, -1/4.0);
         };
     };
 
