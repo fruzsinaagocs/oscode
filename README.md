@@ -22,3 +22,8 @@ Restructured version of cRKWKB.
 - is done with [catch2](https://github.com/catchorg/Catch2)
 - `test-airy.cpp` is used for testing an RKWKB solver on the Airy equation.
     - `make test-airy`, then `./test-airy`.
+
+## TODO
+
+- Write the dS, S, etc. functions for WKB orders other than 1
+- Truncation error estimate in WKB steps
