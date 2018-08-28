@@ -85,7 +85,56 @@ TEST_CASE("Single RKF step"){
     };
 };
 
-TEST_CASE("RKWKB integration of Airy"){};
+TEST_CASE("Single WKB step"){
+
+    int order = 1;
+    double t = 1000.0;
+    double step = 10.0;
+    Vector ic(4);                                      
+    int d = ic.size()+(order+2)/2;
+    ic << airy(t), background(t, 2);
+    de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);   
+    Solution my_solution(my_system, ic, 1.0, f_end);
+    Vector y0 = my_solution.y;
+    Step rkf_step = my_solution.step(&my_solution.rkfsolver, my_solution.f_tot, my_solution.y, step); 
+    my_solution.wkbsolver->y0 = y0;
+    my_solution.wkbsolver->y1 = rkf_step.y;
+    my_solution.wkbsolver->error1 = rkf_step.error;
+    my_solution.wkbsolver->error0 = Vector::Zero(d);
+    Step wkb_step = my_solution.step(my_solution.wkbsolver, my_solution.f_tot, my_solution.y, step);
+    t+=step;
+    for(int i=0; i<2; i++){
+        CHECK(std::real(wkb_step.y(i)) == Approx(std::real(airy(t)(i))));
+        CHECK(std::imag(wkb_step.y(i)) == Approx(std::imag(airy(t)(i))));
+    };
+    for(int i=2; i<(d-(order+2)/2); i++){
+        CHECK(std::real(wkb_step.y(i)) == Approx(std::real(background(t,2)(0))));
+        CHECK(std::imag(wkb_step.y(i)) == Approx(std::imag(background(t,2)(0))));
+    };
+    for(int i=(d-(order+2)/2); i<d; i++){
+        CHECK(std::real(wkb_step.y(i)) == Approx(std::real(ana_s(t,order)(2*(i-d+(order+2)/2)) - ana_s(t-step,order)(2*(i-d+(order+2)/2)))));
+        CHECK(std::imag(wkb_step.y(i)) == Approx(std::imag(ana_s(t,order)(2*(i-d+(order+2)/2)) - ana_s(t-step,order)(2*(i-d+(order+2)/2)))));
+    };
+
+};
+
+TEST_CASE("RKWKB integration of Airy"){
+
+    double t = 1.0;
+    Vector ic(4);                                      
+    ic << airy(t), background(t, 2);
+    de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);   
+    Solution my_solution(my_system, ic, t, f_end);
+    my_solution.evolve();
+};
+
+TEST_CASE("Testing matchers"){
+    
+    std::vector<double> v = {1.0, 0.0, 1.0};
+    std::vector<double> subv = {1.0, 0.0, 1.0};
+    REQUIRE_THAT(v, Catch::Contains(subv));
+    
+};
 
 
 
