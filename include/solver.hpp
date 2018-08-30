@@ -49,9 +49,9 @@ namespace RKWKB{
         // constructor for solution of a system of differential equations
         
         order = o;
-        d = ic.size() + (order+2)/2;
+        d = ic.size() + (order+2);
         y.resize(d);
-        y << ic, Vector::Zero((order+2)/2);
+        y << ic, Vector::Zero(order+2);
         t_i = t_ini;
         rtol = r_tol;
         atol = a_tol*Vector::Ones(y.size());
@@ -96,20 +96,26 @@ namespace RKWKB{
         while(true){
             // keep updating stepsize until step is successful
             while(true){
+                y.tail(order+2) = Vector::Zero(order+2);
+                error.tail(order+2) = Vector::Zero(order+2);
                 wkbsolver->y0 = y;
                 wkbsolver->error0 = error;
+                std::cout << "y before step: " << y << std::endl;
                 step_rkf = step(&rkfsolver, f_tot, y, h);
                 wkbsolver->y1 = step_rkf.y;
+                std::cout << "y after step: "<< step_rkf.y << std::endl;
+                std::cout << "error on rkf step: " << step_rkf.error << std::endl;
                 wkbsolver->error1 = step_rkf.error;
                 step_wkb = step(wkbsolver, de_sys.F, y, h);
-                wkb = step_rkf.error.norm() > step_wkb.error.norm();
+                wkb = step_rkf.error.head(2).norm() > wkbsolver->trunc_error.norm();
                 if(wkb){
-                    y_next = step_rkf.y;
-                    error_next = step_rkf.error;
+                    y_next = step_wkb.y;
+                    std::cout << "wkb estimated error: " << step_wkb.error << std::endl;
+                    error_next = step_wkb.error;
                 }
                 else{
-                    y_next = step_wkb.y;
-                    error_next = step_wkb.error;
+                    y_next = step_rkf.y;
+                    error_next = step_rkf.error;
                 }
                 // check if step is accepted
                 scale = rtol*y_next + atol;
@@ -120,7 +126,9 @@ namespace RKWKB{
                     break;
                 }
                 else{
+                    std::cout << "unsuccessful step" << std::endl;
                     update_h(maxerr, wkb, false);
+                    std::cout << "proposed h: " << h <<  std::endl;
                 };
             };
 
@@ -138,6 +146,7 @@ namespace RKWKB{
                 // update stepsize
                 std::cout << "time: " << t << ", solution: " << y(0) << "(" << boost::math::airy_ai(-t) << ")" <<  "," << y(1) << "(" << -boost::math::airy_ai_prime(-t) << ")" << ", wkb?: " << wkb << ", h: " << h << std::endl;
                 update_h(maxerr, wkb, true);
+                std::cout << "proposed h: " << h << std::endl;
                 write(outputfile);
                 if(std::abs(end_error) < 1e-4)
                     break;
@@ -159,13 +168,13 @@ namespace RKWKB{
         // TODO: deal with NaNs in the following line
         if(success){
             if(wkb)
-                h*=std::pow(err, -1.0/(order+1));
+                h*=std::pow(err, -1.0/(order+4));
             else
                 h*=std::pow(err, -1/5.0);
         }
         else{
             if(wkb)
-                h*=std::pow(err, -1.0/(order));
+                h*=std::pow(err, -1.0/(order+3));
             else
                 h*=std::pow(err, -1/4.0);
         };
@@ -188,8 +197,8 @@ namespace RKWKB{
     Vector Solution::F_tot(Vector z){
         // time-derivative of all variables propagated. z = [x, x', y, S_i]
         Vector result(d);
-        Vector z_bg = z.segment(2, d-2-(order+2)/2);
-        result << z(1), -z(0)*std::pow(de_sys.w(z_bg),2) -2.0*z(1)*de_sys.g(z_bg), de_sys.F(z_bg), wkbsolver->dS_even(z_bg);
+        Vector z_bg = z.segment(2, d-2-(order+2));
+        result << z(1), -z(0)*std::pow(de_sys.w(z_bg),2) -2.0*z(1)*de_sys.g(z_bg), de_sys.F(z_bg), wkbsolver->dS(z_bg);
         return result;
     };
 

@@ -120,22 +120,22 @@ namespace RKWKB{
         de_system sys;
         int order;
         Scalar x, dx, ddx;
-        Vector ds, dds, s;
+        Vector ds, ds_all, dds, s, s_all;
         Scalar fp, fm, dfp, dfm, ddfp, ddfm;
         Scalar ap, am, bp, bm;
         Vector y0, y1; // solution vector at beginning and end of current step
         Vector error0, error1; // error on solution vector at beginning and end of current step  
+        Vector trunc_error;
 
         // for error estimation           
         Scalar error_x, error_dx, error_ddx, error_ap, error_am, error_bp, error_bm, error_fp, error_fm, error_dfp, error_dfm;
         Vector error_s;
+        Scalar t_error_ap, t_error_am, t_error_bp, t_error_bm, t_error_fp, t_error_fm, t_error_dfp, t_error_dfm, t_error_ddfp, t_error_ddfm; 
 
         // class methods
-        virtual Vector ddS(Vector y); // to be overridden by higher order derived classes
+        virtual Vector ddS(Vector y); // to be overridden by higher order WKBs
         virtual Vector dS(Vector y);
-        virtual Vector dS_even(Vector y);
-        virtual Vector S_odd(Vector y);
-        Vector truncation_error(bool);
+        void truncation_error(bool);
         void error(bool, Vector);
         Step step(Vectorfn F, Vector y, double h);
         Scalar Fp();
@@ -164,17 +164,19 @@ namespace RKWKB{
         // Stepper function using the RKF method   
     
         int d = y0.size();
-        Vector y0_bg = y0.segment(2, d-2-(order+2)/2); // Background y and its error before step 
-        Vector bg_error0 = error0.segment(2, d-2-(order+2)/2);
-        Vector y1_bg = y1.segment(2, d-2-(order+2)/2); // Background and its error after step
-        Vector bg_error1 = error1.segment(2, d-2-(order+2)/2);
+        Vector y0_bg = y0.segment(2, d-2-(order+2)); // Background y and its error before step 
+        Vector bg_error0 = error0.segment(2, d-2-(order+2));
+        Vector y1_bg = y1.segment(2, d-2-(order+2)); // Background and its error after step
+        Vector bg_error1 = error1.segment(2, d-2-(order+2));
 
         ddx = -y0(0)*std::pow(sys.w(y0_bg),2) - 2.0*y0(1)*sys.g(y0_bg);
         dx = y0(1);
         x = y0(0);
     
-        s = Vector::Zero(order+1);
-        ds = dS(y0_bg);
+        s_all = Vector::Zero(order+2);
+        s = s_all.head(order+1);
+        ds_all = dS(y0_bg);
+        ds = ds_all.head(order+1);
         dds = ddS(y0_bg);
         fp = 1.0;
         fm = 1.0;
@@ -186,18 +188,20 @@ namespace RKWKB{
         am = Am();
         bp = Bp();
         bm = Bm();
+        std::cout << "x: "<< x << "dx: " << dx << std::endl;
+        std::cout << "dfp: "<< dfp << " dfm: " << dfm << std::endl;
+        std::cout << "ap: " << ap << "am: " << am << std::endl;
 
         // Error on quantities at y0
         error(true, y0_bg);
-        
-        Vector s_odd = S_odd(y1_bg) - S_odd(y0_bg);
-        for(int i=0; i<(order+1); i++){
-            if(i%2==0)
-                s(i) = y1(d-(order+2)/2 + i/2);
-            else
-                s(i) = s_odd(i/2); 
-        };
-        ds = dS(y1_bg);
+        truncation_error(true);
+
+        for(int i=0; i<(order+2); i++)
+            s_all(i) = y1(d-(order+2) + i);
+       
+        s = s_all.head(order+1);
+        ds_all = dS(y1_bg);
+        ds = ds_all.head(order+1);
         dds = ddS(y1_bg);
         fp = Fp();
         fm = Fm();
@@ -208,6 +212,7 @@ namespace RKWKB{
 
         // Error on quantities at y1
         error(false, y1_bg); 
+        truncation_error(false);
         
         Step result(d);
         result.y << x, dx, y1.tail(d-2);
@@ -224,16 +229,7 @@ namespace RKWKB{
     
     Vector WKBsolver::dS(Vector y){
         Vector result(1);
-        result << std::complex<double>(0.0, 1.0)*sys.w(y);
-        return result;
-    };
-
-    Vector WKBsolver::dS_even(Vector y){
-        return dS(y); 
-    }
-
-    Vector WKBsolver::S_odd(Vector y){
-        Vector result;
+        result << std::complex<double>(0.0, 1.0)*sys.w(y), -sys.g(y) - 0.5*sys.dw(y)/sys.w(y);
         return result;
     };
 
@@ -287,25 +283,49 @@ namespace RKWKB{
             error_am = (error_dx - dfp*error_x)/(dfm - dfp);
             error_bp = (error_ddx - ddfm*error_dx)/(ddfp*dfm - ddfm*dfp);
             error_bm = (error_ddx - ddfp*error_dx)/(ddfm*dfp - ddfp*dfm);
+            std::cout << "delta x: " << error_x << " delta dx: " << error_dx << " error ddx: " << error_ddx << std::endl;
+            std::cout << "dfm old: " << dfm << " dfp old: " << dfp << "delta am: " << error_am << " error ap: "<< error_ap << std::endl;
         }
         // Error on quantities at y1
         else{
             error_s = Vector::Zero(order+1);
             for(int i=0; i<(order+1); i++)
-                if(i%2==0)
-                    error_s(i) = error1(y1.size() - (order+2)/2 + i/2);
+                    error_s(i) = error1(y1.size() - (order+2) + i);
+            std::cout << "error1: " << error1 << std::endl;
+            std::cout << "error on S: " << error_s << std::endl;
+            std::cout << "dS: "<< ds << std::endl;
             error_fp = error_s.sum()*fp;
-            error_fm = std::conj(error_s.sum())*fm;
+            error_fm = std::conj(error_s.sum())*fm;//
             error_dfp = ds.sum()*error_fp;
-            error_dfm = std::conj(ds.sum())*error_fm;
+            error_dfm = std::conj(ds.sum())*error_fm;//
             error1(0) = error_ap*fp + error_am*fm + ap*error_fp + am*error_fm;
             error1(1) = error_bp*dfp + error_bm*dfm + bp*error_dfp + bm*error_dfm;
+            std::cout << "error fp :" << error_fp << " error fm: " << error_fm << " error dfp " << error_dfp << " error_dfm " << error_dfm << std::endl;
+            std::cout << "fp new: " << fp << "fm new: " << fm << std::endl;
+            std::cout << "am: " << am << "ap " << ap << std::endl;
         };
     };
     
-    Vector WKBsolver::truncation_error(bool before){
-        Vector result;
-        return result;
+    void WKBsolver::truncation_error(bool before){
+        trunc_error = Vector::Zero(2);
+        // Error from truncation at y0
+        if(before){
+            t_error_dfp = ds_all(order+1);
+            t_error_dfm = std::conj(t_error_dfp);
+            t_error_ddfp = std::pow(ds_all(order+1),2)+2.0*ds_all(order+1)*dfp;
+            t_error_ddfm = std::conj(t_error_ddfp);
+            t_error_ap = -(am*t_error_dfm + ap*t_error_dfp)/(dfp - dfm);
+            t_error_am = -(ap*t_error_dfp + am*t_error_dfm)/(dfm - dfp);
+        }
+        // At y1
+        else{
+            t_error_fp = ds_all(order+1)*fp;
+            t_error_fm = std::conj(t_error_fp);
+            t_error_dfp = s_all(order+1)*dfp + (1.0 + s_all(order+1))*ds_all(order+1)*fp;
+            t_error_dfm = std::conj(t_error_dfp);
+            trunc_error(0)  = t_error_ap*fp + t_error_am*fm + ap*t_error_fp + am*t_error_fm;
+            trunc_error(1) = t_error_bp*dfp + t_error_bm*dfm + bp*t_error_dfp + bm*t_error_dfm;
+        };
     };
 
     class WKBsolver1 : public WKBsolver
@@ -320,9 +340,6 @@ namespace RKWKB{
         // class functions
         Vector ddS(Vector y);
         Vector dS(Vector y);
-        Vector dS_even(Vector y);
-        Vector S_odd(Vector y);
-
     };
 
     WKBsolver1::WKBsolver1(){
@@ -338,20 +355,8 @@ namespace RKWKB{
     };
     
     Vector WKBsolver1::dS(Vector y){
-        Vector result(2);
-        result << std::complex<double>(0.0, 1.0)*sys.w(y), -sys.g(y)-0.5*sys.dw(y)/sys.w(y);
-        return result;
-    };
-
-    Vector WKBsolver1::dS_even(Vector y){
-        Vector result(1);
-        result << std::complex<double>(0.0, 1.0)*sys.w(y);
-        return result;
-    }
-
-    Vector WKBsolver1::S_odd(Vector y){
-        Vector result(1);
-        result << -0.5*std::log(sys.w(y));
+        Vector result(3);
+        result << std::complex<double>(0.0, 1.0)*sys.w(y), -sys.g(y)-0.5*sys.dw(y)/sys.w(y), std::complex<double>(0.0, 1.0)*1.0/8.0*(-4.0*std::pow(sys.w(y)*sys.g(y),2)-4.0*std::pow(sys.w(y),2)*sys.dg(y)+3.0*std::pow(sys.dw(y),2)-2.0*sys.w(y)*sys.ddw(y))/std::pow(sys.w(y),3);
         return result;
     };
     
@@ -367,8 +372,6 @@ namespace RKWKB{
         // class functions
         Vector ddS(Vector y);
         Vector dS(Vector y);
-        Vector dS_even(Vector y);
-        Vector S_odd(Vector y);
     };
 
     WKBsolver2::WKBsolver2(){
@@ -389,16 +392,6 @@ namespace RKWKB{
         return result;
     };
 
-    Vector WKBsolver2::dS_even(Vector y){
-        return y;
-    };
-
-    Vector WKBsolver2::S_odd(Vector y){
-        Vector result(1);
-        result << -0.5*std::log(sys.w(y));
-        return result;
-    };
-
     class WKBsolver3 : public WKBsolver
     {
         private:
@@ -411,8 +404,6 @@ namespace RKWKB{
         // class functions
         Vector ddS(Vector y);
         Vector dS(Vector y);
-        Vector dS_even(Vector y);
-        Vector S_odd(Vector y);
     };
 
     WKBsolver3::WKBsolver3(){
@@ -433,13 +424,4 @@ namespace RKWKB{
         return result;
     };
     
-    Vector WKBsolver3::dS_even(Vector y){
-        return y;
-    };
-
-    Vector WKBsolver3::S_odd(Vector y){
-        Vector result(1);
-        result << -0.5*std::log(sys.w(y));
-        return result;
-    }; 
 }
