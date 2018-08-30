@@ -129,7 +129,7 @@ TEST_CASE("Single WKB step"){
 
 TEST_CASE("RKWKB integration of Airy"){
 
-    double t = 1000.0;
+    double t = 1.0;
     Vector ic(4);                                      
     ic << airy(t), background(t, 2);
     de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);   

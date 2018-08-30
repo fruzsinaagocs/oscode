@@ -54,6 +54,6 @@ Matrix DDg(Vector z){
 
 Scalar f_end(Vector y, Scalar t){
     // A function to end integration of the ODE when f_end=0.
-    double t_f = 1500.0;
+    double t_f = 100000000.0;
     return (t - t_f);
 };

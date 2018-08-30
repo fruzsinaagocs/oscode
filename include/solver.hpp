@@ -100,17 +100,13 @@ namespace RKWKB{
                 error.tail(order+2) = Vector::Zero(order+2);
                 wkbsolver->y0 = y;
                 wkbsolver->error0 = error;
-                std::cout << "y before step: " << y << std::endl;
                 step_rkf = step(&rkfsolver, f_tot, y, h);
                 wkbsolver->y1 = step_rkf.y;
-                std::cout << "y after step: "<< step_rkf.y << std::endl;
-                std::cout << "error on rkf step: " << step_rkf.error << std::endl;
                 wkbsolver->error1 = step_rkf.error;
                 step_wkb = step(wkbsolver, de_sys.F, y, h);
                 wkb = step_rkf.error.head(2).norm() > wkbsolver->trunc_error.norm();
                 if(wkb){
                     y_next = step_wkb.y;
-                    std::cout << "wkb estimated error: " << step_wkb.error << std::endl;
                     error_next = step_wkb.error;
                 }
                 else{
@@ -126,9 +122,7 @@ namespace RKWKB{
                     break;
                 }
                 else{
-                    std::cout << "unsuccessful step" << std::endl;
                     update_h(maxerr, wkb, false);
-                    std::cout << "proposed h: " << h <<  std::endl;
                 };
             };
 
@@ -144,9 +138,8 @@ namespace RKWKB{
                 t = t_next;
                 error = error_next;
                 // update stepsize
-                std::cout << "time: " << t << ", solution: " << y(0) << "(" << boost::math::airy_ai(-t) << ")" <<  "," << y(1) << "(" << -boost::math::airy_ai_prime(-t) << ")" << ", wkb?: " << wkb << ", h: " << h << std::endl;
+                std::cout << "time: " << t << ", solution: " << y(0) << "(" << boost::math::airy_ai(-t) << "," << boost::math::airy_bi(-t) << ")" <<  "," << y(1) << "(" << -boost::math::airy_ai_prime(-t) << "," << -boost::math::airy_bi_prime(-t) << ")" << ", wkb?: " << wkb << ", h: " << h << std::endl;
                 update_h(maxerr, wkb, true);
-                std::cout << "proposed h: " << h << std::endl;
                 write(outputfile);
                 if(std::abs(end_error) < 1e-4)
                     break;

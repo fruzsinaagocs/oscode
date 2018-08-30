@@ -188,9 +188,6 @@ namespace RKWKB{
         am = Am();
         bp = Bp();
         bm = Bm();
-        std::cout << "x: "<< x << "dx: " << dx << std::endl;
-        std::cout << "dfp: "<< dfp << " dfm: " << dfm << std::endl;
-        std::cout << "ap: " << ap << "am: " << am << std::endl;
 
         // Error on quantities at y0
         error(true, y0_bg);
@@ -283,26 +280,18 @@ namespace RKWKB{
             error_am = (error_dx - dfp*error_x)/(dfm - dfp);
             error_bp = (error_ddx - ddfm*error_dx)/(ddfp*dfm - ddfm*dfp);
             error_bm = (error_ddx - ddfp*error_dx)/(ddfm*dfp - ddfp*dfm);
-            std::cout << "delta x: " << error_x << " delta dx: " << error_dx << " error ddx: " << error_ddx << std::endl;
-            std::cout << "dfm old: " << dfm << " dfp old: " << dfp << "delta am: " << error_am << " error ap: "<< error_ap << std::endl;
         }
         // Error on quantities at y1
         else{
             error_s = Vector::Zero(order+1);
             for(int i=0; i<(order+1); i++)
                     error_s(i) = error1(y1.size() - (order+2) + i);
-            std::cout << "error1: " << error1 << std::endl;
-            std::cout << "error on S: " << error_s << std::endl;
-            std::cout << "dS: "<< ds << std::endl;
             error_fp = error_s.sum()*fp;
             error_fm = std::conj(error_s.sum())*fm;//
             error_dfp = ds.sum()*error_fp;
             error_dfm = std::conj(ds.sum())*error_fm;//
             error1(0) = error_ap*fp + error_am*fm + ap*error_fp + am*error_fm;
             error1(1) = error_bp*dfp + error_bm*dfm + bp*error_dfp + bm*error_dfm;
-            std::cout << "error fp :" << error_fp << " error fm: " << error_fm << " error dfp " << error_dfp << " error_dfm " << error_dfm << std::endl;
-            std::cout << "fp new: " << fp << "fm new: " << fm << std::endl;
-            std::cout << "am: " << am << "ap " << ap << std::endl;
         };
     };
     
