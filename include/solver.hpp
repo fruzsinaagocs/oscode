@@ -30,6 +30,8 @@ namespace RKWKB{
         WKBsolver3 wkbsolver3;
         event f_end; // function s.t. solution terminates at f(y,t)=0
         std::string outputfile;
+        int stepsok, stepsall;
+        double waste; // stepsok: no. of successful steps, waste: 1 - stepsok/stepsall
     
         // class functions
         Vector F_tot(Vector); // gives time-derivative of all variables propagated
@@ -61,6 +63,8 @@ namespace RKWKB{
         error = Vector::Zero(y.size());
         outputfile = output;
         f_tot = std::bind(&Solution::F_tot, this, std::placeholders::_1);
+        stepsok = 0;
+        stepsall = stepsok;
 
         de_sys = system;
         rkfsolver = RKFsolver(de_sys);
@@ -119,13 +123,16 @@ namespace RKWKB{
                 maxerr = std::real(maxerr_c);
                 if(maxerr <= 1.0){
                     t_next += h;   
+                    stepsok += 1;
+                    stepsall += 1;
                     break;
                 }
                 else{
                     update_h(maxerr, wkb, false);
+                    stepsall += 1;
                 };
             };
-
+            
             // check if f_end has changed sign
             next_sign = (f_end(y_next, t_next).real() <= 0.0);
             end_error = std::abs(f_end(y_next, t_next));
@@ -138,11 +145,17 @@ namespace RKWKB{
                 t = t_next;
                 error = error_next;
                 // update stepsize
-                std::cout << "time: " << t << ", solution: " << y(0) << "(" << boost::math::airy_ai(-t) << "," << boost::math::airy_bi(-t) << ")" <<  "," << y(1) << "(" << -boost::math::airy_ai_prime(-t) << "," << -boost::math::airy_bi_prime(-t) << ")" << ", wkb?: " << wkb << ", h: " << h << std::endl;
+                //std::cout << "time: " << t << ", solution: " << y(0) << "(" << boost::math::airy_ai(-t) << "," << boost::math::airy_bi(-t) << ")" <<  "," << y(1) << "(" << -boost::math::airy_ai_prime(-t) << "," << -boost::math::airy_bi_prime(-t) << ")" << ", wkb?: " << wkb << ", h: " << h << std::endl;
                 update_h(maxerr, wkb, true);
                 write(outputfile);
-                if(std::abs(end_error) < 1e-4)
+                if(std::abs(end_error) < 1e-4){
+                    std::ofstream fout;
+                    fout.open(outputfile, std::ios_base::app);
+                    fout << "\n===\n\n";
+                    fout.close();
+                    waste = 1.0 - (double) stepsok/(double) stepsall;
                     break;
+                };
             };
         };
     };

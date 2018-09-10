@@ -1,6 +1,10 @@
 #include "include/solver.hpp"
 #include <boost/math/special_functions/airy.hpp>
 #include "include/catch.hpp"
+#include <math.h>
+#include <nag.h>
+#include <nag_stdlib.h>
+#include <nagd02.h>
 
 using namespace RKWKB;
 
@@ -54,6 +58,18 @@ Matrix DDg(Vector z){
 
 Scalar f_end(Vector y, Scalar t){
     // A function to end integration of the ODE when f_end=0.
-    double t_f = 100000000.0;
+    double t_f = 100.0;
     return (t - t_f);
 };
+
+// For using the NAG library // 
+
+static void NAG_CALL f(double t, Integer n, const double *y, double *yp, Nag_Comm *comm){
+    // system of differential equations to integrate, compatible with NAG types.
+    
+    yp[0] = 0.25*std::pow(y[0],-3);
+    yp[1] = 0.25*std::pow(y[1],-3);
+    yp[2] = y[3];
+    yp[3] = -std::pow(y[0]*y[1],2)*y[2];
+};
+
