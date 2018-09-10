@@ -35,4 +35,5 @@ Restructured version of cRKWKB.
 ## TODO
 
 - Write the dS, S, etc. functions for WKB orders other than 1
-- Truncation error estimate in WKB steps
+- Warning/error message and termination of integration when troublesome point encountered
+- Various error messages and not quiet failure
