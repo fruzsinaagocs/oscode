@@ -4,6 +4,15 @@
 
 Restructured version of cRKWKB.
 
+## Requirements
+
+- Testing makes use of various routines of the NAG library, namely the
+  self-contained library with shared linkage `libnagc_nag.so`. Therefore you
+  will need to:
+    - download and install the NAG C library from [here](https://www.nag.co.uk/content/downloads-nag-c-library-versions)
+    - modify `INCDIR` and `SHARDIR` in the Makefile according to your
+      installation directory.
+
 ## Files and dependencies
 
 - `system.hpp`: defines an object that stores information about the system of
