@@ -12,6 +12,9 @@ Restructured version of cRKWKB.
     - download and install the NAG C library from [here](https://www.nag.co.uk/content/downloads-nag-c-library-versions)
     - modify `INCDIR` and `SHARDIR` in the Makefile according to your
       installation directory.
+    - extend/set the environment variable `LD_LIBRARY_PATH`
+      according to these [instructions](https://www.nag.co.uk/doc/inun/cl26/l6i1dl/un.html#example)
+
 
 ## Files and dependencies
 
