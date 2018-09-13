@@ -6,5 +6,5 @@
 # But ignore these extensions/dirs
 *.o
 pyrkwkb/*
-plot.*
+#plot.*
 plots/*
