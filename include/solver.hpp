@@ -21,6 +21,7 @@ namespace RKWKB{
         double t; // current time
         Vector y; // current solution vector
         Vector error; // current error on solution vector
+        bool wkb; // type of step taken, true for wkb and false for rkf
         Vector atol;
         de_system de_sys;
         RKFsolver rkfsolver;
@@ -93,7 +94,7 @@ namespace RKWKB{
         double t_next = t;
         Step step_rkf, step_wkb;
         double end_error;
-        bool wkb=false;
+        wkb=false;
         double maxerr=0.0;
         Scalar maxerr_c=0.0;
                                 
@@ -196,6 +197,7 @@ namespace RKWKB{
             fout << y(i) << " ";
         for(int i=0; i<error.size(); i++) 
             fout << error(i) << " ";
+        fout << wkb;
         fout << std::endl;
         fout.close();
     };
