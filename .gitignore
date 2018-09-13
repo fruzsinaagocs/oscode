@@ -1,3 +1,9 @@
+# Ignore all
+*
+# Unignore all with extensions
+!*.*
+
+# But ignore these extensions/dirs
 *.o
 pyrkwkb/*
 plot.*
