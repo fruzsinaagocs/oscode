@@ -143,17 +143,13 @@ namespace RKWKB{
             }
             else{
                 y = y_next;
+                //std::cout << "time: " << t << ", S0: " << y(4) << "(" << std::complex<double>(0.0, 1.0)*2.0/3.0*std::pow(t_next, 3.0/2.0)-std::complex<double>(0.0, 1.0)*2.0/3.0*std::pow(t, 3.0/2.0) <<  ")" <<  ", S1: " << y(5) << "(" << -1.0/4.0*std::log(t_next)+1.0/4.0*std::log(t) << ")" << ", S2: " <<  y(6) << "(" << std::complex<double>(0.0, 1.0)*(-5.0)/48.0*std::pow(t_next, -3.0/2.0)-std::complex<double>(0.0, 1.0)*(-5.0)/48.0*std::pow(t, -3.0/2.0) << ")" << std::endl;
                 t = t_next;
                 error = error_next;
                 // update stepsize
-                //std::cout << "time: " << t << ", solution: " << y(0) << "(" << boost::math::airy_ai(-t) << "," << boost::math::airy_bi(-t) << ")" <<  "," << y(1) << "(" << -boost::math::airy_ai_prime(-t) << "," << -boost::math::airy_bi_prime(-t) << ")" << ", wkb?: " << wkb << ", h: " << h << std::endl;
                 update_h(maxerr, wkb, true);
                 write(outputfile);
                 if(std::abs(end_error) < 1e-4){
-                    std::ofstream fout;
-                    fout.open(outputfile, std::ios_base::app);
-                    fout << "\n===\n\n";
-                    fout.close();
                     waste = 1.0 - (double) stepsok/(double) stepsall;
                     break;
                 };
@@ -175,13 +171,13 @@ namespace RKWKB{
         // TODO: deal with NaNs in the following line
         if(success){
             if(wkb)
-                h*=std::pow(err, -1.0/(order+4));
+                h*=std::pow(err, -1.0/(order+1));
             else
                 h*=std::pow(err, -1/5.0);
         }
         else{
             if(wkb)
-                h*=std::pow(err, -1.0/(order+3));
+                h*=std::pow(err, -1.0/(order));
             else
                 h*=std::pow(err, -1/4.0);
         };

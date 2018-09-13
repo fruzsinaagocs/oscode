@@ -259,7 +259,7 @@ namespace RKWKB{
     };
 
     Scalar WKBsolver::Am(){
-        return (dx - x*dfp)/(dfm - dfp);;
+        return (dx - x*dfp)/(dfm - dfp);
     };
 
     Scalar WKBsolver::Bp(){
@@ -287,9 +287,9 @@ namespace RKWKB{
             for(int i=0; i<(order+1); i++)
                     error_s(i) = error1(y1.size() - (order+2) + i);
             error_fp = error_s.sum()*fp;
-            error_fm = std::conj(error_s.sum())*fm;//
+            error_fm = std::conj(error_s.sum())*fm;
             error_dfp = ds.sum()*error_fp;
-            error_dfm = std::conj(ds.sum())*error_fm;//
+            error_dfm = std::conj(ds.sum())*error_fm;
             error1(0) = error_ap*fp + error_am*fm + ap*error_fp + am*error_fm;
             error1(1) = error_bp*dfp + error_bm*dfm + bp*error_dfp + bm*error_dfm;
         };
@@ -339,7 +339,7 @@ namespace RKWKB{
 
     Vector WKBsolver1::ddS(Vector y){
         Vector result(2);
-        result << std::complex<double>(0.0, 1.0)*sys.dw(y), -sys.g(y)-0.5*sys.ddw(y)/sys.w(y)+0.5*std::pow(sys.dw(y),2)/std::pow(sys.w(y),2);
+        result << std::complex<double>(0.0, 1.0)*sys.dw(y), -sys.dg(y)-0.5*sys.ddw(y)/sys.w(y)+0.5*std::pow(sys.dw(y),2)/std::pow(sys.w(y),2);
         return result;
     };
     

@@ -1,5 +1,5 @@
 #include <solver.hpp>
-#include "catch.hpp"
+//#include "catch.hpp"
 #include <math.h>
 #include <nag.h>
 #include <nag_stdlib.h>

@@ -1,6 +1,6 @@
-#include "include/solver.hpp"
+#include "solver.hpp"
 #include <boost/math/special_functions/airy.hpp>
-#include "include/catch.hpp"
+#include "catch.hpp"
 #include <math.h>
 #include <nag.h>
 #include <nag_stdlib.h>
@@ -58,7 +58,7 @@ Matrix DDg(Vector z){
 
 Scalar f_end(Vector y, Scalar t){
     // A function to end integration of the ODE when f_end=0.
-    double t_f = 1000.0;
+    double t_f = 100000.0;
     return (t - t_f);
 };
 

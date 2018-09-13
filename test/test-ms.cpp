@@ -1,4 +1,5 @@
 #include "test-ms.hpp"
+#include "catch.hpp"
 // Settings for the Mukhanov--Sasaki equation.
 int n=2;
 double m=1e-5;

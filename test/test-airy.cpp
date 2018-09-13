@@ -1,5 +1,4 @@
 #include "test-airy.hpp"
-#define N 1000
 
 Vector background(Scalar t, int d){
     // Gives background at a given time t
@@ -21,8 +20,8 @@ Vector ana_ds(Scalar t, int order){
 
 Vector airy(double t){
     Vector result(2);
-    result << std::complex<double>(boost::math::airy_ai(-t), 0.0), std::complex<double>(-boost::math::airy_ai_prime(-t), 0.0);
-    //result << std::complex<double>(boost::math::airy_ai(-t), boost::math::airy_bi(-t)), std::complex<double>(-boost::math::airy_ai_prime(-t), -boost::math::airy_bi_prime(-t));
+//    result << std::complex<double>(boost::math::airy_ai(-t), 0.0), std::complex<double>(-boost::math::airy_ai_prime(-t), 0.0);
+    result << std::complex<double>(boost::math::airy_ai(-t), boost::math::airy_bi(-t)), std::complex<double>(-boost::math::airy_ai_prime(-t), -boost::math::airy_bi_prime(-t));
     return result; 
 }
 
@@ -127,36 +126,26 @@ TEST_CASE("Single WKB step"){
 };
 
 TEST_CASE("RKWKB integration of Airy"){
-    for(int i=0; i<N; i++){
     double t = 1.0;
     Vector ic(4);                                      
     ic << airy(t), background(t, 2);
     de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);   
-    Solution my_solution(my_system, ic, t, f_end);
+    Solution my_solution(my_system, ic, t, f_end, 1, 1e-4, 0.0, 1, "outputs/airy-rkwkb.txt");
     my_solution.evolve();
-    };
-    //std::cout << "solution at " << my_solution.t << ": " << my_solution.y(0) << "," << my_solution.y(1) << std::endl;
-    //std::cout << "total steps: " << my_solution.stepsall << std::endl;
-    //std::cout << "waste ratio: " << my_solution.waste << std::endl;
-    //std::cout << "accuracy at end of integration: " << abs((my_solution.y(0) - airy(my_solution.t)(0))/airy(my_solution.t)(0)) << "," << abs((my_solution.y(1) - airy(my_solution.t)(1))/airy(my_solution.t)(1)) << std::endl;
 };
 
 TEST_CASE("Integrating Airy with RK from NAG"){
 
-    for(int i=0; i<N; i++){
-    /* Scalars */
     Integer liwsav, lrwsav, n;
     double hnext, hstart, tend, tgot, tol, tstart, tnext, waste;
-    Integer fevals, k, stepcost, stepsok;
-    /* Arrays */
     double *rwsav = 0, *thresh = 0, *ygot = 0, *yinit = 0, *ymax = 0;
     double *ypgot = 0;
     Integer *iwsav = 0;
-    /* NAG types */
     NagError fail;
     Nag_RK_method method;
     Nag_ErrorAssess errass;
     Nag_Comm comm;
+    std::string nag_output = "outputs/airy-nag.txt";
                                                                                   
     INIT_FAIL(fail);
 
@@ -164,8 +153,6 @@ TEST_CASE("Integrating Airy with RK from NAG"){
     n = 4;
     liwsav = 130;
     lrwsav = 350 + 32 * n;
-                                                                                  
-    //printf("nag_ode_ivp_rkts_range (d02pec) Example Program Results\n\n");
                                                                                   
     // These are all arrays, NAG_ALLOC allocates memory to them.
     thresh = NAG_ALLOC(n, double);
@@ -182,7 +169,7 @@ TEST_CASE("Integrating Airy with RK from NAG"){
     method = (Nag_RK_method) nag_enum_name_to_value("Nag_RK_4_5");
     errass = (Nag_ErrorAssess) nag_enum_name_to_value("Nag_ErrorAssess_off");
     tstart = 1.0;
-    tend = 1000;
+    tend = 100000;
     yinit[0] = 1.0;
     yinit[1] = 1.0;
     yinit[2] = boost::math::airy_ai(-tstart);
@@ -194,44 +181,25 @@ TEST_CASE("Integrating Airy with RK from NAG"){
     thresh[3] = 1.0e-8;
     tol = 1.0e-4;
                                                                                   
-    // Initialize Runge-Kutta method for integrating ODE using nag_ode_ivp_rkts_setup (d02pqc).
     nag_ode_ivp_rkts_setup(n, tstart, tend, yinit, tol, thresh, method,
                              errass, hstart, iwsav, rwsav, &fail);
-                                                                                  
-    //printf(" Calculation with tol = %8.1e\n", tol);
-    //printf("    t         y1        y2        y3        y4\n");
-    //printf("%6.3f", tstart);
-    //for (k = 0; k < n; k++)
-    //    printf("   %7.3f", yinit[k]);
-    //printf("\n");
           
     tnext = tstart;
     while (tnext < tend){
-        // Solve ODE by Runge-Kutta method up to next time increment using nag_ode_ivp_rkts_range (d02pec).
         nag_ode_ivp_rkts_range(f, n, tend, &tgot, ygot, ypgot, ymax, &comm,
                                iwsav, rwsav, &fail);
                                                                                   
-        // if integration fails, handle error:
-        if(fail.code != NE_NOERROR){
-        //    printf("Error from NAG RK integration (d02pec).\n%s\n", fail.message);
-        //    goto END;
-        }
-        
-        //printf("%6.3f", tgot);
-        //for (k = 0; k < n; k++)
-            //printf("   %7.3f", ygot[k]);
-        //printf("\n");
-
-        // Get diagnostics on whole integration using nag_ode_ivp_rkts_diag (d02ptc).
-        nag_ode_ivp_rkts_diag(&fevals, &stepcost, &waste, &stepsok, &hnext, iwsav, rwsav, &fail);
         tnext = tgot;
-    }
-    //printf("Cost of the integration in evaluations of f is%6" NAG_IFMT "\n\n", fevals);
-    //std::cout << "total steps: " << stepsok*(1.0/(1.0 - waste)) << std::endl;
-    //std::cout << "waste ratio: " << waste << std::endl;
-    //std::cout << "accuracy at the end of integration: " << abs((ygot[2]-boost::math::airy_ai(-tgot))/boost::math::airy_ai(-tgot)) << "," << abs((ygot[3]+boost::math::airy_ai_prime(-tgot))/boost::math::airy_ai_prime(-tgot)) << std::endl;
-
-//END:
+        // write current step to file
+        std::ofstream fout;
+        fout.open(nag_output, std::ios_base::app);
+        fout << tgot << " ";
+        for (int k = 0; k < n; k++)
+            fout <<  ygot[k] << " ";
+        fout << std::endl;
+        fout.close();
+    };
+    
     NAG_FREE(thresh);
     NAG_FREE(yinit);
     NAG_FREE(ygot);
@@ -239,18 +207,5 @@ TEST_CASE("Integrating Airy with RK from NAG"){
     NAG_FREE(ymax);
     NAG_FREE(rwsav);
     NAG_FREE(iwsav);
-    };
 };
-
-//
-//TEST_CASE("Testing matchers"){
-//    
-//    std::vector<double> v = {1.0, 0.0, 1.0};
-//    std::vector<double> subv = {1.0, 0.0, 1.0};
-//    REQUIRE_THAT(v, Catch::Contains(subv));
-//    
-//};
-
-
-
 
