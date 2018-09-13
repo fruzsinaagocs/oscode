@@ -2,6 +2,7 @@
 *
 # Unignore all with extensions
 !*.*
+!Makefile
 
 # But ignore these extensions/dirs
 *.o
