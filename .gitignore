@@ -2,7 +2,9 @@
 *
 # Unignore all with extensions
 !*.*
-!Makefile
+!.gitignore
+!test/
+!test/*.*
 
 # But ignore these extensions/dirs
 *.o

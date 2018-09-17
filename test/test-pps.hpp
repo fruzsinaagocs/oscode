@@ -1,9 +1,5 @@
 #include <solver.hpp>
-//#include "catch.hpp"
 #include <math.h>
-#include <nag.h>
-#include <nag_stdlib.h>
-#include <nagd02.h>
 
 using namespace RKWKB;
 
@@ -13,11 +9,9 @@ extern double m, k, phi_p, mp;
 Vector background(Scalar);
 
 // z = [phi, dphi, a, H]
-//TODO: function prototypes here?
-// avoid using globals?
 
 Vector background(Scalar t){
-    // Gives background at a given time t
+    // Gives background at a given time t in kinetic dominance.
     Vector result(4);
     result << phi_p - std::sqrt(2.0/3.0)*mp*std::log(t), -std::sqrt(2.0/3.0)*mp/t, std::pow(t, 1.0/3.0), 1.0/(3.0*t); 
     return result;
@@ -102,17 +96,4 @@ Matrix DDg(Vector z){
 Scalar f_end(Vector y, Scalar t){
     // A function to end integration of the ODE when f_end=0.
     return y(4)*y(5) - 100*k;
-};
-
-static void NAG_CALL f(double t, Integer n, const double *y, double *yp, Nag_Comm *comm){
-    // system of differential equations to integrate, compatible with NAG types.
-    
-    
-    yp[0] = y[1];
-    yp[1] = (-2.0*(1.5*y[5] + (-3.0*y[3]*std::sqrt(1.0/(3*std::pow(mp, 2))*(0.5*std::pow(y[3], 2) + V(y[2]))) - dV(y[2]))/y[3] - (-1.0/(3*std::pow(mp, 2))*(std::pow(y[3], 2) - V(y[2])) - std::pow(y[5], 2))/y[5])*y[1] - std::pow(k/y[4],2)*y[0]).real();
-    yp[2] = y[3];
-    yp[3] = (-3.0*y[3]*std::sqrt(1.0/(3*std::pow(mp, 2))*(0.5*std::pow(y[3], 2) + V(y[2]))) - dV(y[2])).real();
-    yp[4] = y[4]*y[5];
-    yp[5] = (-1.0/(3*std::pow(mp, 2))*(std::pow(y[3], 2) - V(y[2])) - std::pow(y[5], 2)).real();
-
 };
