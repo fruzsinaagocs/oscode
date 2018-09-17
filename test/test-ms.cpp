@@ -3,7 +3,7 @@
 // Settings for the Mukhanov--Sasaki equation.
 int n=2;
 double m=1e-5;
-double k=1000;
+double k=10000.0;
 double phi_p=23.0;
 double mp=1.0;
 
@@ -11,13 +11,13 @@ TEST_CASE("rkwkb","[ms]"){
     // Solving the MS equation with RKWKB. 
     double t = 1.0;
     Vector ic(6);                                      
-    ic << 1.0, 0.0, background(t);
+    ic << 1000.0*k, 0.0, background(t);
     de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);   
-    Solution my_solution(my_system, ic, t, f_end, 1, 1e-4);
+    Solution my_solution(my_system, ic, t, f_end, 1, 1e-5, 1e-7, 1.0, "outputs/ms-rkwkb.txt");
     my_solution.evolve();
-//    std::cout << "solution at " << my_solution.t << ": " << my_solution.y(0) << "," << my_solution.y(1) << " " << my_solution.y(2) << " " << my_solution.y(3) << " " << my_solution.y(4) << " " << my_solution.y(5) <<  std::endl;
-//    std::cout << "total steps: " << my_solution.stepsall << std::endl;
-//    std::cout << "waste ratio: " << my_solution.waste << std::endl;
+    //std::cout << "solution at " << my_solution.t << ": " << my_solution.y(0) << "," << my_solution.y(1) << " " << my_solution.y(2) << " " << my_solution.y(3) << " " << my_solution.y(4) << " " << my_solution.y(5) <<  std::endl;
+    //std::cout << "total steps: " << my_solution.stepsall << std::endl;
+    //std::cout << "waste ratio: " << my_solution.waste << std::endl;
 };
 
 TEST_CASE("nag", "[ms]"){
@@ -32,7 +32,7 @@ TEST_CASE("nag", "[ms]"){
     Nag_RK_method method;
     Nag_ErrorAssess errass;
     Nag_Comm comm;
-    std::string nag_output = "nag_output.txt";
+    std::string nag_output = "outputs/ms-nag.txt";
                                                                                   
     INIT_FAIL(fail);
 
@@ -54,11 +54,11 @@ TEST_CASE("nag", "[ms]"){
     method = (Nag_RK_method) nag_enum_name_to_value("Nag_RK_4_5");
     errass = (Nag_ErrorAssess) nag_enum_name_to_value("Nag_ErrorAssess_off");
     tstart = 1.0;
-    tend = 100000;
-    npts = 1;
-    //npts = 100000;
+    tend = 200000;
+    //npts = 1;
+    npts = 100000;
     tinc = (tend - tstart)/(double) (npts);
-    yinit[0] = 1.0;
+    yinit[0] = 1000.0*k;
     yinit[1] = 0.0;
     // This routine cannot handle complex numbers, but the solution is real
     // anyway, so take real part.
@@ -71,7 +71,7 @@ TEST_CASE("nag", "[ms]"){
     thresh[1] = 1.0e-8;
     thresh[2] = 1.0e-8;
     thresh[3] = 1.0e-8;
-    tol = 1.0e-8;
+    tol = 1.0e-10;
                                                                                   
     // Initialize Runge-Kutta method for integrating ODE using nag_ode_ivp_rkts_setup (d02pqc).
     nag_ode_ivp_rkts_setup(n, tstart, tend, yinit, tol, thresh, method,
@@ -99,9 +99,9 @@ TEST_CASE("nag", "[ms]"){
         //nag_ode_ivp_rkts_diag(&fevals, &stepcost, &waste, &stepsok, &hnext, iwsav, rwsav, &fail);
     };
     nag_ode_ivp_rkts_diag(&fevals, &stepcost, &waste, &stepsok, &hnext, iwsav, rwsav, &fail);
-    //std::cout << "solution: " << ygot[0] << ", " << ygot[1] << ", " << ygot[2] << ", " << ygot[3] << ", " <<  ygot[4] << ", "<<  ygot[5] << ", " << std::endl;   
-    //std::cout << "total steps: " << stepsok*(1.0/(1.0 - waste)) << std::endl;
-    //std::cout << "waste ratio: " << waste << std::endl;
+    std::cout << "solution: " << ygot[0] << ", " << ygot[1] << ", " << ygot[2] << ", " << ygot[3] << ", " <<  ygot[4] << ", "<<  ygot[5] << ", " << std::endl;   
+    std::cout << "total steps: " << stepsok*(1.0/(1.0 - waste)) << std::endl;
+    std::cout << "waste ratio: " << waste << std::endl;
 
     NAG_FREE(thresh);
     NAG_FREE(yinit);

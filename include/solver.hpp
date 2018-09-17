@@ -101,16 +101,13 @@ namespace RKWKB{
         //just for testing
         double tend = 100000;
                                 
-        while(t < tend){
+        while(true){
             // keep updating stepsize until step is successful
-            if(t+h > tend)
-                h = tend - t;
             while(true){
                 y.tail(order+2) = Vector::Zero(order+2);
                 error.tail(order+2) = Vector::Zero(order+2);
                 wkbsolver->y0 = y;
                 wkbsolver->error0 = error;
-                std::cout << "parameters going into rkf step. y: " << y << ", h: " << h << std::endl;
                 step_rkf = step(&rkfsolver, f_tot, y, h);
                 wkbsolver->y1 = step_rkf.y;
                 wkbsolver->error1 = step_rkf.error;
@@ -129,7 +126,6 @@ namespace RKWKB{
                 maxerr_c = error_next.cwiseProduct(scale.cwiseInverse()).cwiseAbs().maxCoeff();
                 maxerr = std::real(maxerr_c);
                 if(maxerr <= 1.0){
-                    std::cout << "scale: " << scale << ", max: " << maxerr << std::endl;
                     t_next += h;   
                     stepsok += 1;
                     stepsall += 1;
@@ -137,39 +133,34 @@ namespace RKWKB{
                 }
                 else{
                     update_h(maxerr, wkb, false);
-                    std::cout << "usolution: " << y_next << ", its error: " << error_next << std::endl;
-                    std::cout << "scale: " << scale << ", maxerr: " << maxerr << std::endl;
-                    std::cout << "u, proposed h: " << h << std::endl;
                     stepsall += 1;
                 };
             };
             
             // check if f_end has changed sign
-            //next_sign = (f_end(y_next, t_next).real() <= 0.0);
-            //end_error = std::abs(f_end(y_next, t_next));
-            //if(next_sign != sign){
-            //    h = (t_next - t)/2.0;
-            //    t_next = t;
-            //}
-            //else{
+            next_sign = (f_end(y_next, t_next).real() <= 0.0);
+            end_error = std::abs(f_end(y_next, t_next));
+            if(next_sign != sign){
+                h = (t_next - t)/2.0;
+                t_next = t;
+            }
+            else{
                 y = y_next;
                 std::string stepc;
                 if(wkb)
                     stepc = "wkb";
                 else
                     stepc = "rkf";
-                std::cout << "time: " << t_next << "stepchoice: " << stepc <<  ", h :" <<  h << ", solution: " << y(0) << "(" << boost::math::airy_ai(-t_next) <<  "," << boost::math::airy_bi(-t_next) << ")" << ", error estimate: " << error_next <<  std::endl;
                 t = t_next;
                 error = error_next;
                 // update stepsize
                 update_h(maxerr, wkb, true);
-                std::cout << "s, proposed h: " << h << std::endl;
                 write(outputfile);
-                //if(std::abs(end_error) < 1e-4){
-                //    waste = 1.0 - (double) stepsok/(double) stepsall;
-                //    break;
-                //};
-            //};
+                if(std::abs(end_error) < 1e-4){
+                    waste = 1.0 - (double) stepsok/(double) stepsall;
+                    break;
+                };
+            };
         };
     };
 
@@ -185,7 +176,6 @@ namespace RKWKB{
         // updates stepsize.
 
         // TODO: deal with NaNs in the following line
-        std::cout << "h before: "<< h  << std::endl;
         if(success){
             if(wkb)
                 h*=std::pow(err, -1.0/(order+1));
@@ -198,7 +188,6 @@ namespace RKWKB{
             else
                 h*=std::pow(err, -1/4.0);
         };
-        std::cout << "h after: " << h << std::endl;
     };
 
     void Solution::write(std::string output){
