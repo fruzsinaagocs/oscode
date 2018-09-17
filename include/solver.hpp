@@ -96,15 +96,21 @@ namespace RKWKB{
         double end_error;
         wkb=false;
         double maxerr=0.0;
-        Scalar maxerr_c=0.0;
+        Scalar maxerr_c = 0.0;
+
+        //just for testing
+        double tend = 100000;
                                 
-        while(true){
+        while(t < tend){
             // keep updating stepsize until step is successful
+            if(t+h > tend)
+                h = tend - t;
             while(true){
                 y.tail(order+2) = Vector::Zero(order+2);
                 error.tail(order+2) = Vector::Zero(order+2);
                 wkbsolver->y0 = y;
                 wkbsolver->error0 = error;
+                std::cout << "parameters going into rkf step. y: " << y << ", h: " << h << std::endl;
                 step_rkf = step(&rkfsolver, f_tot, y, h);
                 wkbsolver->y1 = step_rkf.y;
                 wkbsolver->error1 = step_rkf.error;
@@ -123,6 +129,7 @@ namespace RKWKB{
                 maxerr_c = error_next.cwiseProduct(scale.cwiseInverse()).cwiseAbs().maxCoeff();
                 maxerr = std::real(maxerr_c);
                 if(maxerr <= 1.0){
+                    std::cout << "scale: " << scale << ", max: " << maxerr << std::endl;
                     t_next += h;   
                     stepsok += 1;
                     stepsall += 1;
@@ -130,30 +137,39 @@ namespace RKWKB{
                 }
                 else{
                     update_h(maxerr, wkb, false);
+                    std::cout << "usolution: " << y_next << ", its error: " << error_next << std::endl;
+                    std::cout << "scale: " << scale << ", maxerr: " << maxerr << std::endl;
+                    std::cout << "u, proposed h: " << h << std::endl;
                     stepsall += 1;
                 };
             };
             
             // check if f_end has changed sign
-            next_sign = (f_end(y_next, t_next).real() <= 0.0);
-            end_error = std::abs(f_end(y_next, t_next));
-            if(next_sign != sign){
-                h = (t_next - t)/2.0;
-                t_next = t;
-            }
-            else{
+            //next_sign = (f_end(y_next, t_next).real() <= 0.0);
+            //end_error = std::abs(f_end(y_next, t_next));
+            //if(next_sign != sign){
+            //    h = (t_next - t)/2.0;
+            //    t_next = t;
+            //}
+            //else{
                 y = y_next;
-                //std::cout << "time: " << t << ", S0: " << y(4) << "(" << std::complex<double>(0.0, 1.0)*2.0/3.0*std::pow(t_next, 3.0/2.0)-std::complex<double>(0.0, 1.0)*2.0/3.0*std::pow(t, 3.0/2.0) <<  ")" <<  ", S1: " << y(5) << "(" << -1.0/4.0*std::log(t_next)+1.0/4.0*std::log(t) << ")" << ", S2: " <<  y(6) << "(" << std::complex<double>(0.0, 1.0)*(-5.0)/48.0*std::pow(t_next, -3.0/2.0)-std::complex<double>(0.0, 1.0)*(-5.0)/48.0*std::pow(t, -3.0/2.0) << ")" << std::endl;
+                std::string stepc;
+                if(wkb)
+                    stepc = "wkb";
+                else
+                    stepc = "rkf";
+                std::cout << "time: " << t_next << "stepchoice: " << stepc <<  ", h :" <<  h << ", solution: " << y(0) << "(" << boost::math::airy_ai(-t_next) <<  "," << boost::math::airy_bi(-t_next) << ")" << ", error estimate: " << error_next <<  std::endl;
                 t = t_next;
                 error = error_next;
                 // update stepsize
                 update_h(maxerr, wkb, true);
+                std::cout << "s, proposed h: " << h << std::endl;
                 write(outputfile);
-                if(std::abs(end_error) < 1e-4){
-                    waste = 1.0 - (double) stepsok/(double) stepsall;
-                    break;
-                };
-            };
+                //if(std::abs(end_error) < 1e-4){
+                //    waste = 1.0 - (double) stepsok/(double) stepsall;
+                //    break;
+                //};
+            //};
         };
     };
 
@@ -169,6 +185,7 @@ namespace RKWKB{
         // updates stepsize.
 
         // TODO: deal with NaNs in the following line
+        std::cout << "h before: "<< h  << std::endl;
         if(success){
             if(wkb)
                 h*=std::pow(err, -1.0/(order+1));
@@ -181,6 +198,7 @@ namespace RKWKB{
             else
                 h*=std::pow(err, -1/4.0);
         };
+        std::cout << "h after: " << h << std::endl;
     };
 
     void Solution::write(std::string output){
@@ -188,7 +206,7 @@ namespace RKWKB{
 
         std::ofstream fout;
         fout.open(output, std::ios_base::app); // appends at the end of outputfile
-        fout << t << " ";
+        fout << std::setprecision(10) << t << " ";
         for(int i=0; i<y.size(); i++)
             fout << y(i) << " ";
         for(int i=0; i<error.size(); i++) 
@@ -206,10 +224,7 @@ namespace RKWKB{
         return result;
     };
 
-}
-
-
-
+} 
 
 
 

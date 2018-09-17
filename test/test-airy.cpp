@@ -18,6 +18,12 @@ Vector ana_ds(Scalar t, int order){
     return result.head(order+2);
 }
 
+Vector ana_dds(Scalar t, int order){
+    Vector result(3);
+    result << 0.5*std::complex<double>(0.0, 1.0)*std::pow(t, -0.5), 0.25*std::pow(t, -2), -25.0/64.0*std::complex<double>(0.0, 1.0)*std::pow(t, -7.0/2.0);
+    return result.head(order+2); 
+}
+
 Vector airy(double t){
     Vector result(2);
 //    result << std::complex<double>(boost::math::airy_ai(-t), 0.0), std::complex<double>(-boost::math::airy_ai_prime(-t), 0.0);
@@ -42,15 +48,15 @@ TEST_CASE("setting up a system of ODEs"){
 
 };
 
-TEST_CASE("dS functions analytic forms"){
+TEST_CASE("s_ds_dds"){
 
     int order = 1;
-    double t = 1.0;
+    double t = 50000;
     Vector ic(4);                                      
     int d = ic.size()+(order+2);
     ic << airy(t), background(t, 2);
     de_system my_system(F, DF, w, Dw, DDw, g, Dg, DDg);   
-    Solution my_solution(my_system, ic, 1.0, f_end);
+    Solution my_solution(my_system, ic, 1000.0, f_end);
     REQUIRE(my_solution.y.size() == d);
     REQUIRE(my_solution.y.segment(2, d-(order+2)-2).size() == 2);
     Vector y_bg = my_solution.y.segment(2, d-(order+2)-2);
@@ -58,6 +64,10 @@ TEST_CASE("dS functions analytic forms"){
     for(int i=0; i<(order+2); i++){
         CHECK(std::real(my_solution.wkbsolver->dS(y_bg)(i)) == Approx(std::real(ana_ds(t,order)(i))) );
         CHECK(std::imag(my_solution.wkbsolver->dS(y_bg)(i)) == Approx(std::imag(ana_ds(t,order)(i))) );
+        };
+    for(int i=0; i<(order+1); i++){
+        CHECK(std::real(my_solution.wkbsolver->ddS(y_bg)(i)) == Approx(std::real(ana_dds(t,order)(i))) );
+        CHECK(std::imag(my_solution.wkbsolver->ddS(y_bg)(i)) == Approx(std::imag(ana_dds(t,order)(i))) );
     };
 };
 
@@ -87,11 +97,11 @@ TEST_CASE("Single RKF step"){
     };
 };
 
-TEST_CASE("Single WKB step"){
+TEST_CASE("single_wkb_step"){
 
     int order = 1;
-    double t = 1000.0;
-    double step = 50.0;
+    double t = 101.0;
+    double step = 899.0;
     Vector ic(4);                                      
     int d = ic.size()+(order+2);
     ic << airy(t), background(t, 2);
@@ -125,7 +135,7 @@ TEST_CASE("Single WKB step"){
 
 };
 
-TEST_CASE("RKWKB integration of Airy"){
+TEST_CASE("rkwkb"){
     double t = 1.0;
     Vector ic(4);                                      
     ic << airy(t), background(t, 2);
@@ -134,7 +144,7 @@ TEST_CASE("RKWKB integration of Airy"){
     my_solution.evolve();
 };
 
-TEST_CASE("Integrating Airy with RK from NAG"){
+TEST_CASE("nag"){
 
     Integer liwsav, lrwsav, n;
     double hnext, hstart, tend, tgot, tol, tstart, tnext, waste;
@@ -179,7 +189,7 @@ TEST_CASE("Integrating Airy with RK from NAG"){
     thresh[1] = 1.0e-8;
     thresh[2] = 1.0e-8;
     thresh[3] = 1.0e-8;
-    tol = 1.0e-4;
+    tol = 1.0e-5;
                                                                                   
     nag_ode_ivp_rkts_setup(n, tstart, tend, yinit, tol, thresh, method,
                              errass, hstart, iwsav, rwsav, &fail);
