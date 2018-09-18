@@ -6,6 +6,9 @@ naginc = /home/fruzsina/NAG/cll6i261dl/include
 nagshare = /home/fruzsina/NAG/cll6i261dl/lib/libnagc_nag.so
 deps = $(inc)/solver.hpp $(inc)/integrators.hpp $(inc)/system.hpp $(inc)/typedefs.hpp
 
+$(test)/test-pps: $(test)/test-pps.o
+	$(CXX) -I$(inc) $(CXXFLAGS) -o $@ $^
+
 $(test)/%: $(test)/%.o $(test)/test-main.o
 	$(CXX) -I$(inc) $(CXXFLAGS) -lpthread -lm -o $@ $^ $(nagshare)
 
@@ -20,6 +23,9 @@ $(test)/time-ms.o: $(test)/time-ms.cpp $(test)/test-ms.hpp $(deps)
 
 $(test)/%.o: $(test)/%.cpp $(test)/%.hpp $(deps)
 	$(CXX) -I$(naginc) -I$(inc) $(CXXFLAGS) -c -o $@ $<
+
+$(test)/test-pps.o: $(test)/test-pps.cpp $(test)/test-pps.hpp $(deps)
+	$(CXX) -I$(inc) $(CXXFLAGS) -c -o $@ $<
 
 clean: 
 	$(RM) $(test)/*.o $(test)/*~

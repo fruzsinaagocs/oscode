@@ -93,7 +93,24 @@ Matrix DDg(Vector z){
     return result;
 };
 
-Scalar f_end(Vector y, Scalar t){
-    // A function to end integration of the ODE when f_end=0.
+Scalar inflation_boundaries(Vector y, Scalar t){
+    return (-1.0/(3.0*std::pow(mp,2))*(std::pow(y(3),2)-V(y(2)))*y(4));
+};
+
+Scalar outside_horizon(Vector y, Scalar t){
     return y(4)*y(5) - 100*k;
+};
+
+Scalar until_start(Vector y, Scalar t){
+    double tend = 1e4;
+    return tend - t; 
+};
+
+double HD(double k, double Rk1, double Rk2, Vector ybg, Vector dybg){
+    double z = std::real(ybg(1)*ybg(2)/ybg(3));
+    double dz_z = std::real(dybg(1)/dybg(0) + ybg(3) - dybg(3)/ybg(3));
+    std::complex<double> a(-1.0/(z*std::sqrt(2.0*k)*100*k), 0.0);
+    //std::complex<double> b(-std::real(a)*dz_z*10/k, -std::real(a)*k*10/(std::real(ybg(2))*k));
+    std::complex<double> c(0.0, -std::real(a)*k*10/(std::real(ybg(2))*k));
+    return std::norm(a*Rk1 + c*Rk2)*std::pow(k, 3)/(2*M_PI*M_PI); 
 };

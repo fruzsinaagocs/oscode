@@ -155,7 +155,7 @@ namespace RKWKB{
                 error = error_next;
                 // update stepsize
                 update_h(maxerr, wkb, true);
-                write(outputfile);
+                //write(outputfile);
                 if(std::abs(end_error) < 1e-4){
                     waste = 1.0 - (double) stepsok/(double) stepsall;
                     break;

@@ -7,6 +7,15 @@ import sys
 from scipy.special import airy
 from ast import literal_eval as le
 
+
+def plot_pps(inputfile):
+
+    data = np.loadtxt(inputfile)
+    ks = data[:,0]
+    ps = data[:,-1]
+    plt.semilogx(ks, ps)
+    plt.show()
+
 def plot_airy(nag_input, rkwkb_input):
 
     nag_data = np.loadtxt(nag_input)
@@ -79,7 +88,8 @@ def plot_rkwkb(inputfile):
 def main():
 
     #pass
-    plot_airy("outputs/airy-nag.txt", "outputs/airy-rkwkb.txt")
+    plot_pps("outputs/pps-whole.txt")
+    #plot_nag_v_rkwkb("outputs/ms-nag.txt", "outputs/ms-rkwkb.txt")
     #nag_inputfile = sys.argv[1]
     #inputfile = sys.argv[2]
     #if(sys.argv[3]):
