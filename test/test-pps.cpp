@@ -9,46 +9,16 @@ double mp=1.0;
 
 int main(){
 
-    // First solve until the onset of inflation with a trial mode k=0.1
-    
-    //Solution MSSolution0(MSSystem, ic, t0, inflation_boundaries, 1, 1e-5, 1e-7, 1.0, "outputs/pps-single.txt");
-    //MSSolution0.evolve();
-    //Vector y1 = MSSolution0.y;
-    //double Nstart = std::log(std::real(y1(4)));
-    //double t1 = MSSolution0.t;
-    //std::cout << inflation_boundaries(y1,t1) << std::endl;
-    //
-    //Step SmallStep;
-    //for(int i=0; i<80000; i++){
-    //    SmallStep = MSSolution0.step(&MSSolution0.rkfsolver, MSSolution0.f_tot, y1, 1.0);
-    //    y1 = SmallStep.y;
-    //    t1 += 1.0;
-    //};
-    //std::cout << inflation_boundaries(y1,t1) << std::endl;
-
-    // Then solve until the end of inflation to determine total number of
-    // e-folds.
-    //Solution MSSolution1(MSSystem, y1.head(6), t1, inflation_boundaries, 1, 1e-8, 1e-7, 100.0, "outputs/pps-single.txt");
-    //MSSolution1.evolve();
-    //Vector y2 = MSSolution1.y;
-    //double Nend = std::log(std::real(y2(4)));
-    //std::cout << "N start: " << Nstart << "," << MSSolution0.t << ", N end: " << Nend << "," << MSSolution1.t << std::endl;
-    
-    // Then solve until there are N* e-folds of inflation left to determine k*.
-    
-    // Obtain two linearly independent solutions for each k-mode in the PPS.
-
-    
-    std::string outputfile = "outputs/pps-whole.txt";
+    std::string outputfile = "outputs/pps-high.txt";
     std::ofstream fout;
     fout.open(outputfile, std::ios_base::app);
     int npts = 1000;
-    double kmax = 1.0;
-    double kmin = 1e-3;
-    double kinc = (kmax - kmin)/(double) npts;
-    double Rk1, Rk2, power;
+    double kmin = 1e6;
+    double kmax = 1e10;
+    double kinc = std::exp((std::log(kmax) - std::log(kmin))/(double) npts);
+    double Rk1, Rk2, power1, power2;
     fout << "# PPS" << std::endl;
-    fout << "# k, R_k1, R_k2, power" << std::endl;
+    fout << "# k, R_k1, R_k2, P_R(HD), P_R(RST)" << std::endl;
     
     // First solve until t=1000 to see what background is there.
     double t = 1.0;
@@ -62,17 +32,18 @@ int main(){
     Vector dybg = BGSolution.f_tot(ybg); 
     k = kmin;
     
+    // Then solve the Mukhanov--Sasaki equation for each k-mode, obtaining two
+    // linearly indepdendent solutions.
     for(int i=0; i<npts; i++){
         ic1 << 100.0*k, 0.0, ybg.segment(2,4);
         ic2 << 0.0, 10*std::pow(k,2), ybg.segment(2,4);
         
-        // Solution 1
         auto start1 = std::chrono::system_clock::now();
         Solution MSSolution1(MSSystem, ic1, 1e4, outside_horizon, 1, 1e-5, 1e-7, 1.0);
         MSSolution1.evolve();
         auto end1 = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed1 = (end1-start1);
-        // Solution 2
+        
         auto start2 = std::chrono::system_clock::now();
         Solution MSSolution2(MSSystem, ic2, 1e4, outside_horizon, 1, 1e-5, 1e-7, 1.0);
         MSSolution2.evolve();
@@ -81,10 +52,11 @@ int main(){
 
         Rk1 = std::real(MSSolution1.y(0));
         Rk2 = std::real(MSSolution2.y(0)); 
-        power = HD(k, Rk1, Rk2, ybg.segment(2,4), dybg.segment(2,4));
-        std::cout << k << " " << Rk1 << " " << Rk2 << " " << power << " " << elapsed1.count()+elapsed2.count() << std::endl;
-        fout << k << " " << Rk1 << " " << Rk2 << " " << power  << std::endl;
-        k += kinc;  
+        power1 = HD(k, Rk1, Rk2, ybg.segment(2,4), dybg.segment(2,4));
+        power2 = RST(k, Rk1, Rk2, ybg.segment(2,4), dybg.segment(2,4));
+        std::cout << k << " " << Rk1 << " " << Rk2 << " " << power1 << " " << power2 << " " << elapsed1.count()+elapsed2.count() << std::endl;
+        fout << k << " " << Rk1 << " " << Rk2 << " " << power1 << " " << power2  << std::endl;
+        k *= kinc;  
     };
     fout.close();
      

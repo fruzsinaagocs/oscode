@@ -108,9 +108,15 @@ Scalar until_start(Vector y, Scalar t){
 
 double HD(double k, double Rk1, double Rk2, Vector ybg, Vector dybg){
     double z = std::real(ybg(1)*ybg(2)/ybg(3));
+    std::complex<double> a(-1.0/(z*std::sqrt(2.0*k)*100*k), 0.0);
+    std::complex<double> b(0.0, -std::real(a)*k*10/(std::real(ybg(2))*k));
+    return std::norm(a*Rk1 + b*Rk2)*std::pow(k, 3)/(2*M_PI*M_PI); 
+};
+
+double RST(double k, double Rk1, double Rk2, Vector ybg, Vector dybg){
+    double z = std::real(ybg(1)*ybg(2)/ybg(3));
     double dz_z = std::real(dybg(1)/dybg(0) + ybg(3) - dybg(3)/ybg(3));
     std::complex<double> a(-1.0/(z*std::sqrt(2.0*k)*100*k), 0.0);
-    //std::complex<double> b(-std::real(a)*dz_z*10/k, -std::real(a)*k*10/(std::real(ybg(2))*k));
-    std::complex<double> c(0.0, -std::real(a)*k*10/(std::real(ybg(2))*k));
-    return std::norm(a*Rk1 + c*Rk2)*std::pow(k, 3)/(2*M_PI*M_PI); 
+    std::complex<double> b(-std::real(a)*dz_z*10/k, -std::real(a)*k*10/(std::real(ybg(2))*k));
+    return std::norm(a*Rk1 + b*Rk2)*std::pow(k, 3)/(2*M_PI*M_PI); 
 };
