@@ -98,9 +98,6 @@ namespace RKWKB{
         double maxerr=0.0;
         Scalar maxerr_c = 0.0;
 
-        //just for testing
-        double tend = 100000;
-                                
         while(true){
             // keep updating stepsize until step is successful
             while(true){
@@ -123,6 +120,8 @@ namespace RKWKB{
                 }
                 // check if step is accepted
                 scale = rtol*y_next + atol;
+                scale = scale.cwiseAbs();
+                error_next = error_next.cwiseAbs();
                 maxerr_c = error_next.cwiseProduct(scale.cwiseInverse()).cwiseAbs().maxCoeff();
                 maxerr = std::real(maxerr_c);
                 if(maxerr <= 1.0){
@@ -155,7 +154,7 @@ namespace RKWKB{
                 error = error_next;
                 // update stepsize
                 update_h(maxerr, wkb, true);
-                //write(outputfile);
+                write(outputfile);
                 if(std::abs(end_error) < 1e-4){
                     waste = 1.0 - (double) stepsok/(double) stepsall;
                     break;
