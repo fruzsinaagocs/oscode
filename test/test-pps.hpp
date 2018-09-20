@@ -1,5 +1,8 @@
 #include <solver.hpp>
 #include <math.h>
+#include <nag.h>
+#include <nag_stdlib.h>
+#include <nagd02.h>
 
 using namespace RKWKB;
 
@@ -119,3 +122,17 @@ double HD(double k, double Rk1, double Rk2, Vector ybg, Vector dybg){
     std::complex<double> b(-std::real(a)*dz_z*10/k, -std::real(a)*k*10/(std::real(ybg(2))*k));
     return std::norm(a*Rk1 + b*Rk2)*std::pow(k, 3)/(2*M_PI*M_PI); 
 };
+
+static void NAG_CALL f(double t, Integer n, const double *y, double *yp, Nag_Comm *comm){
+    // system of differential equations to integrate, compatible with NAG types.
+    
+    
+    yp[0] = y[1];
+    yp[1] = (-2.0*(1.5*y[5] + (-3.0*y[3]*std::sqrt(1.0/(3*std::pow(mp, 2))*(0.5*std::pow(y[3], 2) + V(y[2]))) - dV(y[2]))/y[3] - (-1.0/(3*std::pow(mp, 2))*(std::pow(y[3], 2) - V(y[2])) - std::pow(y[5], 2))/y[5])*y[1] - std::pow(k/y[4],2)*y[0]).real();
+    yp[2] = y[3];
+    yp[3] = (-3.0*y[3]*std::sqrt(1.0/(3*std::pow(mp, 2))*(0.5*std::pow(y[3], 2) + V(y[2]))) - dV(y[2])).real();
+    yp[4] = y[4]*y[5];
+    yp[5] = (-1.0/(3*std::pow(mp, 2))*(std::pow(y[3], 2) - V(y[2])) - std::pow(y[5], 2)).real();
+
+};
+
