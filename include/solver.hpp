@@ -177,15 +177,15 @@ namespace RKWKB{
         // TODO: deal with NaNs in the following line
         if(success){
             if(wkb)
-                h*=std::pow(err, -1.0/(order+1));
+                h*=0.95/err;///std::pow(err, -1.0/(order+1));
             else
-                h*=std::pow(err, -1/5.0);
+                h*=0.95/err;//std::pow(err, -1.0/(order+1));
         }
         else{
             if(wkb)
-                h*=std::pow(err, -1.0/(order));
+                h*=0.95/err;//std::pow(err, -1.0/order);
             else
-                h*=std::pow(err, -1/4.0);
+                h*=0.95/err;//std::pow(err, -1.0/order);
         };
     };
 

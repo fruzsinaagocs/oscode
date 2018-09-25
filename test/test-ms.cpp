@@ -3,14 +3,14 @@
 // Settings for the Mukhanov--Sasaki equation.
 int n=2;
 double m=4.51e-6;
-double k=10.0;
+double k=0.1;
 double phi_p=23.293;
 double mp=1;
 double tstart = 1e4;
 
 TEST_CASE("rkwkb","[ms]"){
     // Solving the MS equation with RKWKB. 
-    std::string outputfile = "outputs/ms-rkwkb4.txt";
+    std::string outputfile = "outputs/ms-rkwkb-sameN3.txt";
     double t=1.0;
     double rtol=1e-4;
     double atol=1e-7;
