@@ -7,12 +7,116 @@ double k=0.1;
 double phi_p=23.293;
 double mp=1;
 double tstart = 1e4;
+double twant = 5e4;
+
+
+TEST_CASE("background", "[ms]"){
+
+    std::string outputfile = "outputs/ms-bg-midt.txt";
+    double rtol=1e-4;
+    double atol=1e-7;
+    int order=1;
+    double t=1.0;
+    Vector ic(6);
+    ic << 100*k, 0.0, background(tstart);
+    de_system MSSystem(F, DF, w, Dw, DDw, g, Dg, DDg);
+    Solution BGSolution(MSSystem,ic,t,until_start,order,rtol,atol,1.0);
+    BGSolution.evolve();
+    Vector ybg = BGSolution.y.segment(2,4);
+    ic << 100*k, 0.0, ybg;
+    Solution MSSolution(MSSystem,ic,tstart,until_twant,order,rtol,atol,1.0); 
+    MSSolution.evolve();
+    Vector ybg2 = MSSolution.y.head(6);
+    ic << ybg2;
+    double hstart = 1e-2;
+    double hend = 1e4;
+    int npts = 6000;
+    double hinc = std::exp((std::log(hend)-std::log(hstart))/(double) npts);
+    double h = hstart;
+    std::cout << h << std::endl;
+    Step rkf_step, wkb_step;
+    double a, H, phi, dS0;
+    std::ofstream fout;
+    fout.open(outputfile, std::ios_base::app);
+    fout << "# Background in MS as function of h at fixed t" << std::endl;
+    fout << "# h, phi, a, H, dS0" << std::endl;
+    
+    for(int i=0; i<npts; i++){
+        rkf_step = MSSolution.step(&MSSolution.rkfsolver, MSSolution.f_tot, MSSolution.y, h);
+        MSSolution.wkbsolver->y0=MSSolution.y;
+        MSSolution.wkbsolver->y1=rkf_step.y;
+        MSSolution.wkbsolver->error0=Vector::Zero(9);
+        MSSolution.wkbsolver->error1=rkf_step.error;
+        wkb_step = MSSolution.step(MSSolution.wkbsolver,MSSolution.f_tot,MSSolution.y,h);
+        phi = std::real(rkf_step.y(2));
+        a = std::real(rkf_step.y(4));
+        H = std::real(rkf_step.y(5));
+        dS0 = std::imag(MSSolution.wkbsolver->ds_all(order-1));
+
+        fout << h << " " << phi << " " << a << " " << H << " " << dS0 << std::endl;
+        h *= hinc;
+    };
+    fout.close();
+
+};
+
+TEST_CASE("error","[ms]"){
+
+    std::string outputfile = "outputs/ms-errors-midt.txt";
+    double rtol=1e-4;
+    double atol=1e-7;
+    int order=1;
+    double t=1.0;
+    Vector ic(6);
+    ic << 100*k, 0.0, background(tstart);
+    de_system MSSystem(F, DF, w, Dw, DDw, g, Dg, DDg);
+    Solution BGSolution(MSSystem,ic,t,until_start,order,rtol,atol,1.0);
+    BGSolution.evolve();
+    Vector ybg = BGSolution.y.segment(2,4);
+    ic << 100*k, 0.0, ybg;
+    Solution MSSolution(MSSystem,ic,tstart,until_twant,order,rtol,atol,1.0); 
+    MSSolution.evolve();
+    Vector ybg2 = MSSolution.y.head(6);
+    ic << ybg2;
+    double hstart = 1e-2;
+    double hend = 1e4;
+    int npts = 6000;
+    double hinc = std::exp((std::log(hend)-std::log(hstart))/(double) npts);
+    double h = hstart;
+    std::cout << h << std::endl;
+    Step rkf_step, wkb_step;
+    Scalar truncerror, truncerror_crude, dS2, S1, S0;
+    std::ofstream fout;
+    fout.open(outputfile, std::ios_base::app);
+    fout << "# Error progression in MS as function of h at fixed t" << std::endl;
+    fout << "# h, RKF abs error, RKF rel error, WKB abs error, WKB rel error, WKB abs truncation error, WKB rel truncation error, WKB rel truncation error (crude), dS2, S1, S0" << std::endl;
+    
+    for(int i=0; i<npts; i++){
+        rkf_step = MSSolution.step(&MSSolution.rkfsolver, MSSolution.f_tot, MSSolution.y, h);
+        //for(int j=0; j<ic.size(); j++)
+        //    CHECK(MSSolution.y(j) == ic(j));
+        MSSolution.wkbsolver->y0=MSSolution.y;
+        MSSolution.wkbsolver->y1=rkf_step.y;
+        MSSolution.wkbsolver->error0=Vector::Zero(9);
+        MSSolution.wkbsolver->error1=rkf_step.error;
+        wkb_step = MSSolution.step(MSSolution.wkbsolver,MSSolution.f_tot,MSSolution.y,h);
+        dS2 = MSSolution.wkbsolver->ds_all(order+1);
+        S1 = MSSolution.wkbsolver->s_all(order);
+        S0 = MSSolution.wkbsolver->s_all(order-1);
+        truncerror = MSSolution.wkbsolver->trunc_error(0);
+        truncerror_crude = MSSolution.wkbsolver->s_all(order+1);
+        fout << h << " " << std::abs(rkf_step.error(0)) << " " << std::abs(rkf_step.error(0)/rkf_step.y(0)) << " " << std::abs(wkb_step.error(0)) << " " << std::abs(wkb_step.error(0)/wkb_step.y(0)) <<  " " << std::abs(truncerror) << " " << std::abs(truncerror/wkb_step.y(0)) << " " << std::abs(truncerror_crude) << " " << std::abs(dS2) << " " << std::abs(S1) << " " << std::abs(S0) << std::endl;
+        h *= hinc;
+    };
+    fout.close();
+};
+
 
 TEST_CASE("rkwkb","[ms]"){
     // Solving the MS equation with RKWKB. 
-    std::string outputfile = "outputs/ms-rkwkb-sameN3.txt";
+    std::string outputfile = "outputs/ms-rkwkb-mixederr-trybg.txt";
     double t=1.0;
-    double rtol=1e-4;
+    double rtol=1e-6;
     double atol=1e-7;
     int order=1;
     Vector ic(6), ic1(6);
@@ -29,13 +133,14 @@ TEST_CASE("rkwkb","[ms]"){
     Solution MSSolution(MSSystem,ic1,tstart,outside_horizon,order,rtol,atol,1.0,outputfile);
     MSSolution.evolve();
     //std::cout << "solution at " << my_solution.t << ": " << my_solution.y(0) << "," << my_solution.y(1) << " " << my_solution.y(2) << " " << my_solution.y(3) << " " << my_solution.y(4) << " " << my_solution.y(5) <<  std::endl;
-    //std::cout << "total steps: " << my_solution.stepsall << std::endl;
-    //std::cout << "waste ratio: " << my_solution.waste << std::endl;
+    std::cout << "total steps: " << MSSolution.stepsall << std::endl;
+    std::cout << "waste ratio: " << MSSolution.waste << std::endl;
+    std::cout << MSSolution.stepsstr << std::endl;
 };
 
 TEST_CASE("nag", "[ms]"){
 
-    std::string outputfile="outputs/ms-nag4.txt";
+    std::string outputfile="outputs/ms-nag-truncerr.txt";
     std::ofstream fout;
     fout.open(outputfile, std::ios_base::app);
     fout << "# MS with NAG" << std::endl;
@@ -114,10 +219,10 @@ TEST_CASE("nag", "[ms]"){
     tinc = std::exp((std::log(tend) - std::log(tstart))/(double) (npts));
     yinit[0] = 100.0*k;
     yinit[1] = 0.0;
-    yinit[2] = ybg[0].real();
-    yinit[3] = ybg[1].real();
-    yinit[4] = ybg[2].real();
-    yinit[5] = ybg[3].real();
+    yinit[2] = background(tstart)(0).real();
+    yinit[3] = background(tstart)(1).real();
+    yinit[4] = background(tstart)(2).real();
+    yinit[5] = background(tstart)(3).real();
     hstart = 0.0;
     thresh[0] = 1.0e-7;
     thresh[1] = 1.0e-7;

@@ -136,7 +136,7 @@ namespace RKWKB{
         virtual Vector ddS(Vector y); // to be overridden by higher order WKBs
         virtual Vector dS(Vector y);
         void truncation_error(bool);
-        void error(bool, Vector);
+        Vector error(bool, bool, Vector);
         Step step(Vectorfn F, Vector y, double h);
         Scalar Fp();
         Scalar Fm();
@@ -190,7 +190,8 @@ namespace RKWKB{
         bm = Bm();
 
         // Error on quantities at y0
-        error(true, y0_bg);
+        
+        error1.head(2) << error(true, false, y0_bg);
         truncation_error(true);
 
         for(int i=0; i<(order+2); i++)
@@ -208,9 +209,13 @@ namespace RKWKB{
         dx = bp*dfp + bm*dfm;
 
         // Error on quantities at y1
-        error(false, y1_bg); 
+        // global
+        error1.head(2) << error(false, false, y1_bg); 
+        // local 
+        //trunc_error = Vector::Zero(2);
+        //trunc_error << error(false, true, y1_bg);
         truncation_error(false);
-        
+
         Step result(d);
         result.y << x, dx, y1.tail(d-2);
         result.error << error1;
@@ -270,19 +275,30 @@ namespace RKWKB{
         return (ddx*dfp - dx*ddfp)/(ddfm*dfp - ddfp*dfm);
     };
 
-    void WKBsolver::error(bool before, Vector y0_bg){
+    Vector WKBsolver::error(bool before, bool local, Vector y0_bg){
         // Error or on quantities at y0
+        Vector result = Vector::Zero(2);
         if(before){
-            error_x = error0(0);
-            error_dx = error0(1);
-            error_ddx = -2.0*sys.g(y0_bg)*error_dx - std::pow(sys.w(y0_bg),2)*error_x;
-            error_ap = (error_dx - dfm*error_x)/(dfp - dfm);
-            error_am = (error_dx - dfp*error_x)/(dfm - dfp);
-            error_bp = (error_ddx - ddfm*error_dx)/(ddfp*dfm - ddfm*dfp);
-            error_bm = (error_ddx - ddfp*error_dx)/(ddfm*dfp - ddfp*dfm);
+            if(not local){
+                error_x = 0.0;
+                error_dx = 0.0;
+                error_x = error0(0);
+                error_dx = error0(1);
+                error_ddx = -2.0*sys.g(y0_bg)*error_dx - std::pow(sys.w(y0_bg),2)*error_x;
+                error_ap = (error_dx - dfm*error_x)/(dfp - dfm);
+                error_am = (error_dx - dfp*error_x)/(dfm - dfp);
+                error_bp = (error_ddx - ddfm*error_dx)/(ddfp*dfm - ddfm*dfp);
+                error_bm = (error_ddx - ddfp*error_dx)/(ddfm*dfp - ddfp*dfm);
+            };
         }
         // Error on quantities at y1
         else{
+            if(local){
+                error_ap = 0.0;
+                error_am = 0.0;
+                error_bp = 0.0;
+                error_bm = 0.0;
+            };
             error_s = Vector::Zero(order+1);
             for(int i=0; i<(order+1); i++)
                     error_s(i) = error1(y1.size() - (order+2) + i);
@@ -290,9 +306,10 @@ namespace RKWKB{
             error_fm = std::conj(error_s.sum())*fm;
             error_dfp = ds.sum()*error_fp;
             error_dfm = std::conj(ds.sum())*error_fm;
-            error1(0) = error_ap*fp + error_am*fm + ap*error_fp + am*error_fm;
-            error1(1) = error_bp*dfp + error_bm*dfm + bp*error_dfp + bm*error_dfm;
+            result(0) = error_ap*fp + error_am*fm + ap*error_fp + am*error_fm;
+            result(1) = error_bp*dfp + error_bm*dfm + bp*error_dfp + bm*error_dfm;
         };
+        return result;
     };
     
     void WKBsolver::truncation_error(bool before){

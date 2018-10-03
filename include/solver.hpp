@@ -33,6 +33,7 @@ namespace RKWKB{
         std::string outputfile;
         int stepsok, stepsall;
         double waste; // stepsok: no. of successful steps, waste: 1 - stepsok/stepsall
+        std::string stepsstr; // all steps as string
     
         // class functions
         Vector F_tot(Vector); // gives time-derivative of all variables propagated
@@ -66,6 +67,7 @@ namespace RKWKB{
         f_tot = std::bind(&Solution::F_tot, this, std::placeholders::_1);
         stepsok = 0;
         stepsall = stepsok;
+        stepsstr = "";
 
         de_sys = system;
         rkfsolver = RKFsolver(de_sys);
@@ -110,6 +112,7 @@ namespace RKWKB{
                 wkbsolver->error1 = step_rkf.error;
                 step_wkb = step(wkbsolver, de_sys.F, y, h);
                 wkb = step_rkf.error.head(2).norm() > wkbsolver->trunc_error.norm();
+                //wkb = step_rkf.error.head(2).norm() > step_wkb.error.head(2).norm();
                 if(wkb){
                     y_next = step_wkb.y;
                     error_next = step_wkb.error;
@@ -128,11 +131,24 @@ namespace RKWKB{
                     t_next += h;   
                     stepsok += 1;
                     stepsall += 1;
+                    stepsstr += "s";
+                    if(wkb)
+                        stepsstr += "(wkb)";
+                    else
+                        stepsstr += "(rkf)";
+                    //std::cout << "successful step" << std::endl;
+                    write(outputfile);
                     break;
                 }
                 else{
                     update_h(maxerr, wkb, false);
                     stepsall += 1;
+                    stepsstr += "u";
+                    if (wkb)
+                        stepsstr += "(wkb)";
+                    else
+                        stepsstr += "(rkf)";
+                    //std::cout << "unsuccessful step" << std::endl;
                 };
             };
             
@@ -154,7 +170,7 @@ namespace RKWKB{
                 error = error_next;
                 // update stepsize
                 update_h(maxerr, wkb, true);
-                write(outputfile);
+                //write(outputfile);
                 if(std::abs(end_error) < 1e-4){
                     waste = 1.0 - (double) stepsok/(double) stepsall;
                     break;
@@ -177,15 +193,15 @@ namespace RKWKB{
         // TODO: deal with NaNs in the following line
         if(success){
             if(wkb)
-                h*=0.95/err;///std::pow(err, -1.0/(order+1));
+                h*=std::pow(err, -1.0/5.0);
             else
-                h*=0.95/err;//std::pow(err, -1.0/(order+1));
+                h*=std::pow(err, -1.0/5.0);
         }
         else{
             if(wkb)
-                h*=0.95/err;//std::pow(err, -1.0/order);
+                h*=std::pow(err, -1.0/4.0);
             else
-                h*=0.95/err;//std::pow(err, -1.0/order);
+                h*=std::pow(err, -1.0/4.0);
         };
     };
 

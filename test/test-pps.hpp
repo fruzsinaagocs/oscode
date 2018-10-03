@@ -7,7 +7,7 @@
 using namespace RKWKB;
 
 extern int n;
-extern double m, k, phi_p, mp, tstart;
+extern double m, k, phi_p, mp, tstart, twant;
 
 Vector background(Scalar);
 
@@ -107,6 +107,10 @@ Scalar outside_horizon(Vector y, Scalar t){
 Scalar until_start(Vector y, Scalar t){
     return tstart - t; 
 };
+
+Scalar until_twant(Vector y, Scalar t){
+    return twant - t;
+}
 
 double RST(double k, double Rk1, double Rk2, Vector ybg, Vector dybg){
     double z = std::real(ybg(1)*ybg(2)/ybg(3));

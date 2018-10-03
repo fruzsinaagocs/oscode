@@ -12,7 +12,7 @@ double tstart=1e4;
 
 void test_pps_nag(){
 
-    std::string outputfile = "outputs/test-pps-nag-lowtol2.txt";
+    std::string outputfile = "outputs/test-pps-nag-lowtol3.txt";
     std::ofstream fout;
     fout.open(outputfile, std::ios_base::app);
     fout << "# PPS with NAG" << std::endl;
@@ -99,7 +99,7 @@ void test_pps_nag(){
         rwsav = NAG_ALLOC(lrwsav, double);
         INIT_FAIL(fail);
  
-        yinit[0] = 1000.0*k;
+        yinit[0] = 100.0*k;
         yinit[1] = 0.0;
         yinit[2] = ybg[0].real(); 
         yinit[3] = ybg[1].real();
@@ -111,7 +111,7 @@ void test_pps_nag(){
         thresh[3] = 1.0e-7;
         thresh[4] = 1.0e-7;
         thresh[5] = 1.0e-7;
-        tol = 1.0e-8;
+        tol = 1.0e-7;
 
         nag_ode_ivp_rkts_setup(n, tstart, tend, yinit, tol, thresh, method, errass, 0.0, iwsav, rwsav, &fail);
         auto start1 = std::chrono::system_clock::now(); 
@@ -155,7 +155,7 @@ void test_pps_nag(){
         thresh[3] = 1.0e-7;
         thresh[4] = 1.0e-7;
         thresh[5] = 1.0e-7;
-        tol = 1.0e-8;
+        tol = 1.0e-7;
     
         nag_ode_ivp_rkts_setup(n, tstart, tend, yinit, tol, thresh, method, errass, 0.0, iwsav, rwsav, &fail);
         auto start2 = std::chrono::system_clock::now(); 
