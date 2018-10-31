@@ -5,6 +5,7 @@
 !.gitignore
 !test/
 !test/*.*
+!numerical_ds/
 !numerical_ds/*.*
 
 # But ignore these extensions/dirs
