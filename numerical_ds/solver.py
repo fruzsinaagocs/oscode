@@ -1,5 +1,5 @@
 import numpy
-import scipy
+import scipy.integrate
 import sys
 
 def integrate(f,a,b):
