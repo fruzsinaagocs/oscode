@@ -23,7 +23,8 @@ class Solver(object):
 
     def evolve(self, rk=False):
         while True:
-            x_rk, dx_rk, err_rk = self.RK_step()
+            x_rk, dx_rk, err_rk, ws = self.RK_step()
+            self.ws = ws
             if not rk:
                 x_wkb, dx_wkb, err_wkb = self.RKWKB_step()
                 wkb = err_wkb < err_rk
@@ -58,18 +59,23 @@ class Solver(object):
                     self.h *= 0.95 * (self.err/err)**(1/4.0)
 
     def RKWKB_step(self):
+        #print(self.ws)
+        self.rkwkbsolver1.ws = self.ws
+        self.rkwkbsolver2.ws = self.ws       
+        self.rkwkbsolver3.ws = self.ws
         try:
             x1, dx1 = self.rkwkbsolver1.step(self.x,self.dx,self.t,self.h)
             x2, dx2 = self.rkwkbsolver2.step(self.x,self.dx,self.t,self.h)
             x3, dx3 = self.rkwkbsolver3.step(self.x,self.dx,self.t,self.h)
         except ZeroDivisionError:
             return numpy.inf, numpy.inf, numpy.inf
+        print(self.rkwkbsolver1.dw(self.t),self.rkwkbsolver1.Dw)
         #self.wkberror = abs(x3 - x2)
         return x3, dx3, abs(x3 - x2) #abs(x3*integrate(lambda t: 3/8 * self.rkwkbsolver3.dw(t)**2/self.rkwkbsolver3.w(t)**3 - 1/4 * self.rkwkbsolver3.ddw(t)/self.rkwkbsolver3.w(t)**2,self.t,self.t+self.h))
 
     def RK_step(self):
-        x, dx, err = self.rksolver.step(self.x,self.dx,self.t,self.h)
-        return x, dx, err
+        x, dx, err, ws = self.rksolver.step(self.x,self.dx,self.t,self.h)
+        return x, dx, err, ws
 
 class RKSolver(object):
     def __init__(self,w):
@@ -88,21 +94,30 @@ class RKSolver(object):
                 ]
 
     def f(self,t,y):
-        return numpy.array([y[1],-y[0] * self.w(t)**2])
+        return numpy.array([y[1],-y[0] * self.w(t)**2, self.w(t)])
 
     def step(self,x0,dx0,t0,h):
 
-        y0 = numpy.array([x0,dx0])
+        y0 = numpy.array([x0,dx0,0])
         k = []
+        ws = []
         for c_s, a_s in zip(self.c, self.a):
             S = sum(a_si * k_i for a_si, k_i in zip(a_s, k))
             k_i = h * self.f(t0 + c_s * h, y0 + S)
             k.append(k_i)
+            ws.append(k_i[-1]/h)
 
         y4 = y0 + sum([b_i * k_i for b_i, k_i in zip(self.b4,k)])
         y5 = y0 + sum([b_i * k_i for b_i, k_i in zip(self.b5,k)])
+        w1 = ws[0]
+        w2 = ws[1]
+        w3 = ws[2]
+        w4 = ws[5]
+        w5 = ws[3]
+        w6 = ws[4]
+        ws = numpy.array([w1, w2, w3, w4, w5, w6])
 
-        return y5[0], y5[1], abs(y5[0]-y4[0])
+        return y5[0], y5[1], abs(y5[0]-y4[0]), ws
     
         
 class RKWKBSolver(object):
@@ -117,6 +132,17 @@ class RKWKBSolver(object):
         return Bp, Bm
 
     def step(self, x0, dx0, t0, h):
+        #print(self.ws)
+        self.Dw = self.d1w(h)
+        self.DDw = self.d2w(h)
+        self.DDDw = self.d3w(h)
+        self.Dbw = self.d1wb(h)
+        self.DDbw = self.d2wb(h)
+        self.DDbw = self.d3wb(h) 
+        #print(self.Dw, self.dw(t0))
+        #print(self.DDw, self.ddw(t0))
+        #print(self.DDDw, self.dddw(t0))
+        
         ddx0 = -self.w(t0)**2 * x0
         t1 = t0 + h
 
@@ -124,9 +150,42 @@ class RKWKBSolver(object):
         Bp, Bm = self.B(t0,dx0,ddx0)
 
         x1 =  Ap * self.fp(t0,t1) + Am * self.fm(t0,t1)
-        dx1 = Bp * self.dfp(t1) * self.fp(t0,t1) + Bm * self.dfm(t1) * self.fm(t0,t1) 
+        dx1 = Bp * self.dfpb(t1) * self.fp(t0,t1) + Bm * self.dfmb(t1) * self.fm(t0,t1) 
 
         return x1, dx1
+
+    def d1w(self, h):
+        d1w = (-43/4.0*self.ws[0] + 1536/35.0*self.ws[1] - 16384/285.0*self.ws[2] + 288/11.0*self.ws[3] - 371293/87780.0*self.ws[4] + 12/5.0*self.ws[5])/h
+        return d1w
+
+    def d1wb(self, h):
+        d1w = (-5/12.0*self.ws[0] + 128/21.0*self.ws[1] - 4096/285.0*self.ws[2] + 120/11.0*self.ws[3] - 371293/17556.0*self.ws[4] + 284/15.0*self.ws[5] )/h
+        return d1w
+    
+    def d2w(self, h):
+        d2w = (1553/18.0*self.ws[0] - 20736/35.0*self.ws[1] + 794624/855.0*self.ws[2] - 5040/11.0*self.ws[3] + 10767497/131670.0*self.ws[4] - 234/5.0*self.ws[5])/h**2
+        return d2w
+    
+    def d2wb(self, h):
+        d2w = (-269/18.0*self.ws[0] + 22528/105.0*self.ws[1] - 425984/855.0*self.ws[2] + 4064/11.0*self.ws[3] - 33045077/131670.0*self.ws[4] + 2702/15.0*self.ws[5] )/h**2
+        return d2w
+    
+    def d3w(self, h):
+        d3w = (- 1453/3.0*self.ws[0] + 21248/5.0*self.ws[1] - 2121728/285.0*self.ws[2] + 44304/11.0*self.ws[3] - 2599051/3135.0*self.ws[4] + 2404/5.0*self.ws[5])/h**3
+        return d3w
+    
+    def d3wb(self, h):
+        d3w = (-541/3.0*self.ws[0] + 85248/35.0*self.ws[1] - 1531904/285.0*self.ws[2] + 40464/11.0*self.ws[3] - 36015421/21945.0*self.ws[4] + 5412/5.0*self.ws[5] )/h**2
+        return d3w
+
+    def S0(self, h):
+        return h*self.ws[0] + h**2/2.0*self.Dw + h**3/6.0*self.DDw
+
+    def S1(self, h):
+        return numpy.log(numpy.sqrt(self.ws[0]/self.ws[5])) 
+
+    def S2(self, h):
+        return h*(-3/8.0*self.Dw**2/self.ws[0]**3 + 1/4.0*self.DDw/self.ws[0]**2) + h**2/2.0*(-5/4.0*self.Dw*self.DDw/self.ws[0]**3 + 9/8.0*self.Dw**3/self.ws[0]**4 + 1/4.0*self.DDDw/self.ws[0]**2) 
 
 class RKWKBSolver1(RKWKBSolver):
     def __init__(self,w,dw):
@@ -134,19 +193,25 @@ class RKWKBSolver1(RKWKBSolver):
         self.dw = dw
 
     def fp(self,t0,t1):
-        return numpy.exp(1j * integrate(self.w,t0,t1))
+        return numpy.exp(1j * self.S0(t1-t0))
 
     def dfp(self,t):
-        return 1j * self.w(t) 
+        return 1j * self.w(t)
+    
+    def dfpb(self,t):
+        return 1j * self.w(t)
 
     def ddfp(self,t):
-        return -self.w(t)**2  + 1j * self.dw(t) 
+        return -self.w(t)**2  + 1j * self.Dw 
 
     def fm(self,t0,t1):
         return numpy.conj(self.fp(t0,t1))
 
     def dfm(self,t):
         return numpy.conj(self.dfp(t))
+
+    def dfmb(self,t):
+        return numpy.conj(self.dfpb(t))
 
     def ddfm(self,t):
         return numpy.conj(self.ddfp(t))
@@ -158,19 +223,25 @@ class RKWKBSolver2(RKWKBSolver1):
         self.ddw = ddw
 
     def fp(self,t0,t1):
-        return (self.w(t0)/self.w(t1))**(1/2) * super().fp(t0,t1)
+        return numpy.exp(self.S1(t1-t0)) * super().fp(t0,t1)
 
     def dfp(self,t):
-        return super().dfp(t) - self.dw(t)/self.w(t)/2
+        return super().dfp(t) - self.Dw/self.w(t)/2
+
+    def dfpb(self,t):
+        return super().dfpb(t) - self.Dbw/self.w(t)/2
 
     def ddfp(self,t):
-        return -self.w(t)**2 + 3/4 * (self.dw(t)/self.w(t))**2 - 1/2 * self.ddw(t)/self.w(t) 
+        return -self.w(t)**2 + 3/4 * (self.Dw/self.w(t))**2 - 1/2 * self.DDw/self.w(t) 
 
     def fm(self,t0,t1):
         return numpy.conj(self.fp(t0,t1))
 
     def dfm(self,t):
         return numpy.conj(self.dfp(t))
+
+    def dfmb(self,t):
+        return numpy.conj(self.dfpb(t))
 
     def ddfm(self,t):
         return numpy.conj(self.ddfp(t))
@@ -183,20 +254,25 @@ class RKWKBSolver3(RKWKBSolver2):
         self.dddw = dddw
 
     def fp(self,t0,t1):
-        return super().fp(t0,t1) * numpy.exp(1j * integrate(
-            lambda t: 3/8 * self.dw(t)**2/self.w(t)**3 - 1/4 * self.ddw(t)/self.w(t)**2,t0,t1))
+        return super().fp(t0,t1) * numpy.exp(1j * self.S2(t1-t0))
 
     def dfp(self,t):
-        return super().dfp(t) + 1j * ( 3/8 * self.dw(t)**2/self.w(t)**3 - 1/4  * self.ddw(t)/self.w(t)**2)
+        return super().dfp(t) + 1j * ( 3/8 * self.Dw**2/self.w(t)**3 - 1/4  * self.DDw/self.w(t)**2)
+
+    def dfpb(self,t):
+        return super().dfpb(t) + 1j * (3/8 * self.Dbw**2/self.w(t)**3 - 1/4 * self.DDbw/self.w(t)**2)
 
     def ddfp(self,t):
-        return -self.w(t)**2  - 1/4 * 1j * self.dddw(t)/self.w(t)**2 - 3/2 * 1j * self.dw(t)**3/self.w(t)**4 + 3/2 * 1j * self.dw(t) * self.ddw(t)/self.w(t)**3 - 9/64 * self.dw(t)**4/self.w(t)**6 + 3/16 * self.dw(t)**2 * self.ddw(t) / self.w(t)**5 - 1/16 * self.ddw(t)**2/self.w(t)**4
+        return -self.w(t)**2  - 1/4 * 1j * self.DDDw/self.w(t)**2 - 3/2 * 1j * self.Dw**3/self.w(t)**4 + 3/2 * 1j * self.Dw * self.DDw/self.w(t)**3 - 9/64 * self.Dw**4/self.w(t)**6 + 3/16 * self.Dw**2 * self.DDw / self.w(t)**5 - 1/16 * self.DDw**2/self.w(t)**4
 
     def fm(self,t0,t1):
         return numpy.conj(self.fp(t0,t1))
 
     def dfm(self,t):
         return numpy.conj(self.dfp(t))
+
+    def dfmb(self,t):
+        return numpy.conj(self.dfpb(t))
 
     def ddfm(self,t):
         return numpy.conj(self.ddfp(t))

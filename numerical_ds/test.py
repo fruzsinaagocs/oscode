@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
+# a comment
 n=80
 
 def w(t):
