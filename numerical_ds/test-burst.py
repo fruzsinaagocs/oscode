@@ -6,35 +6,10 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
-# a comment
 n=80
 
 def w(t):
     return numpy.sqrt(n**2-1) * 1 / (1 + t**2)
-
-def dw(t,H):
-    d1w = (-43/4.0*w(t) + 1536/35.0*w(t+1/4.0*H) - 16384/285.0*w(t+3/8.0*H) + 288/11.0*w(t+1/2.0*H) - 371293/87780.0*w(t+12/13.0*H) + 12/5.0*w(t+H))/H
-    return d1w
-
-def dwb(t,H):
-    d1w = (-5/12.0*w(t-H) + 128/21.0*w(t-3/4.0*H) - 4096/285.0*w(t-5/8.0*H) + 120/11.0*w(t-1/2.0*H) - 371293/17556.0*w(t-1/13.0*H) + 284/15.0*w(t) )/H
-    return d1w
-
-def ddw(t,H):
-    d2w = (1553/18.0*w(t) - 20736/35.0*w(t+1/4.0*H) + 794624/855.0*w(t+3/8.0*H) - 5040/11.0*w(t+1/2.0*H) + 10767497/131670.0*w(t+12/13.0*H) - 234/5.0*w(t+H))/H**2
-    return d2w
-
-def ddwb(t,H):
-    d2w = (-269/18.0*w(t-H) + 22528/105.0*w(t-3/4.0*H) - 425984/855.0*w(t-5/8.0*H) + 4064/11.0*w(t-1/2.0*H) - 33045077/131670.0*w(t-1/13.0*H) + 2702/15.0*w(t) )/H**2
-    return d2w
-
-def dddw(t,H):
-    d3w = (- 1453/3.0*w(t) + 21248/5.0*w(t+1/4.0*H) - 2121728/285.0*w(t+3/8.0*H) + 44304/11.0*w(t+1/2.0*H) - 2599051/3135.0*w(t+12/13.0*H) + 2404/5.0*w(t+H))/H**3
-    return d3w
-
-def dddwb(t,H):
-    d3w = (-541/3.0*w(t-H) + 85248/35.0*w(t-3/4.0*H) - 1531904/285.0*w(t-5/8.0*H) + 40464/11.0*w(t-1/2.0*H) - 36015421/21945.0*w(t-1/13.0*H) + 5412/5.0*w(t) )/H**2
-    return d3w
 
 def sol(t):
     if n%2 ==0:
@@ -63,7 +38,7 @@ def main():
     dx = dsol(t)
     
     ts, xs, wkbs = [], [], []
-    solver = Solver(w,dw,ddw,dddw,t=t,x=x,dx=dx,err=err)
+    solver = Solver(w,t=t,x=x,dx=dx,err=err)
     
     for step in solver.evolve(rk):
         wkb = step['wkb']
@@ -102,7 +77,7 @@ def main():
     #dx = dsol(t)
     #
     #ts, xs = [], []
-    #solver = Solver(w,dw,ddw,dddw,t=t,x=x,dx=dx,err=err)
+    #solver = Solver(w,t=t,x=x,dx=dx,err=err)
     #
     #for step in solver.evolve(rk):
     #    wkb = step['wkb']
