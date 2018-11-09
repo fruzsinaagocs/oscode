@@ -59,6 +59,7 @@ class Solver(object):
                 else:
                     self.h *= 0.95 * (self.err/err)**(1/4.0)
 
+
     def RKWKB_step(self):
         #print(self.ws)
         self.rkwkbsolver1.ws = self.ws
@@ -139,6 +140,10 @@ class RKWKBSolver(object):
     def step(self, x0, dx0, t0, h):
         #print(self.ws)
         self.Dw = self.d1w(h)
+        self.Dw2 = self.d1w2(h)
+        self.Dw3 = self.d1w3(h)
+        self.Dw4 = self.d1w4(h)
+        self.Dw5 = self.d1w5(h)
         self.DDw = self.d2w(h)
         self.DDDw = self.d3w(h)
         self.Dbw = self.d1wb(h)
@@ -161,6 +166,22 @@ class RKWKBSolver(object):
 
     def d1w(self, h):
         d1w = (-43/4.0*self.ws[0] + 1536/35.0*self.ws[1] - 16384/285.0*self.ws[2] + 288/11.0*self.ws[3] - 371293/87780.0*self.ws[4] + 12/5.0*self.ws[5])/h
+        return d1w
+
+    def d1w2(self, h):
+        d1w = (-35/96.0*self.ws[0] - 1136/105.0*self.ws[1] + 896/57.0*self.ws[2] - 105/22.0*self.ws[3] + 371293/702240.0*self.ws[4] - 7/24.0*self.ws[5])/h
+        return d1w
+
+    def d1w3(self, h):
+        d1w = (95/768.0*self.ws[0] - 57/14.0*self.ws[1] - 72/95.0*self.ws[2] + 855/176.0*self.ws[3] - 371293/1123584.0*self.ws[4] + 57/320.0*self.ws[5])/h
+        return d1w
+
+    def d1w4(self, h):
+        d1w = (-11/72.0*self.ws[0] + 352/105.0*self.ws[1] - 11264/855.0*self.ws[2] + 106/11.0*self.ws[3] + 371293/526680.0*self.ws[4] - 11/30.0*self.ws[5])/h
+        return d1w
+
+    def d1w5(self, h):
+        d1w = (7315/26364.0*self.ws[0] -321024/76895.0*self.ws[1] + 1261568/125229.0*self.ws[2] - 191520/24167.0*self.ws[3] - 182663/29260.0*self.ws[4] + 17556/2197.0*self.ws[5])/h
         return d1w
 
     def d1wb(self, h):
@@ -190,7 +211,7 @@ class RKWKBSolver(object):
         return numpy.log(numpy.sqrt(self.ws[0]/self.ws[5])) 
 
     def S2(self, h):
-        return h*(-3/8.0*self.Dw**2/self.ws[0]**3 + 1/4.0*self.DDw/self.ws[0]**2) + h**2/2.0*(-5/4.0*self.Dw*self.DDw/self.ws[0]**3 + 9/8.0*self.Dw**3/self.ws[0]**4 + 1/4.0*self.DDDw/self.ws[0]**2) 
+        return  -1/4.0*(self.Dbw/self.ws[5]**2 - self.Dw/self.ws[0]**2) - 1/8.0*(16/135.0*self.Dw**2/self.ws[0]**3 + 6656/12825.0*self.Dw3**2/self.ws[2]**3 + 28561/56430.0*self.Dw4**2/self.ws[3]**3 - 9/50.0*self.Dw5**2/self.ws[4]**3 + 2/55.0*self.Dbw**2/self.ws[5]**3)*h   
 
 class RKWKBSolver1(RKWKBSolver):
     def __init__(self,w):
