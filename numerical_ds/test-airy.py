@@ -6,31 +6,33 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
+#scipy.special.seterr(all='warn')
 
 def w(t):
     return numpy.sqrt(t)
 
 def sol(t):
-    return scipy.special.airy(-t)[0] 
+    return scipy.special.airy(-t)[0] + 1j*scipy.special.airy(-t)[2] 
 
 def dsol(t):
-    return -scipy.special.airy(-t)[1]
+    return -scipy.special.airy(-t)[1] - 1j*scipy.special.airy(-t)[3]
 
 def main():
     
     fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     
     start = 0.0
-    finish = 2e3
-    err = 1e-4
-    
+    finish = 1e5
+    rtol = 1e-4
+    atol = 0.0
+
     rk = False
     t = start
     x = sol(t)
     dx = dsol(t)
     
     ts, xs, wkbs = [], [], []
-    solver = Solver(w,t=t,x=x,dx=dx,err=err)
+    solver = Solver(w,t=t,x=x,dx=dx,rtol=rtol,atol=atol)
     
     for step in solver.evolve(rk):
         wkb = step['wkb']
@@ -40,9 +42,11 @@ def main():
         h = step['h']
         if wkb:
             print('wkb',t,x,e,h)
+            #print('analytic S2:', 5/48.0*(1/(t+h)**(3/2.0) - 1/t**(3/2.0)))
         else:
             print('rk',t,x,e,h)
-    
+            #print('analytic S2:', 5/48.0*(1/(t+h)**(3/2.0) - 1/t**(3/2.0)))
+ 
         if t < finish:
             ts.append(t)
             xs.append(x)
@@ -55,7 +59,8 @@ def main():
     wkbs = numpy.array(wkbs)
     RKWKB_line, = ax2.plot(ts[wkbs==False],xs[wkbs==False],'ro')
     RKWKB_line, = ax2.plot(ts[wkbs==True],xs[wkbs==True],'go')
-    ax1.semilogy(ts,abs((sol(ts)-xs)/sol(ts)),'k-')
+    ax1.loglog(ts[wkbs==False] ,abs((sol(ts[wkbs==False])-xs[wkbs==False])/sol(ts[wkbs==False])),'rx')
+    ax1.loglog(ts[wkbs==True] ,abs((sol(ts[wkbs==True])-xs[wkbs==True])/sol(ts[wkbs==True])),'gx')
     ax1.set_ylabel('$|\Delta x|/|x|$')
 
     ts = numpy.linspace(ts[0],ts[-1],100000)

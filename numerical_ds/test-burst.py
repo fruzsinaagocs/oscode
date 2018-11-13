@@ -13,13 +13,13 @@ def w(t):
 
 def sol(t):
     if n%2 ==0:
-        return (-1)**(n/2) * numpy.sqrt(1+t**2)/n * numpy.sin(n * numpy.arctan(t))
+        return 100*((-1)**(n/2) * numpy.sqrt(1+t**2)/n * numpy.sin(n * numpy.arctan(t)))
     else:
         return (-1)**((n-1)/2) * numpy.sqrt(1+t**2)/n * numpy.cos(n * numpy.arctan(t))
 
 def dsol(t):
     if n%2 ==0:
-        return (-1)**(n/2) / numpy.sqrt(1+t**2) / n *( n * numpy.cos(n * numpy.arctan(t)) + t * numpy.sin(n * numpy.arctan(t)) )
+        return 100*((-1)**(n/2) / numpy.sqrt(1+t**2) / n *( n * numpy.cos(n * numpy.arctan(t)) + t * numpy.sin(n * numpy.arctan(t)) ))
     else:
         return (-1)**((n-1)/2) / numpy.sqrt(1+t**2) / n *( n * numpy.sin(n * numpy.arctan(t)) - t * numpy.cos(n * numpy.arctan(t)) )
 
@@ -30,7 +30,8 @@ def main():
     
     start = -2*n
     finish = 2*n
-    err = 1e-3
+    rtol = 1e-4
+    atol = 1e-5
     
     rk = False
     t = start
@@ -38,7 +39,7 @@ def main():
     dx = dsol(t)
     
     ts, xs, wkbs = [], [], []
-    solver = Solver(w,t=t,x=x,dx=dx,err=err)
+    solver = Solver(w,t=t,x=x,dx=dx,rtol=rtol,atol=atol)
     
     for step in solver.evolve(rk):
         wkb = step['wkb']
@@ -61,9 +62,12 @@ def main():
     ts = numpy.array(ts)
     xs = numpy.array(xs)
     wkbs = numpy.array(wkbs)
-    RKWKB_line, = ax2.plot(ts[wkbs==False],xs[wkbs==False],'ro')
-    RKWKB_line, = ax2.plot(ts[wkbs==True],xs[wkbs==True],'go')
-    
+    RKWKB_line, = ax2.plot(ts[wkbs==False],xs[wkbs==False],'rx')
+    RKWKB_line, = ax2.plot(ts[wkbs==True],xs[wkbs==True],'gx')
+    ax1.semilogy(ts[wkbs==False] ,abs((sol(ts[wkbs==False])-xs[wkbs==False]))/abs(sol(ts[wkbs==False])),'rx')
+    ax1.semilogy(ts[wkbs==True] ,abs((sol(ts[wkbs==True])-xs[wkbs==True]))/abs(sol(ts[wkbs==True])),'gx')
+    ax1.set_ylabel('$|\Delta x|/|x|$')
+
     ts = numpy.linspace(ts[0],ts[-1],100000)
     true_line, = ax2.plot(ts,sol(ts),'k-')
     #ax2.set_xlim(-0.5,0.5)
@@ -97,8 +101,6 @@ def main():
     #        break
     
     #RK_line, = ax1.plot(numpy.array(ts)/n,xs,'rx')
-    ts = numpy.linspace(ts[0],ts[-1],100000)
-    ax1.plot(ts,sol(ts),'k-')
     
     plt.show()
     #fig.savefig('/home/will/Documents/Papers/RKWKB/figures/burst_compare.pdf')
