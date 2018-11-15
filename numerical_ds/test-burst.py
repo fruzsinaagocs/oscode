@@ -6,20 +6,20 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
-n=80
+n=10
 
 def w(t):
     return numpy.sqrt(n**2-1) * 1 / (1 + t**2)
 
 def sol(t):
     if n%2 ==0:
-        return 100*((-1)**(n/2) * numpy.sqrt(1+t**2)/n * numpy.sin(n * numpy.arctan(t)))
+        return (-1)**(n/2) * numpy.sqrt(1+t**2)/n * numpy.sin(n * numpy.arctan(t))
     else:
         return (-1)**((n-1)/2) * numpy.sqrt(1+t**2)/n * numpy.cos(n * numpy.arctan(t))
 
 def dsol(t):
     if n%2 ==0:
-        return 100*((-1)**(n/2) / numpy.sqrt(1+t**2) / n *( n * numpy.cos(n * numpy.arctan(t)) + t * numpy.sin(n * numpy.arctan(t)) ))
+        return (-1)**(n/2) / numpy.sqrt(1+t**2) / n *( n * numpy.cos(n * numpy.arctan(t)) + t * numpy.sin(n * numpy.arctan(t)) )
     else:
         return (-1)**((n-1)/2) / numpy.sqrt(1+t**2) / n *( n * numpy.sin(n * numpy.arctan(t)) - t * numpy.cos(n * numpy.arctan(t)) )
 
