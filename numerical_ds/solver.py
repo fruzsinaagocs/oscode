@@ -27,7 +27,7 @@ class Solver(object):
             if not rk:
                 x_wkb, dx_wkb, err_wkb, truncerr = self.RKWKB_step()
                 #print(truncerr)
-                wkb = numpy.linalg.norm(truncerr) < numpy.linalg.norm(err_rk[:2])
+                wkb = numpy.linalg.norm(truncerr[:2]) < numpy.linalg.norm(err_rk[:2])
                 #wkb = abs(self.rkwkbsolver4.S3(self.h)*x_wkb) < abs(err_rk[0])
 
             if rk:

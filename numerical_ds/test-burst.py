@@ -6,28 +6,20 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
-n=10
+n=115
 
 def w(t):
     return numpy.sqrt(n**2-1) * 1 / (1 + t**2)
 
 def sol(t):
-    if n%2 ==0:
-        return (-1)**(n/2) * numpy.sqrt(1+t**2)/n * numpy.sin(n * numpy.arctan(t))
-    else:
-        return (-1)**((n-1)/2) * numpy.sqrt(1+t**2)/n * numpy.cos(n * numpy.arctan(t))
+    return 100*numpy.sqrt(1+t**2)/n * (1j*numpy.sin(n * numpy.arctan(t)) + numpy.cos(n * numpy.arctan(t)))
 
 def dsol(t):
-    if n%2 ==0:
-        return (-1)**(n/2) / numpy.sqrt(1+t**2) / n *( n * numpy.cos(n * numpy.arctan(t)) + t * numpy.sin(n * numpy.arctan(t)) )
-    else:
-        return (-1)**((n-1)/2) / numpy.sqrt(1+t**2) / n *( n * numpy.sin(n * numpy.arctan(t)) - t * numpy.cos(n * numpy.arctan(t)) )
-
+    return 100.0/numpy.sqrt(t**2+1)/n*( (t + 1j*n ) * numpy.cos(n*numpy.arctan(t)) + (1j*t - n ) * numpy.sin(n*numpy.arctan(t)))
 
 def main():
     
-    fig, (ax1, ax2) = plt.subplots(2, sharex=True)
-    
+        
     start = -2*n
     finish = 2*n
     rtol = 1e-4
@@ -62,46 +54,29 @@ def main():
     ts = numpy.array(ts)
     xs = numpy.array(xs)
     wkbs = numpy.array(wkbs)
-    RKWKB_line, = ax2.plot(ts[wkbs==False],xs[wkbs==False],'rx')
-    RKWKB_line, = ax2.plot(ts[wkbs==True],xs[wkbs==True],'gx')
-    ax1.semilogy(ts[wkbs==False] ,abs((sol(ts[wkbs==False])-xs[wkbs==False]))/abs(sol(ts[wkbs==False])),'rx')
-    ax1.semilogy(ts[wkbs==True] ,abs((sol(ts[wkbs==True])-xs[wkbs==True]))/abs(sol(ts[wkbs==True])),'gx')
-    ax1.set_ylabel('$|\Delta x|/|x|$')
+    
+    fig, axes = plt.subplots(2,2, sharex=True)
+
+    # Real part of analytic and RKWKB solution
+    axes[0,0].plot(ts[wkbs==False],numpy.real(xs[wkbs==False]),'rx')
+    axes[0,0].plot(ts[wkbs==True],numpy.real(xs[wkbs==True]),'gx')
+    axes[0,0].set_ylabel('$\mathcal{Re}(x)$')
+    axes[0,1].plot(ts[wkbs==False],numpy.imag(xs[wkbs==False]),'rx')
+    axes[0,1].plot(ts[wkbs==True],numpy.imag(xs[wkbs==True]),'gx')
+    axes[0,1].set_ylabel('$\mathcal{Im}(x)$')
+    # Relative error on amplitude
+    axes[1,0].semilogy(ts[wkbs==False] ,abs((sol(ts[wkbs==False])-xs[wkbs==False]))/abs(sol(ts[wkbs==False])),'rx')
+    axes[1,0].semilogy(ts[wkbs==True] ,abs((sol(ts[wkbs==True])-xs[wkbs==True]))/abs(sol(ts[wkbs==True])),'gx')
+    axes[1,0].set_ylabel('$|\Delta r|/|r|$')
+    # Relative error on phase
+    axes[1,1].semilogy(ts[wkbs==False],abs((numpy.angle(sol(ts[wkbs==False]))-numpy.angle(xs[wkbs==False]))/numpy.angle(sol(ts[wkbs==False]))),'rx')
+    axes[1,1].semilogy(ts[wkbs==True],abs((numpy.angle(sol(ts[wkbs==True]))-numpy.angle(xs[wkbs==True]))/numpy.angle(sol(ts[wkbs==True]))),'gx')
+    axes[1,1].set_ylabel('$|\Delta \phi / |\phi|$')
 
     ts = numpy.linspace(ts[0],ts[-1],100000)
-    true_line, = ax2.plot(ts,sol(ts),'k-')
-    #ax2.set_xlim(-0.5,0.5)
-    #ax2.set_ylim(-0.5,0.5)
-    #ax2.set_xlabel('$t/n$')
-    
-    
-    #rk = True
-    #t = start
-    #x = sol(t)
-    #dx = dsol(t)
-    #
-    #ts, xs = [], []
-    #solver = Solver(w,t=t,x=x,dx=dx,err=err)
-    #
-    #for step in solver.evolve(rk):
-    #    wkb = step['wkb']
-    #    t = step['t']
-    #    x = step['x']
-    #    e = step['err']
-    #    h = step['h']
-    #    if wkb:
-    #        print('wkb',t,x,e,h)
-    #    else:
-    #        print('rk',t,x,e,h)
-    #
-    #    if t < finish:
-    #        ts.append(t)
-    #        xs.append(x)
-    #    else:
-    #        break
-    
-    #RK_line, = ax1.plot(numpy.array(ts)/n,xs,'rx')
-    
+    axes[0,0].plot(ts,numpy.real(sol(ts)),'k-')
+    axes[0,1].plot(ts, numpy.imag(sol(ts)),'k-')
+        
     plt.show()
     #fig.savefig('/home/will/Documents/Papers/RKWKB/figures/burst_compare.pdf')
 

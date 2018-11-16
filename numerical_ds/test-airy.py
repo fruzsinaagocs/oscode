@@ -19,10 +19,9 @@ def dsol(t):
 
 def main():
     
-    fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     
     start = 1.0
-    finish = 1e3
+    finish = 1e5
     rtol = 1e-5
     atol = 1e-5
 
@@ -57,46 +56,28 @@ def main():
     ts = numpy.array(ts)
     xs = numpy.array(xs)
     wkbs = numpy.array(wkbs)
-    RKWKB_line, = ax2.plot(ts[wkbs==False],xs[wkbs==False],'ro')
-    RKWKB_line, = ax2.plot(ts[wkbs==True],xs[wkbs==True],'go')
-    ax1.loglog(ts[wkbs==False] ,abs((sol(ts[wkbs==False])-xs[wkbs==False])/sol(ts[wkbs==False])),'rx')
-    ax1.loglog(ts[wkbs==True] ,abs((sol(ts[wkbs==True])-xs[wkbs==True])/sol(ts[wkbs==True])),'gx')
-    ax1.set_ylabel('$|\Delta x|/|x|$')
+    
+    fig, axes = plt.subplots(2,2,sharex=True)
+
+    axes[0,0].semilogx(ts[wkbs==False],numpy.real(xs[wkbs==False]),'rx')
+    axes[0,0].semilogx(ts[wkbs==True],numpy.real(xs[wkbs==True]),'gx')
+    axes[0,0].set_ylabel('$\mathcal{Re}(x)$')
+    axes[0,1].semilogx(ts[wkbs==False],numpy.imag(xs[wkbs==False]),'rx')
+    axes[0,1].semilogx(ts[wkbs==True],numpy.imag(xs[wkbs==True]),'gx')
+    axes[0,1].set_ylabel('$\mathcal{Im}(x)$')
+    # Relative error on amplitude
+    axes[1,0].loglog(ts[wkbs==False] ,abs((sol(ts[wkbs==False])-xs[wkbs==False]))/abs(sol(ts[wkbs==False])),'rx')
+    axes[1,0].loglog(ts[wkbs==True] ,abs((sol(ts[wkbs==True])-xs[wkbs==True]))/abs(sol(ts[wkbs==True])),'gx')
+    axes[1,0].set_ylabel('$|\Delta r|/|r|$')
+    # Relative error on phase
+    axes[1,1].loglog(ts[wkbs==False],abs((numpy.angle(sol(ts[wkbs==False]))-numpy.angle(xs[wkbs==False]))/numpy.angle(sol(ts[wkbs==False]))),'rx')
+    axes[1,1].loglog(ts[wkbs==True],abs((numpy.angle(sol(ts[wkbs==True]))-numpy.angle(xs[wkbs==True]))/numpy.angle(sol(ts[wkbs==True]))),'gx')
+    axes[1,1].set_ylabel('$|\Delta \phi / |\phi|$')
 
     ts = numpy.linspace(ts[0],ts[-1],100000)
-    true_line, = ax2.plot(ts,sol(ts),'k-')
-    #ax2.set_xlim(-0.5,0.5)
-    #ax2.set_ylim(-0.5,0.5)
-    #ax2.set_xlabel('$t/n$')
-    
-    
-    #rk = True
-    #t = start
-    #x = sol(t)
-    #dx = dsol(t)
-    #
-    #ts, xs = [], []
-    #solver = Solver(w,t=t,x=x,dx=dx,err=err)
-    #
-    #for step in solver.evolve(rk):
-    #    wkb = step['wkb']
-    #    t = step['t']
-    #    x = step['x']
-    #    e = step['err']
-    #    h = step['h']
-    #    if wkb:
-    #        print('wkb',t,x,e,h)
-    #    else:
-    #        print('rk',t,x,e,h)
-    #
-    #    if t < finish:
-    #        ts.append(t)
-    #        xs.append(x)
-    #    else:
-    #        break
-    
-    #RK_line, = ax1.plot(numpy.array(ts)/n,xs,'rx')
-        
+    axes[0,0].plot(ts,numpy.real(sol(ts)),'k-')
+    axes[0,1].plot(ts, numpy.imag(sol(ts)),'k-')
+
     plt.show()
     #fig.savefig('/home/will/Documents/Papers/RKWKB/figures/burst_compare.pdf')
 
