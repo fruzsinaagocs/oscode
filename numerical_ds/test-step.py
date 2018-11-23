@@ -26,7 +26,7 @@ def main():
     atol = 0.0
     
     rk = False
-    t = -5.0#-19.125
+    t = 6.0#-19.125
     x = sol(t)
     dx = dsol(t)
    
@@ -37,6 +37,7 @@ def main():
     rk_errors = numpy.zeros((hs.size,2),dtype=complex) 
     wkb_errors = numpy.zeros((hs.size,4),dtype=complex)
     wkb_rerrors = numpy.zeros((hs.size,4),dtype=complex)
+    sserrors = numpy.zeros((hs.size,4),dtype=complex)
     ss = numpy.zeros((hs.size,4),dtype=complex)
     
     solver = Solver(w,t=t,x=x,dx=dx,rtol=rtol,atol=atol)
@@ -57,7 +58,8 @@ def main():
         numpy.abs(err_wkb[1])/numpy.abs(dx_wkb))
         rk_steps[i,:] = x_rk, dx_rk
         rk_errors[i,:] = err_rk[:2]
-        ss[i,:] = solver.S0error, solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.Serror[2], solver.rkwkbsolver4.S3(h)
+        ss[i,:] = S0, solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.S2(h), solver.rkwkbsolver4.S3(h)
+        sserrors[i,:] = solver.S0error, solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.Serror[2], solver.rkwkbsolver4.S3(h)
         #print('\n\n',h,'\n\n')
     
     fig, axes = plt.subplots(2,2, sharex=False)
@@ -75,8 +77,8 @@ def main():
     axes[0,1].loglog(hs, numpy.abs(wkb_errors[:,3]),label='WKB err estimate dx')
     axes[0,1].loglog(hs, numpy.abs(rk_errors[:,0]),label='RK error x')
     axes[0,1].loglog(hs, numpy.abs(rk_errors[:,1]),label='RK error dx')
-    axes[0,1].loglog(hs, numpy.abs(ss[:,0]),label='S0error')
-    axes[0,1].loglog(hs, numpy.abs(ss[:,2]),label='S2error')
+    axes[0,1].loglog(hs, numpy.abs(sserrors[:,0]),label='S0error')
+    axes[0,1].loglog(hs, numpy.abs(sserrors[:,2]),label='S2error')
     axes[0,1].legend()
 
     #axes[0,1].plot(hs, numpy.ones(hs.size)*rtol, label='rtol')
@@ -97,6 +99,14 @@ def main():
     #axes[1,0].loglog(hs, numpy.linalg.norm(wkb_errors, axis=1)/2.0, label='WKB error')
     #axes[1,0].loglog(hs, numpy.linalg.norm(rk_errors, axis=1), label='RK error dx')
     axes[1,0].legend()
+
+    axes[1,1].set_title('$S_i(t)$')
+    axes[1,1].loglog(hs, numpy.abs(ss[:,0]),label='S0')
+    axes[1,1].loglog(hs, numpy.abs(ss[:,1]),label='S1')
+    axes[1,1].loglog(hs, numpy.abs(ss[:,2]),label='S2')
+    axes[1,1].loglog(hs, numpy.abs(ss[:,3]),label='S3')
+    axes[1,1].loglog(hs, numpy.ones(hs.size)*rtol, label='rtol')
+    axes[1,1].legend()
     plt.show()
 
 if __name__=="__main__":
