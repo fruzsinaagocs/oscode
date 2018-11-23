@@ -22,7 +22,7 @@ def main():
     
     start = 1.0
     finish = 1e5
-    rtol = 1e-5
+    rtol = 1e-6
     atol = 1e-5
 
     rk = False

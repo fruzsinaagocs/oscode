@@ -16,52 +16,78 @@ class Solver(object):
         self.rtol = kwargs.pop('rtol', 1e-4)
         self.atol = kwargs.pop('atol', 0.0)
 
-        self.h = 1
+        self.h = 1.0
 
     def evolve(self, rk=False):
         while True:
+            # Take RKF and WKB steps
             x_rk, dx_rk, err_rk, ws, S0 = self.RK_step()
             self.ws = ws
             self.S0 = S0
             self.S0error = err_rk[2]
-            if not rk:
-                x_wkb, dx_wkb, err_wkb, truncerr = self.RKWKB_step()
-                #print(truncerr)
-                wkb = numpy.linalg.norm(truncerr[:2]) < numpy.linalg.norm(err_rk[:2])
-                #wkb = abs(self.rkwkbsolver4.S3(self.h)*x_wkb) < abs(err_rk[0])
-
-            if rk:
-                wkb = False
+                
+            x_wkb, dx_wkb, err_wkb, truncerr = self.RKWKB_step()
+            
+            # Construct error estimates on steps
+            deltas_wkb = (numpy.array([numpy.abs(truncerr[0])/numpy.abs(x_wkb),
+            numpy.abs(truncerr[1])/numpy.abs(dx_wkb),
+            numpy.abs(err_wkb[0])/numpy.abs(x_wkb),
+            numpy.abs(err_wkb[1])/numpy.abs(dx_wkb)]))
+            delta_rk = (numpy.max(numpy.array([numpy.abs(err_rk[0])/numpy.abs(x_rk),
+            numpy.abs(err_rk[1])/numpy.abs(dx_rk)])))
+            delta_wkb = numpy.max(deltas_wkb)
+            maxplace = numpy.argmax(deltas_wkb)
+            
+            # Predict next stepsize for each 
+            h_rk = self.h*(self.rtol/delta_rk)**(1/5.0)
+            if maxplace <= 1:
+                h_wkb = self.h*(self.rtol/delta_wkb)**(1/1.0)
+            else:
+                h_wkb = self.h*(self.rtol/delta_wkb)**(1/5.0)
+            # Choose the one with larger predicted stepsize
+            wkb = h_wkb > h_rk
 
             if wkb:
                 x = x_wkb
                 dx = dx_wkb
-                err = err_wkb
-                #err = self.wkberror
+                
+                # To have symmetric stepsizes but not quite symmetric switching,
+                # comment these
+                if maxplace <= 1:
+                    delta_wkb = numpy.max(deltas_wkb[2:])
+                    h_next = self.h*(self.rtol/delta_wkb)**(1/5.0)
+                else:
+                    h_next = h_wkb
+                
+                # To have slightly asymm (<~3 steps) switching but large and
+                # symmetric stepsizes in WKB, comment the next line.
+                #h_next = h_wkb
+                
+                err = delta_wkb
+                errortypes=["truncation", "S integral"]
+                print("{} error dominates".format(errortypes[maxplace//2]))
+
             else:
                 x = x_rk
                 dx = dx_rk
-                err = err_rk[:2] # discard error on S0
+                h_next = h_rk
+                err = delta_rk
 
-
-            scale = self.rtol*numpy.array([x, dx]) + self.atol*numpy.ones(2) 
-            err = numpy.absolute(err)/numpy.absolute(scale)
-            err = numpy.max(err)
-            if err <= 1:
+            # Check if chosen step is successful
+            if h_next >= self.h:
                 self.t += self.h
                 self.x = x
                 self.dx = dx
-                if wkb:
-                    self.h *= err**(-1/5.0)
-                else:
-                    self.h *= err**(-1/5.0)
+                self.h = h_next
                 yield {'t':self.t, 'x':self.x, 'dx':self.dx, 'h':self.h, 'err':err, 'wkb':wkb}
             else:
                 if wkb:
-                    self.h *= err**(-1/4.0)
+                    if maxplace <=1:
+                        self.h *= 0.95*(self.rtol/delta_wkb)**(1/1.0)
+                    else:
+                        self.h *= (self.rtol/delta_wkb)**(1/3.0)
                 else:
-                    self.h *= err**(-1/4.0)
-
+                    self.h *= (self.rtol/delta_rk)**(1/4.0)
 
     def RKWKB_step(self):
         self.rkwkbsolver1.ws = self.ws
@@ -86,7 +112,7 @@ class Solver(object):
             return numpy.inf, numpy.inf, numpy.inf
         #print('x3, x4: ', x3, x4)
         #print('dx3, dx4: ', dx3, dx4)
-        return x4, dx4, numpy.array([x4_err, dx4_err]), numpy.array([x4-x3,dx4-dx3])
+        return x4, dx4, numpy.array([x4_err, dx4_err]), numpy.array([x4-x3,dx4-dx3])#numpy.array([x4-x3, numpy.angle(x4)-numpy.angle(x2)])
 
     def RK_step(self):
         x, dx, err, ws, S0 = self.rksolver.step(self.x,self.dx,self.t,self.h)
@@ -98,7 +124,7 @@ class RKSolver(object):
         self.c = [0, 1/4, 3/8, 12/13, 1, 1/2]
         self.b5 = numpy.array([16/135, 0, 6656/12825, 28561/56430, -9/50,  2/55])
         self.b4 = numpy.array([25/216, 0, 1408/2565,  2197/4104,   -1/5,   0   ])
-         
+        self.r = self.b5 - self.b4 
         self.a = [
                 [],
                 [1/4],
@@ -131,8 +157,8 @@ class RKSolver(object):
         w5 = ws[3]
         w6 = ws[4]
         ws = numpy.array([w1, w2, w3, w4, w5, w6])
-
-        return y5[0], y5[1], numpy.array(y5)-numpy.array(y4), ws, y5[-1]
+        #print("S0: ", y5[2], y4[2])
+        return y5[0], y5[1], sum([r_i*k_i for r_i, k_i in zip(self.r,k)]), ws, y5[-1]
     
         
 class RKWKBSolver(object):
@@ -168,13 +194,13 @@ class RKWKBSolver(object):
         dx1 = Bp * self.dfpb(t1) * self.fp(t0,t1) + Bm * self.dfmb(t1) * self.fm(t0,t1) 
 
         # Error estimate on answer based on error on S_i integrals
-        error_fp = numpy.sum(self.Serror)*self.fp(t0,t1)
-        error_fm = numpy.conj(numpy.sum(self.Serror))*self.fm(t0,t1)
+        error_fp = numpy.sum(numpy.abs(self.Serror))*self.fp(t0,t1)
+        error_fm = numpy.conj(numpy.sum(numpy.abs(self.Serror)))*self.fm(t0,t1)
         error_dfp = self.dfpb(t1)/self.fp(t0,t1)*error_fp
         error_dfm = self.dfmb(t1)/self.fm(t0,t1)*error_fm
         error_x = Ap*error_fp + Am*error_fm
         error_dx = Bp*error_dfp + Bm*error_dfm
-        #print("errors: S: ", self.Serror, ", fp ",error_fp, ", fm ", error_fm, ", dfp ", error_dfp, ", fm ", error_dfm, " x, dx ", error_x, error_dx)
+        #print("\n S0: ", self.S0 , "errors: S: ", self.Serror, ", fp ",error_fp, ", fm ", error_fm, ", dfp ", error_dfp, ", fm ", error_dfm, " x, dx ", error_x, error_dx)
 
         return x1, dx1, error_x, error_dx
 
@@ -233,8 +259,10 @@ class RKWKBSolver(object):
         return -1/4.0*(self.Dws[5]/self.ws[5]**2 - self.Dws[0]/self.ws[0]**2) -1/8.0*integral
 
     def S3(self, h):
-        self.Serror[3] = 0.0
-        return -3/16.0*(self.Dws[5]**2/self.ws[5]**4 - self.Dws[0]**2/self.ws[0]**4) + 1/8.0*(self.DDws[-1]/self.ws[5]**3 - self.DDws[0]/self.ws[0]**3)
+        S3 = -3/16.0*(self.Dws[5]**2/self.ws[5]**4 - self.Dws[0]**2/self.ws[0]**4) + 1/8.0*(self.DDws[-1]/self.ws[5]**3 - self.DDws[0]/self.ws[0]**3)
+        self.Serror[3] = S3*0.1
+        #print(S3)
+        return S3
 
     def integrate(self, integrand, h):
         x5 = (16/135.0*integrand[0] + 6656/12825.0*integrand[2] + 28561/56430.0*integrand[3] - 9/50.0*integrand[4] + 2/55.0*integrand[5])*h

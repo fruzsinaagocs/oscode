@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
-n=115
+n=10000
 
 def w(t):
     return numpy.sqrt(n**2-1) * 1 / (1 + t**2)
@@ -23,14 +23,14 @@ def main():
     start = -2*n
     finish = 2*n
     rtol = 1e-4
-    atol = 1e-5
+    atol = 0.0
     
     rk = False
     t = start
     x = sol(t)
     dx = dsol(t)
     
-    ts, xs, wkbs = [], [], []
+    ts, xs, dxs, wkbs = [], [], [], []
     solver = Solver(w,t=t,x=x,dx=dx,rtol=rtol,atol=atol)
     
     for step in solver.evolve(rk):
@@ -39,6 +39,7 @@ def main():
         x = step['x']
         e = step['err']
         h = step['h']
+        dx = step['dx']
         if wkb:
             print('wkb',t,x,e,h)
         else:
@@ -48,11 +49,13 @@ def main():
             ts.append(t)
             xs.append(x)
             wkbs.append(wkb)
+            dxs.append(dx)
         else:
             break
     
     ts = numpy.array(ts)
     xs = numpy.array(xs)
+    dxs = numpy.array(dxs)
     wkbs = numpy.array(wkbs)
     
     fig, axes = plt.subplots(2,2, sharex=True)
@@ -68,6 +71,7 @@ def main():
     axes[1,0].semilogy(ts[wkbs==False] ,abs((sol(ts[wkbs==False])-xs[wkbs==False]))/abs(sol(ts[wkbs==False])),'rx')
     axes[1,0].semilogy(ts[wkbs==True] ,abs((sol(ts[wkbs==True])-xs[wkbs==True]))/abs(sol(ts[wkbs==True])),'gx')
     axes[1,0].set_ylabel('$|\Delta r|/|r|$')
+    #axes[1,0].semilogy(ts, abs((dsol(ts)-dxs))/abs(dsol(ts)),'x')
     # Relative error on phase
     axes[1,1].semilogy(ts[wkbs==False],abs((numpy.angle(sol(ts[wkbs==False]))-numpy.angle(xs[wkbs==False]))/numpy.angle(sol(ts[wkbs==False]))),'rx')
     axes[1,1].semilogy(ts[wkbs==True],abs((numpy.angle(sol(ts[wkbs==True]))-numpy.angle(xs[wkbs==True]))/numpy.angle(sol(ts[wkbs==True]))),'gx')
