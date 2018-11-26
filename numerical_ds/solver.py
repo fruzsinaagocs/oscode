@@ -40,6 +40,8 @@ class Solver(object):
             
             # Predict next stepsize for each 
             h_rk = self.h*(self.rtol/delta_rk)**(1/5.0)
+            #d_wkb = numpy.max(deltas_wkb[:2])
+            #h_wkb = self.h*(self.rtol/d_wkb)**(1/4.0) 
             if maxplace <= 1:
                 h_wkb = self.h*(self.rtol/delta_wkb)**(1/1.0)
             else:
@@ -78,8 +80,9 @@ class Solver(object):
                 self.t += self.h
                 self.x = x
                 self.dx = dx
+                h_prev = self.h
                 self.h = h_next
-                yield {'t':self.t, 'x':self.x, 'dx':self.dx, 'h':self.h, 'err':err, 'wkb':wkb}
+                yield {'t':self.t, 'x':self.x, 'dx':self.dx, 'h':h_prev, 'err':err, 'wkb':wkb}
             else:
                 if wkb:
                     if maxplace <=1:
