@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
-n=10000
+n=800
 
 def w(t):
     return numpy.sqrt(n**2-1) * 1 / (1 + t**2)
@@ -30,7 +30,7 @@ def main():
     x = sol(t)
     dx = dsol(t)
     
-    ts, xs, dxs, wkbs = [], [], [], []
+    ts, xs, dxs, wkbs, hs, oscs = [], [], [], [], [], []
     solver = Solver(w,t=t,x=x,dx=dx,rtol=rtol,atol=atol)
     
     for step in solver.evolve(rk):
@@ -50,6 +50,8 @@ def main():
             xs.append(x)
             wkbs.append(wkb)
             dxs.append(dx)
+            hs.append(h)
+            oscs.append((n*numpy.arctan(t)/(2*numpy.pi))-(n*numpy.arctan(t-h)/(2*numpy.pi)))
         else:
             break
     
@@ -57,8 +59,10 @@ def main():
     xs = numpy.array(xs)
     dxs = numpy.array(dxs)
     wkbs = numpy.array(wkbs)
+    hs = numpy.array(hs)
+    oscs = numpy.array(oscs)
     
-    fig, axes = plt.subplots(2,2, sharex=True)
+    fig, axes = plt.subplots(2,2, sharex=False)
 
     # Real part of analytic and RKWKB solution
     axes[0,0].plot(ts[wkbs==False],numpy.real(xs[wkbs==False]),'rx')
@@ -73,13 +77,18 @@ def main():
     axes[1,0].set_ylabel('$|\Delta r|/|r|$')
     #axes[1,0].semilogy(ts, abs((dsol(ts)-dxs))/abs(dsol(ts)),'x')
     # Relative error on phase
-    axes[1,1].semilogy(ts[wkbs==False],abs((numpy.angle(sol(ts[wkbs==False]))-numpy.angle(xs[wkbs==False]))/numpy.angle(sol(ts[wkbs==False]))),'rx')
-    axes[1,1].semilogy(ts[wkbs==True],abs((numpy.angle(sol(ts[wkbs==True]))-numpy.angle(xs[wkbs==True]))/numpy.angle(sol(ts[wkbs==True]))),'gx')
-    axes[1,1].set_ylabel('$|\Delta \phi / |\phi|$')
+    #axes[1,1].semilogy(ts[wkbs==False],abs((numpy.angle(sol(ts[wkbs==False]))-numpy.angle(xs[wkbs==False]))/numpy.angle(sol(ts[wkbs==False]))),'rx')
+    #axes[1,1].semilogy(ts[wkbs==True],abs((numpy.angle(sol(ts[wkbs==True]))-numpy.angle(xs[wkbs==True]))/numpy.angle(sol(ts[wkbs==True]))),'gx')
+    #axes[1,1].set_ylabel('$|\Delta \phi / |\phi|$')
+
+    axes[1,1].plot(ts, oscs,'k-');
+    axes[1,1].plot(ts[wkbs==False], oscs[wkbs==False],'rx');
+    axes[1,1].plot(ts[wkbs==True], oscs[wkbs==True],'gx');
 
     ts = numpy.linspace(ts[0],ts[-1],100000)
     axes[0,0].plot(ts,numpy.real(sol(ts)),'k-')
     axes[0,1].plot(ts, numpy.imag(sol(ts)),'k-')
+
         
     plt.show()
     #fig.savefig('/home/will/Documents/Papers/RKWKB/figures/burst_compare.pdf')
