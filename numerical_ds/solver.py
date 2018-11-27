@@ -21,10 +21,8 @@ class Solver(object):
     def evolve(self, rk=False):
         while True:
             # Take RKF and WKB steps
-            x_rk, dx_rk, err_rk, ws, S0 = self.RK_step()
+            x_rk, dx_rk, err_rk, ws = self.RK_step()
             self.ws = ws
-            self.S0 = S0
-            self.S0error = err_rk[2]
                 
             x_wkb, dx_wkb, err_wkb, truncerr = self.RKWKB_step()
             
@@ -97,14 +95,6 @@ class Solver(object):
         self.rkwkbsolver2.ws = self.ws       
         self.rkwkbsolver3.ws = self.ws
         self.rkwkbsolver4.ws = self.ws
-        self.rkwkbsolver1.S0 = self.S0
-        self.rkwkbsolver1.S0error = self.S0error
-        self.rkwkbsolver2.S0 = self.S0       
-        self.rkwkbsolver2.S0error = self.S0error
-        self.rkwkbsolver3.S0 = self.S0
-        self.rkwkbsolver3.S0error = self.S0error
-        self.rkwkbsolver4.S0 = self.S0
-        self.rkwkbsolver4.S0error = self.S0error
 
         try:
             x1, dx1, x1_err, dx1_err = self.rkwkbsolver1.step(self.x,self.dx,self.t,self.h)
@@ -113,13 +103,11 @@ class Solver(object):
             x4, dx4, x4_err, dx4_err = self.rkwkbsolver4.step(self.x,self.dx,self.t,self.h)
         except ZeroDivisionError:
             return numpy.inf, numpy.inf, numpy.inf
-        #print('x3, x4: ', x3, x4)
-        #print('dx3, dx4: ', dx3, dx4)
-        return x4, dx4, numpy.array([x4_err, dx4_err]), numpy.array([x4-x3,dx4-dx3])#numpy.array([x4-x3, numpy.angle(x4)-numpy.angle(x2)])
+        return x4, dx4, numpy.array([x4_err, dx4_err]), numpy.array([x4-x3,dx4-dx3])
 
     def RK_step(self):
-        x, dx, err, ws, S0 = self.rksolver.step(self.x,self.dx,self.t,self.h)
-        return x, dx, err, ws, S0
+        x, dx, err, ws = self.rksolver.step(self.x,self.dx,self.t,self.h)
+        return x, dx, err, ws
 
 class RKSolver(object):
     def __init__(self,w):
@@ -160,11 +148,22 @@ class RKSolver(object):
         w5 = ws[3]
         w6 = ws[4]
         ws = numpy.array([w1, w2, w3, w4, w5, w6])
-        #print("S0: ", y5[2], y4[2])
-        return y5[0], y5[1], sum([r_i*k_i for r_i, k_i in zip(self.r,k)]), ws, y5[-1]
+        return y5[0], y5[1], sum([r_i*k_i for r_i, k_i in zip(self.r,k)]), ws
     
         
 class RKWKBSolver(object):
+    def __init__(self,w):
+        self.legxs6 =(
+        numpy.array([-0.932469514203152,-0.661209386466265,-0.238619186083197,
+        0.238619186083197,0.661209386466265,0.932469514203152]))
+        self.legws6 =(
+        numpy.array([0.171324492379170,0.360761573048139,0.467913934572691,0.467913934572691,0.360761573048139,0.171324492379170]))
+        self.legxs5 =(
+        numpy.array([-0.906179845938664,-0.538469310105683,0.0,0.538469310105683,0.906179845938664]))
+        self.legws5 =(
+        numpy.array([0.236926885056189,0.478628670499366,0.568888888888889,0.478628670499366,0.236926885056189]))
+        self.w = w
+    
     def A(self,t0,x0,dx0):
         Ap = (dx0 - x0 * self.dfm(t0)) / (self.dfp(t0) - self.dfm(t0))
         Am = (dx0 - x0 * self.dfp(t0)) / (self.dfm(t0) - self.dfp(t0))
@@ -180,12 +179,8 @@ class RKWKBSolver(object):
         self.DDws = numpy.array([self.d2w1(h), self.d2w6(h)])
         self.DDDws = numpy.array([self.d3w1(h), self.d3w6(h)])
         self.DDDDws = numpy.array([self.d4w1(h)])
-        #n = 400
-        #print('d4w: ', self.DDDDws[0], 384*(n**2-1)**(1/2.0)*t0**4/(t0**2+1)**5 - 288*(n**2-1)**(1/2.0)*t0**2/(t0**2 + 1)**4 + 24*(n**2-1)**(1/2.0)/(t0**2 + 1)**3)
-        #print('d3w: ', self.DDDws[0], -48*(n**2-1)**(1/2.0)*t0**3/(t0**2+1)**4 + 24*(n**2-1)**(1/2.0)*t0/(t0**2+1)**3)
-        #print('d2w: ', self.DDws[0], 8*(n**2-1)**(1/2.0)*t0**2/(t0**2+1)**3 - 2*(n**2-1)**(1/2.0)/(t0**2+1)**2)
         self.Serror = numpy.zeros(4, dtype=complex)
-        self.Serror[0] = 1j*self.S0error
+        self.Serror[0] = 1j*self.S0(t0,t0+h)[1]
         
         ddx0 = -self.w(t0)**2 * x0
         t1 = t0 + h
@@ -203,7 +198,6 @@ class RKWKBSolver(object):
         error_dfm = self.dfmb(t1)/self.fm(t0,t1)*error_fm
         error_x = Ap*error_fp + Am*error_fm
         error_dx = Bp*error_dfp + Bm*error_dfm
-        #print("\n S0: ", self.S0 , "errors: S: ", self.Serror, ", fp ",error_fp, ", fm ", error_fm, ", dfp ", error_dfp, ", fm ", error_dfm, " x, dx ", error_x, error_dx)
 
         return x1, dx1, error_x, error_dx
 
@@ -250,6 +244,12 @@ class RKWKBSolver(object):
     def d4w1(self, h):
         d4w =  (5072/3.0*self.ws[0] - 595968/35.0*self.ws[1] + 9109504/285.0*self.ws[2] - 203520/11.0*self.ws[3] + 100991696/21945.0*self.ws[4] - 13632/5.0*self.ws[5])/h**4
         return d4w
+    
+    def S0(self,t0,t1):
+        fs6 = self.w(self.legxs6*(t1-t0)/2+(t0+t1)/2)
+        fs5 = self.w(self.legxs5*(t1-t0)/2+(t0+t1)/2) 
+        return ((t1-t0)/2*numpy.sum(self.legws6*fs6),
+        (t1-t0)/2*(numpy.sum(self.legws6*fs6)-numpy.sum(self.legws5*fs5)))
 
     def S1(self, h):
         self.Serror[1] = 0.0
@@ -273,11 +273,9 @@ class RKWKBSolver(object):
         return x5, x5-x4
 
 class RKWKBSolver1(RKWKBSolver):
-    def __init__(self,w):
-        self.w = w
 
     def fp(self,t0,t1):
-        return numpy.exp(1j * self.S0)
+        return numpy.exp(1j * self.S0(t0,t1)[0])
 
     def dfp(self,t):
         return 1j * self.w(t)
@@ -301,8 +299,6 @@ class RKWKBSolver1(RKWKBSolver):
         return numpy.conj(self.ddfp(t))
 
 class RKWKBSolver2(RKWKBSolver1):
-    def __init__(self,w):
-        self.w = w
 
     def fp(self,t0,t1):
         ana = (self.w(t0)/self.w(t1))**(1/2)
@@ -330,8 +326,6 @@ class RKWKBSolver2(RKWKBSolver1):
         return numpy.conj(self.ddfp(t))
 
 class RKWKBSolver3(RKWKBSolver2):
-    def __init__(self,w):
-        self.w = w
 
     def fp(self,t0,t1):
         return super().fp(t0,t1) * numpy.exp(1j * self.S2(t1-t0))
@@ -358,8 +352,6 @@ class RKWKBSolver3(RKWKBSolver2):
         return numpy.conj(self.ddfp(t))
 
 class RKWKBSolver4(RKWKBSolver3):
-    def __init__(self,w):
-        self.w = w
 
     def fp(self,t0,t1):
         return super().fp(t0,t1) * numpy.exp(self.S3(t1-t0)) 
