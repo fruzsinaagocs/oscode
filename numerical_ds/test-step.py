@@ -26,7 +26,7 @@ def main():
     atol = 0.0
     
     rk = False
-    t = 6.0#-19.125
+    t = 0.0#-19.125
     x = sol(t)
     dx = dsol(t)
    
@@ -45,10 +45,8 @@ def main():
     for i,h in enumerate(hs):
         # Take a RK and WKB step
         solver.h = h 
-        x_rk, dx_rk, err_rk, ws, S0 = solver.RK_step()
+        x_rk, dx_rk, err_rk, ws = solver.RK_step()
         solver.ws = ws
-        solver.S0 = S0
-        solver.S0error = err_rk[2]
         x_wkb, dx_wkb, err_wkb, truncerr = solver.RKWKB_step()
         
         wkb_steps[i,:] = x_wkb, dx_wkb, x_wkb, dx_wkb
@@ -58,8 +56,8 @@ def main():
         numpy.abs(err_wkb[1])/numpy.abs(dx_wkb))
         rk_steps[i,:] = x_rk, dx_rk
         rk_errors[i,:] = err_rk[:2]
-        ss[i,:] = S0, solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.S2(h), solver.rkwkbsolver4.S3(h)
-        sserrors[i,:] = solver.S0error, solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.Serror[2], solver.rkwkbsolver4.S3(h)
+        ss[i,:] = solver.rkwkbsolver4.S0(t,t+h)[0], solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.S2(h), solver.rkwkbsolver4.S3(h)
+        sserrors[i,:] = solver.rkwkbsolver4.S0(t,t+h)[1], solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.Serror[2], solver.rkwkbsolver4.S3(h)
         #print('\n\n',h,'\n\n')
     
     fig, axes = plt.subplots(2,2, sharex=False)
