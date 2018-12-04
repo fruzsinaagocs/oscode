@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
-n=800
+n=1e8
 
 def w(t):
     return numpy.sqrt(n**2-1) * 1 / (1 + t**2)
@@ -84,6 +84,8 @@ def main():
     axes[1,1].plot(ts, oscs,'k-');
     axes[1,1].plot(ts[wkbs==False], oscs[wkbs==False],'rx');
     axes[1,1].plot(ts[wkbs==True], oscs[wkbs==True],'gx');
+
+    print('\n number of WKB steps taken: ', ts[wkbs==True].size, '\n')
 
     ts = numpy.linspace(ts[0],ts[-1],100000)
     axes[0,0].plot(ts,numpy.real(sol(ts)),'k-')
