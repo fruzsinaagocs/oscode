@@ -143,10 +143,10 @@ class RKSolver(object):
         y4 = y0 + sum([b_i * k_i for b_i, k_i in zip(self.b4,k)])
         y5 = y0 + sum([b_i * k_i for b_i, k_i in zip(self.b5,k)])
         w1 = ws[0]
-        w2 = ws[1]
-        w3 = ws[2]
-        w4 = ws[5]
-        w5 = ws[3]
+        w2 = self.w(t0+0.117472338035267653574*h)
+        w3 = self.w(t0+0.357384241759677451843*h)
+        w4 = self.w(t0+0.642615758240322548157*h)
+        w5 = self.w(t0+0.882527661964732346426*h)
         w6 = ws[4]
         ws = numpy.array([w1, w2, w3, w4, w5, w6])
         return y5[0], y5[1], sum([r_i*k_i for r_i, k_i in zip(self.r,k)]), ws
@@ -202,54 +202,67 @@ class RKWKBSolver(object):
         return x1, dx1, error_x, error_dx
 
     def d1w1(self, h):
-        d1w = (-43/4.0*self.ws[0] + 1536/35.0*self.ws[1] - 16384/285.0*self.ws[2] + 288/11.0*self.ws[3] - 371293/87780.0*self.ws[4] + 12/5.0*self.ws[5])/h
-        return d1w
+        weights = numpy.array([-15.0000000048537, 20.2828318761850,
+        -8.07237453994912, 4.48936929577350, -2.69982662677053,
+        0.999999999614819])
+        return numpy.sum(weights*self.ws)/h
 
     def d1w2(self, h):
-        d1w = (-35/96.0*self.ws[0] - 1136/105.0*self.ws[1] + 896/57.0*self.ws[2] - 105/22.0*self.ws[3] + 371293/702240.0*self.ws[4] - 7/24.0*self.ws[5])/h
-        return d1w
+        weights = numpy.array([-3.57272991033049, 0.298532922755350e-7  ,
+        5.04685352597795, -2.30565629452303, 1.30709499910514,
+        -0.475562350082855]) 
+        return numpy.sum(weights*self.ws)/h
 
     def d1w3(self, h):
-        d1w = (95/768.0*self.ws[0] - 57/14.0*self.ws[1] - 72/95.0*self.ws[2] + 855/176.0*self.ws[3] - 371293/1123584.0*self.ws[4] + 57/320.0*self.ws[5])/h
-        return d1w
-
+        weights = numpy.array([0.969902096162109, -3.44251390568294,
+        -0.781532641131861e-10, 3.50592393061265, -1.57271334190619,
+        0.539401220892526]) 
+        return numpy.sum(weights*self.ws)/h
+    
     def d1w4(self, h):
-        d1w = (-11/72.0*self.ws[0] + 352/105.0*self.ws[1] - 11264/855.0*self.ws[2] + 106/11.0*self.ws[3] + 371293/526680.0*self.ws[4] - 11/30.0*self.ws[5])/h
-        return d1w
+        weights = numpy.array([-0.539401220892533, 1.57271334190621,
+        -3.50592393061268, 0.782075077478921e-10, 3.44251390568290,
+        -0.969902096162095])
+        return numpy.sum(weights*self.ws)/h
 
     def d1w5(self, h):
-        d1w = (7315/26364.0*self.ws[0] -321024/76895.0*self.ws[1] + 1261568/125229.0*self.ws[2] - 191520/24167.0*self.ws[3] - 182663/29260.0*self.ws[4] + 17556/2197.0*self.ws[5])/h
-        return d1w
+        weights = numpy.array([0.475562350082834, -1.30709499910509,
+        2.30565629452296, -5.04685352597787, -0.298533681980831e-7,
+        3.57272991033053]) 
+        return numpy.sum(weights*self.ws)/h
 
     def d1w6(self, h):
-        d1w = (-5/12.0*self.ws[0] + 128/21.0*self.ws[1] - 4096/285.0*self.ws[2] + 120/11.0*self.ws[3] - 371293/17556.0*self.ws[4] + 284/15.0*self.ws[5] )/h
-        return d1w
-    
+        weights = numpy.array([-0.999999999614890, 2.69982662677075,
+        -4.48936929577383, 8.07237453994954, -20.2828318761854, 15.0000000048538]) 
+        return numpy.sum(weights*self.ws)/h
+
     def d2w1(self, h):
-        d2w = (1553/18.0*self.ws[0] - 20736/35.0*self.ws[1] + 794624/855.0*self.ws[2] - 5040/11.0*self.ws[3] + 10767497/131670.0*self.ws[4] - 234/5.0*self.ws[5])/h**2
-        return d2w
-    
+        weights = numpy.array([140.000000016641, -263.163968874741,
+        196.996471291466, -120.708905753218, 74.8764032980854, -27.9999999782328]) 
+        return numpy.sum(weights*self.ws)/h**2  
+
     def d2w6(self, h):
-        d2w = (-269/18.0*self.ws[0] + 22528/105.0*self.ws[1] - 425984/855.0*self.ws[2] + 4064/11.0*self.ws[3] - 33045077/131670.0*self.ws[4] + 2702/15.0*self.ws[5] )/h**2
-        return d2w
-    
+        weights = numpy.array([-27.9999999782335, 74.8764032980873,
+        -120.708905753221, 196.996471291469, -263.163968874744, 140.000000016642]) 
+        return numpy.sum(weights*self.ws)/h**2 
+
     def d3w1(self, h):
-        d3w = (- 1453/3.0*self.ws[0] + 21248/5.0*self.ws[1] - 2121728/285.0*self.ws[2] + 44304/11.0*self.ws[3] - 2599051/3135.0*self.ws[4] + 2404/5.0*self.ws[5])/h**3
-        return d3w
-    
+        weights = numpy.array([-840.000000234078, 1798.12714381468,
+        -1736.74461287884, 1322.01528240287, -879.397812956524, 335.999999851893]) 
+        return numpy.sum(weights*self.ws)/h**3
+
     def d3w6(self, h):
-        d3w = (-541/3.0*self.ws[0] + 85248/35.0*self.ws[1] - 1531904/285.0*self.ws[2] + 40464/11.0*self.ws[3] - 36015421/21945.0*self.ws[4] + 5412/5.0*self.ws[5])/h**3
-        return d3w
+        weights = numpy.array([-335.999999851897, 879.397812956534,
+        -1322.01528240289, 1736.74461287886, -1798.12714381470, 840.000000234086]) 
+        return numpy.sum(weights*self.ws)/h**3
 
     def d4w1(self, h):
-        d4w =  (5072/3.0*self.ws[0] - 595968/35.0*self.ws[1] + 9109504/285.0*self.ws[2] - 203520/11.0*self.ws[3] + 100991696/21945.0*self.ws[4] - 13632/5.0*self.ws[5])/h**4
-        return d4w
-    
+        weights = numpy.array([3024.00000383582, -6923.06197480357,
+        7684.77676018742, -6855.31809730784, 5085.60330881706, -2016.00000072890]) 
+        return numpy.sum(weights*self.ws)/h**4   
+ 
     def S0(self,t0,t1):
-        fs6 = self.w(self.legxs6*(t1-t0)/2+(t0+t1)/2)
-        fs5 = self.w(self.legxs5*(t1-t0)/2+(t0+t1)/2) 
-        return ((t1-t0)/2*numpy.sum(self.legws6*fs6),
-        (t1-t0)/2*(numpy.sum(self.legws6*fs6)-numpy.sum(self.legws5*fs5)))
+        return self.integrate(self.ws,t1-t0)
 
     def S1(self, h):
         self.Serror[1] = 0.0
@@ -257,20 +270,20 @@ class RKWKBSolver(object):
 
     def S2(self, h):
         integrands = self.Dws**2/self.ws**3 
-        integral, error = self.integrate(integrands, h)
+        integral, error = self.integrate(integrands,h)
         self.Serror[2] = -1/8.0*1j*error
         return -1/4.0*(self.Dws[5]/self.ws[5]**2 - self.Dws[0]/self.ws[0]**2) -1/8.0*integral
 
     def S3(self, h):
         S3 = -3/16.0*(self.Dws[5]**2/self.ws[5]**4 - self.Dws[0]**2/self.ws[0]**4) + 1/8.0*(self.DDws[-1]/self.ws[5]**3 - self.DDws[0]/self.ws[0]**3)
+        print(S3)
         self.Serror[3] = S3*0.1
-        #print(S3)
         return S3
 
-    def integrate(self, integrand, h):
-        x5 = (16/135.0*integrand[0] + 6656/12825.0*integrand[2] + 28561/56430.0*integrand[3] - 9/50.0*integrand[4] + 2/55.0*integrand[5])*h
-        x4 = (25/216.0*integrand[0] + 1408/2565.0*integrand[2] + 2197/4104.0*integrand[3] - 1/5.0*integrand[4])*h
-        return x5, x5-x4
+    def integrate(self,integrand6,h):
+        x6 = h/2.0*numpy.sum(self.legws6*integrand6)
+        #x5 = h/2.0*numpy.sum(self.legws5*integrand5)
+        return x6, x6*1e-6*h
 
 class RKWKBSolver1(RKWKBSolver):
 
