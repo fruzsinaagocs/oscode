@@ -118,17 +118,27 @@ class Solver(object):
 class RKSolver(object):
     def __init__(self,w):
         self.w = w
-        self.c = [0, 1/4, 3/8, 12/13, 1, 1/2]
-        self.b5 = numpy.array([16/135, 0, 6656/12825, 28561/56430, -9/50,  2/55])
-        self.b4 = numpy.array([25/216, 0, 1408/2565,  2197/4104,   -1/5,   0   ])
-        self.r = self.b5 - self.b4 
-        self.a = [
+        
+        # 6-stage, 5th order step:
+        self.c5 = [0,0.117472338035267653574,0.357384241759677451843,0.642615758240322548157,0.882527661964732346426,1] 
+        self.b5 = numpy.array([0.1127557227351729739820,0,0.5065579732655351768382,0.04830040376995117617928,0.3784749562978469803166,-0.04608905606850630731611])
+        self.a5 = [
                 [],
-                [1/4],
-                [3/32,    9/32],
-                [1932/2197,   -7200/2197,  7296/2197],
-                [439/216, -8,  3680/513,    -845/4104],
-                [-8/27,   2,   -3544/2565,  1859/4104,   -11/40]
+                [0.1174723380352676535740],
+                [-0.1862479800651504276304,0.5436322218248278794734],
+                [-0.6064303885508280518989,1,0.2490461467911506000559],
+                [2.899356540015731406420,-4.368525611566240669139,2.133806714786316899991,0.2178900187289247091542],
+                [18.67996349995727204273,-28.85057783973131956546,10.72053408420926869789,1.414741756508049078612,-0.9646615009432702537787],
+                ]
+
+        # 4-stage, 4th order step:
+        self.c4 = [0,0.172673164646011428100,0.827326835353988571900,1]
+        self.b4 = numpy.array([-0.08333333333333333333558,0.5833333333333333333357,0.5833333333333333333356,-0.08333333333333333333558])
+        self.a4 = [
+                [],
+                [0.172673164646011428100],
+                [-1.568317088384971429762,2.395643923738960001662],
+                [-8.769507466172720011410,10.97821961869480000808,-1.208712152522079996671]
                 ]
 
     def f(self,t,y):
@@ -137,28 +147,31 @@ class RKSolver(object):
     def step(self,x0,dx0,t0,h):
 
         y0 = numpy.array([x0,dx0,0])
-        k = []
-        ws = []
-        for c_s, a_s in zip(self.c, self.a):
-            S = sum(a_si * k_i for a_si, k_i in zip(a_s, k))
+        k5, k4 = [],[]
+        ws, ws5 = [],[]
+        # 6-stage, 5th order step
+        for c_s, a_s in zip(self.c5, self.a5):
+            S = sum(a_si * k_i for a_si, k_i in zip(a_s, k5))
             k_i = h * self.f(t0 + c_s * h, y0 + S)
-            k.append(k_i)
+            k5.append(k_i)
             ws.append(k_i[-1]/h)
+        # 4-stage, 4th order step
+        for c_s, a_s in zip(self.c4, self.a4):
+            S = sum(a_si * k_i for a_si, k_i in zip(a_s, k4))
+            k_i = h * self.f(t0 + c_s * h, y0 + S)
+            k4.append(k_i)
+            ws5.append(k_i[-1]/h)
 
-        y4 = y0 + sum([b_i * k_i for b_i, k_i in zip(self.b4,k)])
-        y5 = y0 + sum([b_i * k_i for b_i, k_i in zip(self.b5,k)])
-        w1 = ws[0]
-        w2 = self.w(t0+0.117472338035267653574*h)
-        w3 = self.w(t0+0.357384241759677451843*h)
-        w4 = self.w(t0+0.642615758240322548157*h)
-        w5 = self.w(t0+0.882527661964732346426*h)
-        w6 = ws[4]
-        ws = numpy.array([w1, w2, w3, w4, w5, w6])
-        ws5 = self.w(t0+numpy.array([-1.0,-0.65465367070797714380,0.0,0.65465367070797714380,1.0])/2*h+h/2) 
 
-        return (y5[0], y5[1], sum([r_i*k_i for r_i, k_i in zip(self.r,k)]), ws,
-        ws5)
-    
+        y4 = y0 + sum([b_i * k_i for b_i, k_i in zip(self.b4,k4)])
+        y5 = y0 + sum([b_i * k_i for b_i, k_i in zip(self.b5,k5)])
+        delta = sum([b_i * k_i for b_i, k_i in zip(self.b5,k5)])-sum([b_i * k_i for b_i, k_i in zip(self.b4,k4)])
+        ws = numpy.array(ws)
+        ws5 = numpy.array(ws5) 
+        print(ws5)
+        ws5 = numpy.insert(ws5,2,self.w(t0+h/2))
+
+        return y5[0], y5[1], delta, ws, ws5
         
 class RKWKBSolver(object):
     def __init__(self,w):

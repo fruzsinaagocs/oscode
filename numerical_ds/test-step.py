@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
-n=115
+n=1000
 
 def w(t):
     return (n**2-1)**0.5 * 1.0 / (1 + t**2)
@@ -26,7 +26,7 @@ def main():
     atol = 0.0
     
     rk = False
-    t = -6.0#-19.125
+    t = 0.0#-19.125
     x = sol(t)
     dx = dsol(t)
    
