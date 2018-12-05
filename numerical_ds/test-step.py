@@ -26,7 +26,7 @@ def main():
     atol = 0.0
     
     rk = False
-    t = 0.0#-19.125
+    t = -6.0#-19.125
     x = sol(t)
     dx = dsol(t)
    
@@ -45,8 +45,9 @@ def main():
     for i,h in enumerate(hs):
         # Take a RK and WKB step
         solver.h = h 
-        x_rk, dx_rk, err_rk, ws = solver.RK_step()
+        x_rk, dx_rk, err_rk, ws, ws5 = solver.RK_step()
         solver.ws = ws
+        solver.ws5 = ws5
         x_wkb, dx_wkb, err_wkb, truncerr = solver.RKWKB_step()
         
         wkb_steps[i,:] = x_wkb, dx_wkb, x_wkb, dx_wkb
@@ -88,7 +89,7 @@ def main():
     #axes[1,0].loglog(hs, abs(numpy.sqrt((truncerrs_wkb1/dxs_wkb)**2 + (truncerrs_wkb2/xs_wkb)**2)), label='trunc error x,dx')
     axes[1,0].set_title('Relative errors and rtol')
     axes[1,0].loglog(hs, numpy.ones(hs.size)*rtol,label='rtol')
-    (axes[1,0].loglog(hs, numpy.max(numpy.abs(wkb_rerrors),axis=1),
+    (axes[1,0].loglog(hs, numpy.max(numpy.abs(wkb_rerrors[:,:]),axis=1),
     label='max WKBerror'))
     #(axes[1,0].loglog(hs, numpy.max(numpy.abs(wkb_rerrors[:,2:]),axis=1),
     #label='est WKBerror'))
