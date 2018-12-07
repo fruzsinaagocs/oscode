@@ -32,9 +32,9 @@ class Solver(object):
             numpy.abs(truncerr[1])/numpy.abs(dx_wkb),
             numpy.abs(err_wkb[0])/numpy.abs(x_wkb),
             numpy.abs(err_wkb[1])/numpy.abs(dx_wkb)]))
-            delta_rk = (numpy.max(numpy.array([numpy.abs(err_rk[0])/numpy.abs(x_rk),
-            numpy.abs(err_rk[1])/numpy.abs(dx_rk)])))
-            delta_wkb = numpy.max(deltas_wkb)
+            delta_rk = (numpy.max([1e-10,numpy.max(numpy.array([numpy.abs(err_rk[0])/numpy.abs(x_rk),
+            numpy.abs(err_rk[1])/numpy.abs(dx_rk)]))]))
+            delta_wkb = numpy.max([1e-10,numpy.max(deltas_wkb)])
             maxplace = numpy.argmax(deltas_wkb)
             
             # Predict next stepsize for each 
@@ -66,7 +66,7 @@ class Solver(object):
                 
                 err = delta_wkb
                 errortypes=["truncation", "S integral"]
-                print("{} error dominates".format(errortypes[maxplace//2]))
+                #print("{} error dominates".format(errortypes[maxplace//2]))
                 #print("S errors: ", self.rkwkbsolver4.Serror)
 
             else:
@@ -168,7 +168,7 @@ class RKSolver(object):
         delta = sum([b_i * k_i for b_i, k_i in zip(self.b5,k5)])-sum([b_i * k_i for b_i, k_i in zip(self.b4,k4)])
         ws = numpy.array(ws)
         ws5 = numpy.array(ws5) 
-        print(ws5)
+        #print(ws5)
         ws5 = numpy.insert(ws5,2,self.w(t0+h/2))
 
         return y5[0], y5[1], delta, ws, ws5
