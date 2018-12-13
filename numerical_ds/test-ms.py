@@ -8,12 +8,15 @@ import numpy
 import scipy
 import time
 
-k=10.0
+k=0.3
 mp = 1
 phi_p = 23.293
-m = 4.51e-6
+m = 5e-6#4.51e-6
 n = 2
 calls = 0
+gcalls = 0
+
+# Necessary for getting w, g
 
 def V(phi):
     # Inflationary potential
@@ -41,103 +44,138 @@ def horizon_exit(t, y):
 def solve_bg():
     # Routine to solve inflating FRW background
     t0 = 1
-    tf = 5*1e5
+    tf = 1e6
     y0 = ic(t0)
     tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e4)
     sol = (
-    scipy.integrate.solve_ivp(f,(t0,tf),y0,events=horizon_exit,t_eval=tevals,rtol=1e-10,atol=1e-10))
+    scipy.integrate.solve_ivp(f,(t0,tf),y0,events=horizon_exit,t_eval=tevals,rtol=1e-14,atol=1e-14))
     ws = k/sol.y[2]
     dy = f(0.0, sol.y)
     gs = 1.5*sol.y[3] + dy[1]/sol.y[1] - dy[3]/sol.y[3]
     return sol.t, ws, gs
-    
-def main():
    
-    start = 1e4
-    finish = 5*1e5
-    rtol = 1e-4
-    atol = 0.0
+# Plotting interpolating functions for w, g
 
-    ts, ws, gs = solve_bg()
-
-    fig, axes = plt.subplots(1,2,sharex=True)
+def plot_w_g(ts, ws, gs, logwfit, gfit):
+    fig, axes = plt.subplots(1,2,sharex=False)
     axes[0].loglog(ts,ws)
     axes[0].set_title('omega')
-    axes[1].loglog(ts,gs)
+    axes[1].semilogx(ts,gs)
     axes[1].set_title('gamma')  
     plt.show()
 
-    # Simulate noisy data of log[w(t)]
     logws = numpy.log(ws)
-    logwfit = scipy.interpolate.interp1d(ts,logws,kind=3) 
     samples = numpy.logspace(numpy.log10(start),numpy.log10(finish),num=1e3)
     logwsfit = logwfit(samples)
     plt.plot(samples, logwsfit, '.')
-    #plt.plot(samples, numpy.log(w(samples)), '-')
+    plt.title('omega fit')
     plt.show()
-    #plt.semilogy(samples, abs((numpy.exp(logwsfit) - w(samples))/w(samples)))
-    #plt.show()
-    def wnew(t):
-        global calls
-        calls += 1 
-        return numpy.exp(logwfit(t))
     
+    gsfit = gfit(samples)
+    plt.plot(samples, gsfit, '.')
+    plt.title('gamma fit')
+    plt.show()
+
+def time_w_g(wnew,gnew):
+
     samples = numpy.random.rand(10000)*(finish-start)+start
     starttime = time.process_time()
     for i in range(10000):
        wnew(samples[i])
     endtime = time.process_time()
-    print('time: ', (endtime - starttime)/1e4)
+    print('calling w once takes {}s'.format((endtime - starttime)/1e4))
+    starttime = time.process_time()
+    for i in range(10000):
+        gnew(samples[i])
+    endtime = time.process_time()
+    print('calling g once takes {} s'.format((endtime - starttime)/1e4))
+    global calls, gcalls
+    calls -= 10000
+    gcalls -= 10000
 
 
-    #start = start/2
-    #finish = finish/2
-    #rk = False
-    #t = start
-    #x = sol(t)
-    #dx = dsol(t)
+def main():
+   
     
-    #ts, xs, dxs, wkbs, hs, oscs = [], [], [], [], [], []
-    #solver = Solver(wnew,t=t,x=x,dx=dx,rtol=rtol,atol=atol)
+    ts, ws, gs = solve_bg()
+    logws = numpy.log(ws)
+    logwfit = scipy.interpolate.interp1d(ts,logws,kind=3) 
+    gfit = scipy.interpolate.interp1d(ts,gs,kind=3)
+        
+    def wnew(t):
+        global calls
+        calls += 1 
+        return numpy.exp(logwfit(t))
+
+    def gnew(t):
+        global gcalls
+        gcalls += 1
+        return gfit(t)
+
+    # For brute-force solving MS
+    def F(y,t):
+        return numpy.array([y[1], -wnew(t)**2*y[0]-2*gnew(t)*y[1]])
+
+    rk = False
+    start = 1.0
+    t=start
+    finish = 3.5*1e5
+    x0 = 100*k
+    dx0 = 0.0
+    rtol = 1e-4
+    atol = 0.0
+
+    starttime = time.process_time()
+    ts, xs, dxs, wkbs, hs, oscs = [], [], [], [], [], []
+    solver = Solver(wnew,gnew,t=start,x=x0,dx=dx0,rtol=rtol,atol=atol)
     
-    #for step in solver.evolve(rk):
-    #    wkb = step['wkb']
-    #    t = step['t']
-    #    x = step['x']
-    #    e = step['err']
-    #    h = step['h']
-    #    dx = step['dx']
-        #if wkb:
-        #    print('wkb',t,x,e,h)
-        #else:
-        #    print('rk',t,x,e,h)
+    for step in solver.evolve(rk):
+        wkb = step['wkb']
+        t = step['t']
+        x = step['x']
+        e = step['err']
+        h = step['h']
+        dx = step['dx']
+        if wkb:
+            print('wkb',t,x,e,h)
+        else:
+            print('rk',t,x,e,h)
     
-    #    if t < finish:
-    #        ts.append(t)
-    #        xs.append(x)
-    #        wkbs.append(wkb)
-    #        dxs.append(dx)
-    #        hs.append(h)
-    #        oscs.append((n*numpy.arctan(t)/(2*numpy.pi))-(n*numpy.arctan(t-h)/(2*numpy.pi)))
-    #    else:
-    #        break
+        if t < finish:
+            ts.append(t)
+            xs.append(x)
+            wkbs.append(wkb)
+            dxs.append(dx)
+            hs.append(h)
+            oscs.append((n*numpy.arctan(t)/(2*numpy.pi))-(n*numpy.arctan(t-h)/(2*numpy.pi)))
+        else:
+            break
     
-    #ts = numpy.array(ts)
-    #xs = numpy.array(xs)
-    #dxs = numpy.array(dxs)
-    #wkbs = numpy.array(wkbs)
-    #hs = numpy.array(hs)
-    #oscs = numpy.array(oscs)
-    #endtime = time.process_time()
-    #print('calls: ',calls)
-    #print('time: ', endtime-starttime)
+    endtime = time.process_time()
+    ts = numpy.array(ts)
+    xs = numpy.array(xs)
+    dxs = numpy.array(dxs)
+    wkbs = numpy.array(wkbs)
+    hs = numpy.array(hs)
+    oscs = numpy.array(oscs)
     
-    #fig, axes = plt.subplots(2,2, sharex=False)
+    print('\n number of WKB steps taken: ', ts[wkbs==True].size, '\n')
+    print('total steps', ts.size)
+    print('calls: ',calls,gcalls)
+    print('time: ', endtime-starttime)
+
+    # Solving brute force
+    tevals = numpy.logspace(numpy.log10(start),numpy.log10(finish),num=1e4)
+    sol2 =(
+    scipy.integrate.odeint(F,numpy.array([x0,dx0]),tevals))
+    
+    fig, axes = plt.subplots(1,1, sharex=False)
 
     # Real part of analytic and RKWKB solution
-    #axes[0,0].plot(ts[wkbs==False],numpy.real(xs[wkbs==False]),'rx')
-    #axes[0,0].plot(ts[wkbs==True],numpy.real(xs[wkbs==True]),'gx')
-    #axes[0,0].set_ylabel('$\mathcal{Re}(x)$')
+    axes.semilogx(ts[wkbs==False],numpy.real(xs[wkbs==False]),'rx')
+    axes.semilogx(ts[wkbs==True],numpy.real(xs[wkbs==True]),'gx')
+    axes.semilogx(tevals, sol2[:,0])
+    axes.set_ylabel('$\mathcal{Re}(x)$')
     #axes[0,1].plot(ts[wkbs==False],numpy.imag(xs[wkbs==False]),'rx')
     #axes[0,1].plot(ts[wkbs==True],numpy.imag(xs[wkbs==True]),'gx')
     #axes[0,1].set_ylabel('$\mathcal{Im}(x)$')
@@ -155,15 +193,11 @@ def main():
     #axes[1,1].plot(ts[wkbs==False], oscs[wkbs==False],'rx');
     #axes[1,1].plot(ts[wkbs==True], oscs[wkbs==True],'gx');
 
-    #print('\n number of WKB steps taken: ', ts[wkbs==True].size, '\n')
-    #print('total steps', ts.size)
-
     #ts = numpy.linspace(ts[0],ts[-1],100000)
     #axes[0,0].plot(ts,numpy.real(sol(ts)),'k-')
     #axes[0,1].plot(ts, numpy.imag(sol(ts)),'k-')
 
-
-    #plt.show()
+    plt.show()
     #fig.savefig('/home/will/Documents/Papers/RKWKB/figures/burst_compare.pdf')
 
 if __name__=="__main__":
