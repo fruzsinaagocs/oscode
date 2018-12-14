@@ -8,7 +8,7 @@ import numpy
 import scipy
 import time
 
-k=0.3
+k=2.0
 mp = 1
 phi_p = 23.293
 m = 5e-6#4.51e-6
@@ -26,7 +26,7 @@ def dV(phi):
     # Gradient of inflationary potential
     return n*m**2*phi**(n-1)
 
-def f(t, y):
+def f(y, t):
     # ODE system describing inflating FRW universe
     # y = [phi, dphi, a, H]
     return numpy.array([y[1],-3.0*y[1]*numpy.sqrt(1.0/(3*mp**2)*(0.5*y[1]**2 +
@@ -48,11 +48,11 @@ def solve_bg():
     y0 = ic(t0)
     tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e4)
     sol = (
-    scipy.integrate.solve_ivp(f,(t0,tf),y0,events=horizon_exit,t_eval=tevals,rtol=1e-14,atol=1e-14))
-    ws = k/sol.y[2]
-    dy = f(0.0, sol.y)
-    gs = 1.5*sol.y[3] + dy[1]/sol.y[1] - dy[3]/sol.y[3]
-    return sol.t, ws, gs
+    scipy.integrate.odeint(f,y0,tevals,rtol=3e-14,atol=3e-14))
+    ws = k/sol[:,2]
+    dy = numpy.array([f(soli, 0.0) for soli in sol])
+    gs = 1.5*sol[:,3] + dy[:,1]/sol[:,1] - dy[:,3]/sol[:,3]
+    return tevals, ws, gs
    
 # Plotting interpolating functions for w, g
 
@@ -119,7 +119,7 @@ def main():
     rk = False
     start = 1.0
     t=start
-    finish = 3.5*1e5
+    finish = 8e5
     x0 = 100*k
     dx0 = 0.0
     rtol = 1e-4
@@ -167,7 +167,7 @@ def main():
     # Solving brute force
     tevals = numpy.logspace(numpy.log10(start),numpy.log10(finish),num=1e4)
     sol2 =(
-    scipy.integrate.odeint(F,numpy.array([x0,dx0]),tevals))
+    scipy.integrate.odeint(F,numpy.array([x0,dx0]),tevals,rtol=1e-6,atol=1e-6))
     
     fig, axes = plt.subplots(1,1, sharex=False)
 
