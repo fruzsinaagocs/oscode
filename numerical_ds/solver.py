@@ -41,16 +41,16 @@ class Solver(object):
             
             # Predict next stepsize for each 
             h_rk = self.h*(self.rtol/delta_rk)**(1/5.0)
-            #d_wkb = numpy.max(deltas_wkb[:2])
-            #h_wkb = self.h*(self.rtol/d_wkb)**(1/4.0) 
-            if maxplace <= 1:
-                h_wkb = self.h*(self.rtol/delta_wkb)**(1/1.0)
-            else:
-                h_wkb = self.h*(self.rtol/delta_wkb)**(1/8.0)
+            d_wkb = numpy.max(deltas_wkb[:2])
+            h_wkb = self.h*(self.rtol/d_wkb)**(1/4.0) 
+            #if maxplace <= 1:
+            #    h_wkb = self.h*(self.rtol/delta_wkb)**(1/2.0)
+            #else:
+            #    h_wkb = self.h*(self.rtol/delta_wkb)**(1/4.0)
             # Choose the one with larger predicted stepsize
             wkb = h_wkb > h_rk
             
-            errortypes=["truncation", "S integral"]
+            #errortypes=["truncation", "S integral"]
             #print("{} error dominates".format(errortypes[maxplace//2]))
             #print("S errors: ", self.rkwkbsolver4.Serror)
             #print("truncation errors: ", truncerr)
@@ -60,11 +60,11 @@ class Solver(object):
                 
                 # To have symmetric stepsizes but not quite symmetric switching,
                 # comment these
-                #if maxplace <= 1:
-                delta_wkb = numpy.max(deltas_wkb[2:])
-                h_next = self.h*(self.rtol/delta_wkb)**(1/8.0)
-                #else:
-                #    h_next = h_wkb
+                if maxplace <= 1:
+                    delta_wkb = numpy.max(deltas_wkb[2:])
+                    h_next = self.h*(self.rtol/delta_wkb)**(1/8.0)
+                else:
+                    h_next = h_wkb
                 
                 # To have slightly asymm (<~3 steps) switching but large and
                 # symmetric stepsizes in WKB, comment the next line.
@@ -94,7 +94,7 @@ class Solver(object):
                     if maxplace <=1:
                         self.h *= 0.95*(self.rtol/delta_wkb)**(1/1.0)
                     else:
-                        self.h *= (self.rtol/delta_wkb)**(1/7.0)
+                        self.h *= (self.rtol/delta_wkb)**(1/3.0)
                 else:
                     self.h *= (self.rtol/delta_rk)**(1/4.0)
 
@@ -123,7 +123,13 @@ class Solver(object):
             x4, dx4, x4_err, dx4_err = self.rkwkbsolver4.step(self.x,self.dx,self.t,self.h)
         except ZeroDivisionError:
             return numpy.inf, numpy.inf, numpy.inf
-        return x4, dx4, numpy.array([x4_err, dx4_err]), numpy.array([x4-x3,dx4-dx3])
+        print('dx4: ',dx4, ' dx3: ', dx3, ' dx2: ',dx2, ' dx1: ',dx1)
+        print('ddfps: ', self.rkwkbsolver4.ddfm(self.t), self.rkwkbsolver3.ddfm(self.t),
+        self.rkwkbsolver2.ddfm(self.t), self.rkwkbsolver1.ddfm(self.t))
+        print('dfps:', self.rkwkbsolver4.dfp(self.t), self.rkwkbsolver3.dfp(self.t),
+        self.rkwkbsolver2.dfp(self.t), self.rkwkbsolver1.dfp(self.t))
+        return (x4, dx3, numpy.array([x4_err, dx3_err]),
+        numpy.array([x4-x3,dx3-dx2]))
 
     def RK_step(self):
         x, dx, err, ws, ws5, gs, gs5 = self.rksolver.step(self.x,self.dx,self.t,self.h)
@@ -308,9 +314,14 @@ class RKWKBSolver(object):
         return numpy.sum(weights*self.ws)/h**3
 
     def d4w1(self, h):
-        weights = numpy.array([3024.00000383582, -6923.06197480357,
-        7684.77676018742, -6855.31809730784, 5085.60330881706, -2016.00000072890]) 
-        return numpy.sum(weights*self.ws)/h**4   
+        values = self.ws
+        #print(values)
+        #print(self.ws5)
+        values = numpy.insert(values, 3, self.ws5[2])
+        #print(values)
+        weights = numpy.array([9744.00062637928, -27851.6858893579, 75653.4044616243,
+        -107520.008443354, 61113.3089030151, -15843.0200709916, 4704.00041268436])
+        return numpy.sum(weights*values)/h**4   
 
     def d1g1(self, h):
         weights = numpy.array([-15.0000000048537, 20.2828318761850,
@@ -367,10 +378,10 @@ class RKWKBSolver(object):
         integral) 
 
     def S2(self, h):
-        integrands6 = (self.Dws**2/self.ws**3 + 4*self.Dws*self.gs/self.ws**2 +
-        4*self.gs**2/self.ws)
-        integrands5 = (self.Dws5**2/self.ws5**3 +
-        4*self.Dws5*self.gs5/self.ws5**2 + 4*self.gs5**2/self.ws5)
+        integrands6 = (4*self.gs**2/self.ws + 4*self.Dws*self.gs/self.ws**2 +
+        self.Dws**2/self.ws**3)
+        integrands5 = (4*self.gs5**2/self.ws5 + 4*self.Dws5*self.gs5/self.ws5**2
+        + self.Dws5**2/self.ws5**3)
         integral, error = self.integrate(integrands6,integrands5,h)
         self.Serror[2] = -1/8.0*1j*error
         return (-1/4.0*(self.Dws[5]/self.ws[5]**2  + 2*self.gs[5]/self.ws[5]-
@@ -430,9 +441,12 @@ class RKWKBSolver2(RKWKBSolver1):
         return super().dfpb(t) - self.Dws[5]/self.ws[-1]/2 - self.gs[-1]
 
     def ddfp(self,t):
-        return (-self.ws[0]**2 + 3/4 * (self.Dws[0]/self.ws[0])**2 - 1/2 *
-        self.DDws[0]/self.ws[0] - 2*1j*self.gs[0]*self.ws[0] + self.gs[0]**2 +
-        self.Dws[0]*self.gs[0]/self.ws[0] - self.Dgs[0])
+        w = self.ws[0]
+        Dw = self.Dws[0]
+        DDw = self.DDws[0]
+        g = self.gs[0]
+        Dg = self.Dgs[0]
+        return ((g**2*w**2 - w**4 + Dw*g*w - Dg*w**2 - DDw*w/2 + 0.3e1/0.4e1*Dw**2)/w**2 + complex(0, -2)*g*w)
 
     def fm(self,t0,t1):
         return numpy.conj(self.fp(t0,t1))
@@ -452,35 +466,40 @@ class RKWKBSolver3(RKWKBSolver2):
         return super().fp(t0,t1) * numpy.exp(1j * self.S2(t1-t0))
 
     def dfp(self,t):
-        return (super().dfp(t) + 1j * ( 3/8 * self.Dws[0]**2/self.ws[0]**3 - 1/4
-        * self.DDws[0]/self.ws[0]**2 - 1/2*self.gs[0]**2/self.ws[0] -
-        1/2*self.Dgs[0]/self.ws[0]))
+        w = self.ws[0]
+        Dw = self.Dws[0]
+        DDw = self.DDws[0]
+        g = self.gs[0]
+        Dg = self.Dgs[0]
+        
+        return (super().dfp(t) + complex(0, 1)*(-g**2*w**2/2 - Dg*w**2/2 - DDw*w/4 + 0.3e1/0.8e1*Dw**2)/w**3)
 
     def dfpb(self,t):
-        return (super().dfpb(t) + 1j * (3/8 * self.Dws[5]**2/self.ws[-1]**3 - 1/4
-        * self.DDws[-1]/self.ws[-1]**2 - 1/2*self.gs[5]**2/self.ws[5] -
-        1/2*self.Dgs[-1]/self.ws[5]))
+        w = self.ws[-1]
+        Dw = self.Dws[-1]
+        DDw = self.DDws[-1]
+        g = self.gs[-1]
+        Dg = self.Dgs[-1]
+        
+        return (super().dfpb(t) + complex(0, 1)*(-g**2*w**2/2 - Dg*w**2/2 - DDw*w/4 + 0.3e1/0.8e1*Dw**2)/w**3)
 
     def ddfp(self,t):
-        return (-self.ws[0]**2  - 1/4 * 1j * self.DDDws[0]/self.ws[0]**2 - 3/2 *
-        1j * self.Dws[0]**3/self.ws[0]**4 + 3/2 * 1j * self.Dws[0] *
-        self.DDws[0]/self.ws[0]**3 - 9/64 * self.Dws[0]**4/self.ws[0]**6 + 3/16
-        * self.Dws[0]**2 * self.DDws[0] / self.ws[0]**5 - 1/16 *
-        self.DDws[0]**2/self.ws[0]**4 +
-        1/2*1j*self.gs[0]*self.DDws[0]/self.ws[0]**2 -
-        1/2*1j*self.DDgs[0]/self.ws[0] +
-        1j*self.Dws[0]*self.gs[0]**2/self.ws[0]**2 +
-        1j*self.Dws[0]*self.Dgs[0]/self.ws[0]**2 +
-        self.Dws[0]*self.gs[0]/self.ws[0] -2*1j*self.ws[0]*self.gs[0] +
-        3/8*self.Dws[0]**2*self.Dgs[0]/self.ws[0]**4 +
-        3/8*self.Dws[0]**2*self.gs[0]**2/self.ws[0]**4 -
-        1/4*self.DDws[0]*self.Dgs[0]/self.ws[0]**3 -
-        1/4*self.DDws[0]*self.gs[0]**2/self.ws[0]**3 -
-        1/2*self.Dgs[0]*self.gs[0]**2/self.ws[0]**2 +
-        1j*self.gs[0]**3/self.ws[0] -
-        3/4*1j*self.gs[0]*self.Dws[0]**2/self.ws[0]**3 + 2*self.gs[0]**2 -
-        1/4*self.Dgs[0]**2/self.ws[0]**2 - 1/4*self.gs[0]**4/self.ws[0]**2 )
-
+        w = self.ws[0]
+        Dw = self.Dws[0]
+        DDw = self.DDws[0]
+        DDDw = self.DDDws[0]
+        g = self.gs[0]
+        Dg = self.Dgs[0]
+        DDg = self.DDgs[0]
+        
+        return ((-DDw**2*w**2/16 + (-16*g**2*w**3 - 16*Dg*w**3 +
+        12*Dw**2*w)*DDw/64 - 0.9e1/0.64e2*Dw**4 + (24*g**2*w**2 + 24*Dg*w**2)*
+        Dw**2/64 + Dw*g*w**5 + w**4*(-g**4/4 + 2*g**2*w**2 - w**4 - Dg*g**2/2 -
+        Dg**2/4))/ w**6 + complex(0, 1)*(-DDDw*w**4/4 + (32*g*w**4 + 96*w**3*Dw)
+        * DDw/64 - DDg*w**5/2 - 0.3e1/0.2e1*Dw**3*w**2 -
+        0.3e1/0.4e1*g*Dw**2*w**3 + w**4*(g**2 + Dg)*Dw + w**4*(g**3*w -
+        2*g*w**3))/w**6)
+      
     def fm(self,t0,t1):
         return numpy.conj(self.fp(t0,t1))
 
@@ -499,18 +518,28 @@ class RKWKBSolver4(RKWKBSolver3):
         return super().fp(t0,t1) * numpy.exp(self.S3(t1-t0)) 
 
     def dfp(self,t):
-        return (super().dfp(t) + 3/4.0*self.Dws[0]**3/self.ws[0]**5 -
-        3/4.0*self.Dws[0]*self.DDws[0]/self.ws[0]**4 +
-        1/8.0*self.DDDws[0]/self.ws[0]**3 + 1/4*self.DDgs[0]/self.ws[0]**2 -
-        1/2*(self.gs[0]**2 + self.Dgs[0])*self.Dws[0]/self.ws[0]**3 +
-        1/2*self.Dgs[0]*self.gs[0]/self.ws[0]**2 ) 
+        w = self.ws[0]
+        Dw = self.Dws[0]
+        DDw = self.DDws[0]
+        DDDw = self.DDDws[0]
+        g = self.gs[0]
+        Dg = self.Dgs[0]
+        DDg = self.DDgs[0]
+        
+        return (super().dfp(t) + (DDDw*w**2/8 + DDg*w**3/4 - 0.3e1/0.4e1*DDw*w*Dw +
+        0.3e1/0.4e1*Dw**3 - w**2*(g**2 + Dg)*Dw/2 + Dg*w**3*g/2)/w**5)
 
     def dfpb(self,t):
-        return (super().dfpb(t) + 3/4.0*self.Dws[-1]**3/self.ws[5]**5 -
-        3/4.0*self.Dws[-1]*self.DDws[-1]/self.ws[5]**4 +
-        1/8.0*self.DDDws[-1]/self.ws[5]**3 + 1/4*self.DDgs[-1]/self.ws[5]**2 -
-        1/2*(self.gs[5]**2 + self.Dgs[-1])*self.Dws[5]/self.ws[5]**3 +
-        1/2*self.Dgs[-1]*self.gs[5]/self.ws[5]**2)
+        w = self.ws[-1]
+        Dw = self.Dws[-1]
+        DDw = self.DDws[-1]
+        DDDw = self.DDDws[-1]
+        g = self.gs[-1]
+        Dg = self.Dgs[-1]
+        DDg = self.DDgs[-1]
+        
+        return (super().dfp(t) + (DDDw*w**2/8 + DDg*w**3/4 - 0.3e1/0.4e1*DDw*w*Dw +
+        0.3e1/0.4e1*Dw**3 - w**2*(g**2 + Dg)*Dw/2 + Dg*w**3*g/2)/w**5)
 
     def ddfp(self,t):
          
@@ -525,6 +554,7 @@ class RKWKBSolver4(RKWKBSolver3):
         DDDg = self.DDDgs[0]
 
         return (DDDDw*w**7/8 + DDDw**2*w**4/64 + (-12*w*Dw*DDw + 4*w**3*DDg +
+        #return (DDDw**2*w**4/64 + (-12*w*Dw*DDw + 4*w**3*DDg +
         12*Dw **3 - 8*w**2*(g**2 + 10*w**2 + Dg)*Dw - 8*w**3*(-Dg*g +
         2*g*w**2))*w**2*DDDw/64 + DDDg*w**8/4 + (36*w**2*Dw**2 - 52*w**6)*DDw
         **2/64 + w*(-0.3e1/0.8e1*w **3*Dw*DDg - 0.9e1/0.8e1*Dw**4 +
