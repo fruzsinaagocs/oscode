@@ -8,6 +8,10 @@ import scipy
 
 #scipy.special.seterr(all='warn')
 
+def g(t):
+    return 0.0
+    #return t**(-1/2)
+
 def w(t):
     return numpy.sqrt(t)
 
@@ -21,8 +25,8 @@ def main():
     
     
     start = 1.0
-    finish = 1e4
-    rtol = 1e-4
+    finish = 1e2
+    rtol = 1e-3
     atol = 1e-5
 
     rk = False
@@ -31,7 +35,7 @@ def main():
     dx = dsol(t)
     
     ts, xs, wkbs, hs, oscs = [], [], [], [], []
-    solver = Solver(w,t=t,x=x,dx=dx,rtol=rtol,atol=atol)
+    solver = Solver(w,g,t=t,x=x,dx=dx,rtol=rtol,atol=atol)
     
     for step in solver.evolve(rk):
         wkb = step['wkb']

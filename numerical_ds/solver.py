@@ -123,11 +123,11 @@ class Solver(object):
             x4, dx4, x4_err, dx4_err = self.rkwkbsolver4.step(self.x,self.dx,self.t,self.h)
         except ZeroDivisionError:
             return numpy.inf, numpy.inf, numpy.inf
-        print('dx4: ',dx4, ' dx3: ', dx3, ' dx2: ',dx2, ' dx1: ',dx1)
-        print('ddfps: ', self.rkwkbsolver4.ddfm(self.t), self.rkwkbsolver3.ddfm(self.t),
-        self.rkwkbsolver2.ddfm(self.t), self.rkwkbsolver1.ddfm(self.t))
-        print('dfps:', self.rkwkbsolver4.dfp(self.t), self.rkwkbsolver3.dfp(self.t),
-        self.rkwkbsolver2.dfp(self.t), self.rkwkbsolver1.dfp(self.t))
+        #print('dx4: ',dx4, ' dx3: ', dx3, ' dx2: ',dx2, ' dx1: ',dx1)
+        #print('ddfps: ', self.rkwkbsolver4.ddfm(self.t), self.rkwkbsolver3.ddfm(self.t),
+        #self.rkwkbsolver2.ddfm(self.t), self.rkwkbsolver1.ddfm(self.t))
+        #print('dfps:', self.rkwkbsolver4.dfp(self.t), self.rkwkbsolver3.dfp(self.t),
+        #self.rkwkbsolver2.dfp(self.t), self.rkwkbsolver1.dfp(self.t))
         return (x4, dx3, numpy.array([x4_err, dx3_err]),
         numpy.array([x4-x3,dx3-dx2]))
 

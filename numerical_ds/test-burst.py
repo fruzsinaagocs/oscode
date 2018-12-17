@@ -11,6 +11,9 @@ import time
 n=1e9
 calls = 0
 
+def g(t):
+    return 0.0
+
 def w(t):
     return numpy.sqrt(n**2-1) * 1 / (1 + t**2)
 
@@ -64,7 +67,7 @@ def main():
     dx = dsol(t)
     
     ts, xs, dxs, wkbs, hs, oscs = [], [], [], [], [], []
-    solver = Solver(wnew,t=t,x=x,dx=dx,rtol=rtol,atol=atol)
+    solver = Solver(wnew,g,t=t,x=x,dx=dx,rtol=rtol,atol=atol)
     
     for step in solver.evolve(rk):
         wkb = step['wkb']
