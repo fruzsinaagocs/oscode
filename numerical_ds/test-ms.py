@@ -9,6 +9,7 @@ import scipy
 import time
 
 k=2.0
+#k=0.1
 mp = 1
 phi_p = 23.293
 m = 5e-6#4.51e-6
@@ -46,7 +47,7 @@ def solve_bg():
     t0 = 1
     tf = 1e6
     y0 = ic(t0)
-    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e4)
+    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e3)
     sol = (
     scipy.integrate.odeint(f,y0,tevals,rtol=3e-14,atol=3e-14))
     ws = k/sol[:,2]
@@ -56,7 +57,7 @@ def solve_bg():
    
 # Plotting interpolating functions for w, g
 
-def plot_w_g(ts, ws, gs, logwfit, gfit):
+def plot_w_g(ts, ws, gs, logwfit, gfit, start, finish):
     fig, axes = plt.subplots(1,2,sharex=False)
     axes[0].loglog(ts,ws)
     axes[0].set_title('omega')
@@ -68,11 +69,13 @@ def plot_w_g(ts, ws, gs, logwfit, gfit):
     samples = numpy.logspace(numpy.log10(start),numpy.log10(finish),num=1e3)
     logwsfit = logwfit(samples)
     plt.plot(samples, logwsfit, '.')
+    plt.plot(ts,numpy.log(ws))
     plt.title('omega fit')
     plt.show()
     
     gsfit = gfit(samples)
     plt.plot(samples, gsfit, '.')
+    plt.plot(ts,gs)
     plt.title('gamma fit')
     plt.show()
 
@@ -99,8 +102,8 @@ def main():
     
     ts, ws, gs = solve_bg()
     logws = numpy.log(ws)
-    logwfit = scipy.interpolate.interp1d(ts,logws,kind=3) 
-    gfit = scipy.interpolate.interp1d(ts,gs,kind=3)
+    logwfit = scipy.interpolate.Akima1DInterpolator(ts,logws) 
+    gfit = scipy.interpolate.Akima1DInterpolator(ts,gs)
         
     def wnew(t):
         global calls
@@ -112,6 +115,7 @@ def main():
         gcalls += 1
         return gfit(t)
 
+    
     # For brute-force solving MS
     def F(y,t):
         return numpy.array([y[1], -wnew(t)**2*y[0]-2*gnew(t)*y[1]])
@@ -124,6 +128,7 @@ def main():
     dx0 = 0.0
     rtol = 1e-4
     atol = 0.0
+    plot_w_g(ts, ws, gs, logwfit, gfit, start, finish)
 
     starttime = time.process_time()
     ts, xs, dxs, wkbs, hs, oscs = [], [], [], [], [], []
