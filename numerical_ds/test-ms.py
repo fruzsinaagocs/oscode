@@ -8,7 +8,7 @@ import numpy
 import scipy
 import time
 
-k=0.1
+k=5.0
 mp = 1
 phi_p = 23.293
 m = 5e-6#4.51e-6
@@ -46,7 +46,7 @@ def solve_bg():
     t0 = 1
     tf = 1e6
     y0 = ic(t0)
-    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e3)
+    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e4)
     sol = (
     scipy.integrate.odeint(f,y0,tevals,rtol=3e-14,atol=3e-14))
     ws = k/sol[:,2]
@@ -65,20 +65,20 @@ def plot_w_g(ts, ws, gs, logwfit, gfit, start, finish):
     plt.show()
 
     logws = numpy.log(ws)
-    samples = numpy.logspace(numpy.log10(start),numpy.log10(finish),num=1e3)
+    samples = numpy.logspace(numpy.log10(start),numpy.log10(finish),num=1e2)
     logwsfit = logwfit(samples)
-    plt.plot(samples, logwsfit, '.')
-    plt.plot(ts,numpy.log(ws))
+    plt.plot(samples, logwsfit,'gx')
+    plt.plot(ts,numpy.log(ws),color='red')
     plt.title('omega fit')
     plt.show()
     
     gsfit = gfit(samples)
-    plt.plot(samples, gsfit, '.')
-    plt.plot(ts,gs)
+    plt.plot(samples, gsfit,'gx')
+    plt.plot(ts,gs,color='red')
     plt.title('gamma fit')
     plt.show()
 
-def time_w_g(wnew,gnew):
+def time_w_g(wnew, gnew, start, finish):
 
     samples = numpy.random.rand(10000)*(finish-start)+start
     starttime = time.process_time()
@@ -101,8 +101,8 @@ def main():
     
     ts, ws, gs = solve_bg()
     logws = numpy.log(ws)
-    logwfit = scipy.interpolate.Akima1DInterpolator(ts,logws) 
-    gfit = scipy.interpolate.Akima1DInterpolator(ts,gs)
+    logwfit = scipy.interpolate.interp1d(ts,logws) 
+    gfit = scipy.interpolate.interp1d(ts,gs)
         
     def wnew(t):
         global calls
@@ -128,6 +128,7 @@ def main():
     rtol = 1e-4
     atol = 0.0
     plot_w_g(ts, ws, gs, logwfit, gfit, start, finish)
+    time_w_g(wnew, gnew, start, finish)
 
     starttime = time.process_time()
     ts, xs, dxs, wkbs, hs, oscs = [], [], [], [], [], []
