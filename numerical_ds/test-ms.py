@@ -46,7 +46,7 @@ def solve_bg():
     t0 = 1
     tf = 1e6
     y0 = ic(t0)
-    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e4)
+    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e5)
     sol = (
     scipy.integrate.odeint(f,y0,tevals,rtol=3e-14,atol=3e-14))
     ws = k/sol[:,2]
@@ -117,7 +117,18 @@ def main():
     
     # For brute-force solving MS
     def F(y,t):
-        return numpy.array([y[1], -wnew(t)**2*y[0]-2*gnew(t)*y[1]])
+        # y = [phi, dphi, a, H]
+        ybg = y[2:] 
+        
+        dybg = numpy.array([ybg[1],-3.0*ybg[1]*numpy.sqrt(1.0/(3*mp**2)*(0.5*ybg[1]**2 +
+        V(ybg[0]))) - dV(ybg[0]),ybg[2]*ybg[3],(-1.0/(3*mp**2))*(ybg[1]**2 -
+        V(ybg[0])) -
+        ybg[3]**2])
+        
+        g = 1.5*ybg[3] + dybg[1]/ybg[1] - dybg[3]/ybg[3]
+        w = k/ybg[2]
+        return numpy.concatenate((numpy.array([y[1], -w**2*y[0]-2*g*y[1]]),
+        dybg))
 
     rk = False
     start = 1.0
@@ -127,8 +138,8 @@ def main():
     dx0 = 0.0
     rtol = 1e-4
     atol = 0.0
-    plot_w_g(ts, ws, gs, logwfit, gfit, start, finish)
-    time_w_g(wnew, gnew, start, finish)
+    #plot_w_g(ts, ws, gs, logwfit, gfit, start, finish)
+    #time_w_g(wnew, gnew, start, finish)
 
     starttime = time.process_time()
     ts, xs, dxs, wkbs, hs, oscs = [], [], [], [], [], []
@@ -172,7 +183,7 @@ def main():
     # Solving brute force
     tevals = numpy.logspace(numpy.log10(start),numpy.log10(finish),num=1e4)
     sol2 =(
-    scipy.integrate.odeint(F,numpy.array([x0,dx0]),tevals,rtol=1e-6,atol=1e-6))
+    scipy.integrate.odeint(F,numpy.concatenate((numpy.array([x0,dx0]),ic(start))),tevals,rtol=1e-8,atol=1e-10))
     
     fig, axes = plt.subplots(1,1, sharex=False)
 
