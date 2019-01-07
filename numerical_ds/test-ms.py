@@ -8,10 +8,14 @@ import numpy
 import scipy
 import time
 
-k=5.0
+#k=0.02
+k = 1.2
+#k = 0.020327352016717128
+#0.020805675382171717
+
 mp = 1
 phi_p = 23.293
-m = 5e-6#4.51e-6
+m = 4.5e-6#4.51e-6
 n = 2
 calls = 0
 gcalls = 0
@@ -41,19 +45,22 @@ def ic(t):
 def horizon_exit(t, y):
     return y[2]*y[3] - 100*k 
 
-def solve_bg():
+def solve_bg(t0,tf,start):
     # Routine to solve inflating FRW background
-    t0 = 1
-    tf = 1e6
     y0 = ic(t0)
-    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e5)
+    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e6)
+    if start not in tevals:
+        tevals = numpy.append(tevals,start)
+        tevals.sort()
+    startindex = numpy.where(tevals==start)
     sol = (
     scipy.integrate.odeint(f,y0,tevals,rtol=3e-14,atol=3e-14))
-    ws = k/sol[:,2]
+    ws = 1.0/sol[:,2]
     dy = numpy.array([f(soli, 0.0) for soli in sol])
     gs = 1.5*sol[:,3] + dy[:,1]/sol[:,1] - dy[:,3]/sol[:,3]
-    return tevals, ws, gs
-   
+    y0bg = sol[startindex].flatten()
+    return tevals, ws, gs, y0bg
+  
 # Plotting interpolating functions for w, g
 
 def plot_w_g(ts, ws, gs, logwfit, gfit, start, finish):
@@ -65,16 +72,16 @@ def plot_w_g(ts, ws, gs, logwfit, gfit, start, finish):
     plt.show()
 
     logws = numpy.log(ws)
-    samples = numpy.logspace(numpy.log10(start),numpy.log10(finish),num=1e2)
-    logwsfit = logwfit(samples)
-    plt.plot(samples, logwsfit,'gx')
-    plt.plot(ts,numpy.log(ws),color='red')
+    samples = numpy.logspace(numpy.log10(2.0),numpy.log10(1e6),num=1e4)
+    wsfit = numpy.exp(logwfit(samples))
+    plt.semilogx(samples, wsfit,'gx')
+    plt.semilogx(ts,ws,'rx')
     plt.title('omega fit')
     plt.show()
     
     gsfit = gfit(samples)
-    plt.plot(samples, gsfit,'gx')
-    plt.plot(ts,gs,color='red')
+    plt.semilogx(samples, gsfit,'gx')
+    plt.semilogx(ts,gs,'rx')
     plt.title('gamma fit')
     plt.show()
 
@@ -97,9 +104,12 @@ def time_w_g(wnew, gnew, start, finish):
 
 
 def main():
-   
-    
-    ts, ws, gs = solve_bg()
+  
+    start = 1e4
+    finish = 8e5
+    t0 = 1.0
+    tf = 1e6
+    ts, ws, gs, y0 = solve_bg(t0,tf,start)
     logws = numpy.log(ws)
     logwfit = scipy.interpolate.interp1d(ts,logws) 
     gfit = scipy.interpolate.interp1d(ts,gs)
@@ -107,7 +117,7 @@ def main():
     def wnew(t):
         global calls
         calls += 1 
-        return numpy.exp(logwfit(t))
+        return k*numpy.exp(logwfit(t))
 
     def gnew(t):
         global gcalls
@@ -131,10 +141,8 @@ def main():
         dybg))
 
     rk = False
-    start = 1.0
     t=start
-    finish = 8e5
-    x0 = 100*k
+    x0 = 100.0*k
     dx0 = 0.0
     rtol = 1e-4
     atol = 0.0
@@ -183,7 +191,7 @@ def main():
     # Solving brute force
     tevals = numpy.logspace(numpy.log10(start),numpy.log10(finish),num=1e4)
     sol2 =(
-    scipy.integrate.odeint(F,numpy.concatenate((numpy.array([x0,dx0]),ic(start))),tevals,rtol=1e-8,atol=1e-10))
+    scipy.integrate.odeint(F,numpy.concatenate((numpy.array([x0,dx0]),y0)),tevals,rtol=1e-8,atol=1e-10))
     
     fig, axes = plt.subplots(1,1, sharex=False)
 
