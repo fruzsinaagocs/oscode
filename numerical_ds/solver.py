@@ -41,30 +41,26 @@ class Solver(object):
             
             # Predict next stepsize for each 
             h_rk = self.h*(self.rtol/delta_rk)**(1/5.0)
-            d_wkb = numpy.max(deltas_wkb[:2])
-            h_wkb = self.h*(self.rtol/d_wkb)**(1/4.0) 
-            #if maxplace <= 1:
-            #    h_wkb = self.h*(self.rtol/delta_wkb)**(1/2.0)
-            #else:
-            #    h_wkb = self.h*(self.rtol/delta_wkb)**(1/4.0)
+            #d_wkb = numpy.max(deltas_wkb[:2])
+            #h_wkb = self.h*(self.rtol/d_wkb)**(1/2.0) 
+            if maxplace <= 1:
+                h_wkb = self.h*(self.rtol/delta_wkb)**(1/2.0)
+            else:
+                h_wkb = self.h*(self.rtol/delta_wkb)**(1/4.0)
             # Choose the one with larger predicted stepsize
-            wkb = h_wkb > h_rk
+            wkb = h_wkb >= h_rk
             
-            #errortypes=["truncation", "S integral"]
-            #print("{} error dominates".format(errortypes[maxplace//2]))
-            #print("S errors: ", self.rkwkbsolver4.Serror)
-            #print("truncation errors: ", truncerr)
             if wkb:
                 x = x_wkb
                 dx = dx_wkb
                 
                 # To have symmetric stepsizes but not quite symmetric switching,
                 # comment these
-                if maxplace <= 1:
-                    delta_wkb = numpy.max(deltas_wkb[2:])
-                    h_next = self.h*(self.rtol/delta_wkb)**(1/8.0)
-                else:
-                    h_next = h_wkb
+                #if maxplace <= 1:
+                delta_wkb = numpy.max([1e-10,numpy.max(deltas_wkb[2:])])
+                h_next = self.h*(self.rtol/delta_wkb)**(1/4.0)
+                #else:
+                #    h_next = h_wkb
                 
                 # To have slightly asymm (<~3 steps) switching but large and
                 # symmetric stepsizes in WKB, comment the next line.
@@ -92,7 +88,8 @@ class Solver(object):
             else:
                 if wkb:
                     if maxplace <=1:
-                        self.h *= 0.95*(self.rtol/delta_wkb)**(1/1.0)
+                        #delta_wkb = numpy.max(deltas_wkb[:2]) 
+                        self.h *= (self.rtol/delta_wkb)**(1/1.0)
                     else:
                         self.h *= (self.rtol/delta_wkb)**(1/3.0)
                 else:

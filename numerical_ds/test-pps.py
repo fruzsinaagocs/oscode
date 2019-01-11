@@ -61,7 +61,7 @@ def rst(k,y0,rks):
 def solve_bg(t0,tf,start):
     # Routine to solve inflating FRW background
     y0 = ic(t0)
-    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e6)
+    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e5)
     if start not in tevals:
         tevals = numpy.append(tevals,start)
         tevals.sort()
@@ -79,15 +79,15 @@ def main():
     # Define parameters of spectrum (ic)
     start = 1e4
     finish = 8e5
-    krange = numpy.logspace(-2,-1.5,100)
+    krange = numpy.logspace(5,8,300)
 
     # Solve background once over large range
     t0 = 1.0
     tf = 1e6
     ts, ws, gs, y0 = solve_bg(t0,tf,start)
     logws = numpy.log(ws)
-    logwfit = scipy.interpolate.interp1d(ts,logws) 
-    gfit = scipy.interpolate.interp1d(ts,gs)
+    logwfit = scipy.interpolate.interp1d(ts,logws,kind='linear') 
+    gfit = scipy.interpolate.interp1d(ts,gs,kind='linear')
        
     # Parameters of solver
     rk = False
@@ -110,6 +110,9 @@ def main():
             f.write("{} ".format(k))
         ics = numpy.array([[100*k,0],[0,10*k**2]]) 
         rks = numpy.zeros(ics.shape)
+        stepstot = numpy.zeros(ics.shape[0])
+        stepswkb = numpy.zeros(ics.shape[0])
+        timetot = numpy.zeros(ics.shape[0])
         for i,ic in enumerate(ics):
             x0, dx0 = ic
    
@@ -130,14 +133,19 @@ def main():
                 t = step['t']
                 x = step['x']
                 dx = step['dx']
+                wkb = step['wkb']
+                stepstot[i] += 1
+                if wkb:
+                    stepswkb[i] += 1
                 if t >= finish:
                     break
             
             rks[i] = x, dx 
-            with open(outputf,'a') as f:
-                f.write("{} {} ".format(x,dx))
-
             endtime = time.process_time()
+            timetot[i] = endtime - starttime
+            with open(outputf,'a') as f:
+                f.write("{} {} {} {} {} ".format(x,dx,stepstot[i],stepswkb[i],timetot[i]))
+
             #print('calls: ',calls,gcalls)
             #print('time: ', endtime-starttime)
         power1 = hd(k,y0,rks[:,0])
