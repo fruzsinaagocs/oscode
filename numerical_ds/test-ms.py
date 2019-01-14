@@ -7,13 +7,15 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 import time
+import cProfile, pstats, io
 
 #k=0.02
-#k = 10.0
 #k = 0.020327352016717128
 #0.020805675382171717
 #k =13530.477745798076
-k = 1e7
+k = 1e5
+#k = 1e7
+#k = 15.3
 
 mp = 1
 phi_p = 23.293
@@ -113,11 +115,11 @@ def main():
     finish = 8e5
     t0 = 1.0
     tf = 1e6
-    num = 1e6
+    num = 1e5
     ts, ws, gs, y0, kmax = solve_bg(t0,tf,start,num)
     print('kmax',kmax)
     logws = numpy.log(ws)
-    logwfit = scipy.interpolate.interp1d(ts,logws,kind='linear') 
+    logwfit = scipy.interpolate.interp1d(ts,logws,kind='linear')
     gfit = scipy.interpolate.interp1d(ts,gs,kind='linear')
 
     def wnew(t):
@@ -130,24 +132,6 @@ def main():
         gcalls += 1
         return gfit(t)
 
-#    timingfile = 'test/timeinterp_linear.txt'
-#    
-#    ns = numpy.logspace(2,6,num=500,dtype=int)
-#    for n in ns:
-#        ts, ws, gs, y0, kmax = solve_bg(t0,tf,start,n)
-#        logws = numpy.log(ws)
-#        samples = numpy.random.rand(n)*(finish-start)+start
-#        t1 = time.process_time()
-#        for i in range(100):
-#            logwfit = scipy.interpolate.interp1d(ts,logws,kind='linear') 
-#            gfit = scipy.interpolate.interp1d(ts,gs,kind='linear')
-#        t2 = time.process_time()
-#        for i in range(100):
-#            wnew(samples[i])
-#            gnew(samples[i])
-#        t3 = time.process_time() 
-#        with open(timingfile, 'a') as f:
-#            f.write("{} {} {}\n".format(n,(t2-t1)/100,(t3-t2)/100))
     
     # For brute-force solving MS
     def F(y,t):
@@ -173,8 +157,13 @@ def main():
     #plot_w_g(ts, ws, gs, wfit, gfit, start, finish)
     #time_w_g(wnew, gnew, start, finish)
 
+    # For profiling purposes
     starttime = time.process_time()
-    #ts, xs, dxs, wkbs, hs, oscs = [], [], [], [], [], []
+    #pr = cProfile.Profile()
+    #pr.enable()
+
+
+    ts, xs, dxs, wkbs, hs, oscs = [], [], [], [], [], []
     solver = Solver(wnew,gnew,t=start,x=x0,dx=dx0,rtol=rtol,atol=atol)
     
     for step in solver.evolve(rk):
@@ -184,15 +173,15 @@ def main():
         e = step['err']
         h = step['h']
         dx = step['dx']
-        #if wkb:
-        #    print('wkb',t,x,e,h)
-        #else:
-        #    print('rk',t,x,e,h)
+        if wkb:
+            print('wkb',t,x,e,h)
+        else:
+            print('rk',t,x,e,h)
     
         if t < finish:
-            #ts.append(t)
-            #xs.append(x)
-            #wkbs.append(wkb)
+            ts.append(t)
+            xs.append(x)
+            wkbs.append(wkb)
             #dxs.append(dx)
             #hs.append(h)
             #oscs.append((n*numpy.arctan(t)/(2*numpy.pi))-(n*numpy.arctan(t-h)/(2*numpy.pi)))
@@ -200,11 +189,12 @@ def main():
         else:
             break
     
+    #pr.disable()
     endtime = time.process_time()
-    #ts = numpy.array(ts)
-    #xs = numpy.array(xs)
+    ts = numpy.array(ts)
+    xs = numpy.array(xs)
     #dxs = numpy.array(dxs)
-    #wkbs = numpy.array(wkbs)
+    wkbs = numpy.array(wkbs)
     #hs = numpy.array(hs)
     #oscs = numpy.array(oscs)
     
@@ -212,19 +202,24 @@ def main():
     #print('total steps', ts.size)
     print('calls: ',calls,gcalls)
     print('time: ', endtime-starttime)
+    #s = io.StringIO()
+    #sortby = 'cumulative'
+    #ps = pstats.Stats(pr,stream=s).sort_stats(sortby)
+    #ps.print_stats()
+    #print(s.getvalue())
 
     # Solving brute force
     #tevals = numpy.logspace(numpy.log10(start),numpy.log10(finish),num=1e4)
     #sol2 =(
     #scipy.integrate.odeint(F,numpy.concatenate((numpy.array([x0,dx0]),y0)),tevals,rtol=1e-8,atol=1e-10))
     
-    #fig, axes = plt.subplots(1,1, sharex=False)
+    fig, axes = plt.subplots(1,1, sharex=False)
 
     # Real part of analytic and RKWKB solution
-    #axes.semilogx(ts[wkbs==False],numpy.real(xs[wkbs==False]),'rx')
-    #axes.semilogx(ts[wkbs==True],numpy.real(xs[wkbs==True]),'gx')
+    axes.semilogx(ts[wkbs==False],numpy.real(xs[wkbs==False]),'rx')
+    axes.semilogx(ts[wkbs==True],numpy.real(xs[wkbs==True]),'gx')
     #axes.semilogx(tevals, sol2[:,0])
-    #axes.set_ylabel('$\mathcal{Re}(x)$')
+    axes.set_ylabel('$\mathcal{Re}(x)$')
     #axes[0,1].plot(ts[wkbs==False],numpy.imag(xs[wkbs==False]),'rx')
     #axes[0,1].plot(ts[wkbs==True],numpy.imag(xs[wkbs==True]),'gx')
     #axes[0,1].set_ylabel('$\mathcal{Im}(x)$')
@@ -246,7 +241,7 @@ def main():
     #axes[0,0].plot(ts,numpy.real(sol(ts)),'k-')
     #axes[0,1].plot(ts, numpy.imag(sol(ts)),'k-')
 
-    #plt.show()
+    plt.show()
     #fig.savefig('/home/will/Documents/Papers/RKWKB/figures/burst_compare.pdf')
 
 if __name__=="__main__":
