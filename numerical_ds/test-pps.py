@@ -61,7 +61,7 @@ def rst(k,y0,rks):
 def solve_bg(t0,tf,start):
     # Routine to solve inflating FRW background
     y0 = ic(t0)
-    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e5)
+    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=5e5)
     if start not in tevals:
         tevals = numpy.append(tevals,start)
         tevals.sort()
