@@ -9,7 +9,7 @@ import scipy
 import time
 
 #k=0.020327352016717128
-k = 1.0
+k = 1e4
 mp = 1
 phi_p = 23.293
 m = 4.5e-6#4.51e-6
@@ -42,10 +42,10 @@ def ic(t):
 def horizon_exit(t, y):
     return y[2]*y[3] - 100*k 
 
-def solve_bg(t0,tf,start):
+def solve_bg(t0,tf,start,num):
     # Routine to solve inflating FRW background
     y0 = ic(t0)
-    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e4)
+    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=num)
     if start not in tevals:
         tevals = numpy.append(tevals,start)
         tevals.sort()
@@ -64,10 +64,11 @@ def main():
     finish = 8e5
     t0 = 1.0
     tf = 1e6
-    ts, ws, gs, y0 = solve_bg(t0,tf,start)
+    num = 1e4
+    ts, ws, gs, y0 = solve_bg(t0,tf,start,num)
     logws = numpy.log(ws)
-    logwfit = scipy.interpolate.interp1d(ts,logws,kind=3) 
-    gfit = scipy.interpolate.interp1d(ts,gs,kind=3)
+    logwfit = scipy.interpolate.interp1d(ts,logws,kind='linear') 
+    gfit = scipy.interpolate.interp1d(ts,gs,kind='linear')
         
     def wnew(t):
         global calls
@@ -96,7 +97,7 @@ def main():
          
     rk = False
     t = start
-    tstart = 4e4 # Analyise errors as fn of h at this point
+    tstart = start # Analyise errors as fn of h at this point
     x0 = 0.0
     dx0 = 10*k**2
     ystart = y0
