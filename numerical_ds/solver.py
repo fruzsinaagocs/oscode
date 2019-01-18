@@ -1,5 +1,7 @@
 import numpy
 import sys
+import pyximport; pyximport.install()
+import cSum
 
 class Solver(object):
     def __init__(self,w,g,**kwargs):
@@ -41,30 +43,26 @@ class Solver(object):
             
             # Predict next stepsize for each 
             h_rk = self.h*(self.rtol/delta_rk)**(1/5.0)
-            d_wkb = numpy.max(deltas_wkb[:2])
-            h_wkb = self.h*(self.rtol/d_wkb)**(1/4.0) 
-            #if maxplace <= 1:
-            #    h_wkb = self.h*(self.rtol/delta_wkb)**(1/2.0)
-            #else:
-            #    h_wkb = self.h*(self.rtol/delta_wkb)**(1/4.0)
+            #d_wkb = numpy.max(deltas_wkb[:2])
+            #h_wkb = self.h*(self.rtol/d_wkb)**(1/2.0) 
+            if maxplace <= 1:
+                h_wkb = self.h*(self.rtol/delta_wkb)**(1/2.0)
+            else:
+                h_wkb = self.h*(self.rtol/delta_wkb)**(1/4.0)
             # Choose the one with larger predicted stepsize
-            wkb = h_wkb > h_rk
+            wkb = h_wkb >= h_rk
             
-            #errortypes=["truncation", "S integral"]
-            #print("{} error dominates".format(errortypes[maxplace//2]))
-            #print("S errors: ", self.rkwkbsolver4.Serror)
-            #print("truncation errors: ", truncerr)
             if wkb:
                 x = x_wkb
                 dx = dx_wkb
                 
                 # To have symmetric stepsizes but not quite symmetric switching,
                 # comment these
-                if maxplace <= 1:
-                    delta_wkb = numpy.max(deltas_wkb[2:])
-                    h_next = self.h*(self.rtol/delta_wkb)**(1/8.0)
-                else:
-                    h_next = h_wkb
+                #if maxplace <= 1:
+                delta_wkb = numpy.max([1e-10,numpy.max(deltas_wkb[2:])])
+                h_next = self.h*(self.rtol/delta_wkb)**(1/4.0)
+                #else:
+                #    h_next = h_wkb
                 
                 # To have slightly asymm (<~3 steps) switching but large and
                 # symmetric stepsizes in WKB, comment the next line.
@@ -92,7 +90,8 @@ class Solver(object):
             else:
                 if wkb:
                     if maxplace <=1:
-                        self.h *= 0.95*(self.rtol/delta_wkb)**(1/1.0)
+                        #delta_wkb = numpy.max(deltas_wkb[:2]) 
+                        self.h *= (self.rtol/delta_wkb)**(1/1.0)
                     else:
                         self.h *= (self.rtol/delta_wkb)**(1/3.0)
                 else:
@@ -117,7 +116,7 @@ class Solver(object):
         self.rkwkbsolver4.gs5 = self.gs5
 
         try:
-            x1, dx1, x1_err, dx1_err = self.rkwkbsolver1.step(self.x,self.dx,self.t,self.h)
+            #x1, dx1, x1_err, dx1_err = self.rkwkbsolver1.step(self.x,self.dx,self.t,self.h)
             x2, dx2, x2_err, dx2_err = self.rkwkbsolver2.step(self.x,self.dx,self.t,self.h)
             x3, dx3, x3_err, dx3_err = self.rkwkbsolver3.step(self.x,self.dx,self.t,self.h)
             x4, dx4, x4_err, dx4_err = self.rkwkbsolver4.step(self.x,self.dx,self.t,self.h)
@@ -236,22 +235,28 @@ class RKWKBSolver(object):
         self.DDDgs = numpy.array([self.d3g1(h)])
         self.DDDDws = numpy.array([self.d4w1(h)])
         self.Serror = numpy.zeros(4, dtype=complex)
-        self.Serror[0] = 1j*self.S0(t0,t0+h)[1]
-        
+        #S0, S0err = self.S0(t0,t0+h)               
+        #print(S0, S0err, self.S0(t0,t0+h))
         ddx0 = -self.ws[0]**2*x0 -2*self.gs[0]*dx0
         t1 = t0 + h
+
+        fp = self.fp(t0,t1)
+        fm = numpy.conj(fp)
+        dfpb = self.dfpb(t1)
+        dfmb = numpy.conj(dfpb)
+        self.Serror[0] = 1j*self.S0(t0,t0+h)[1]
 
         Ap, Am = self.A(t0,x0,dx0)
         Bp, Bm = self.B(t0,dx0,ddx0)
 
-        x1 =  Ap * self.fp(t0,t1) + Am * self.fm(t0,t1)
-        dx1 = Bp * self.dfpb(t1) * self.fp(t0,t1) + Bm * self.dfmb(t1) * self.fm(t0,t1) 
+        x1 =  Ap * fp + Am * fm
+        dx1 = Bp * dfpb * fp + Bm * dfmb * fm
 
         # Error estimate on answer based on error on S_i integrals
-        error_fp = numpy.sum(numpy.abs(self.Serror))*self.fp(t0,t1)
-        error_fm = numpy.conj(numpy.sum(numpy.abs(self.Serror)))*self.fm(t0,t1)
-        error_dfp = self.dfpb(t1)/self.fp(t0,t1)*error_fp
-        error_dfm = self.dfmb(t1)/self.fm(t0,t1)*error_fm
+        error_fp = cSum.cSumd(numpy.abs(self.Serror))*fp
+        error_fm = numpy.conj(cSum.cSumd(numpy.abs(self.Serror)))*fm
+        error_dfp = dfpb/fp*error_fp
+        error_dfm = dfmb/fm*error_fm
         error_x = Ap*error_fp + Am*error_fm
         error_dx = Bp*error_dfp + Bm*error_dfm
 
@@ -263,56 +268,56 @@ class RKWKBSolver(object):
         weights = numpy.array([-15.0000000048537, 20.2828318761850,
         -8.07237453994912, 4.48936929577350, -2.69982662677053,
         0.999999999614819])
-        return numpy.sum(weights*self.ws)/h
+        return cSum.cSum(weights*self.ws)/h
 
     def d1w2(self, h):
         weights = numpy.array([-3.57272991033049, 0.298532922755350e-7  ,
         5.04685352597795, -2.30565629452303, 1.30709499910514,
         -0.475562350082855]) 
-        return numpy.sum(weights*self.ws)/h
+        return cSum.cSum(weights*self.ws)/h
 
     def d1w3(self, h):
         weights = numpy.array([0.969902096162109, -3.44251390568294,
         -0.781532641131861e-10, 3.50592393061265, -1.57271334190619,
         0.539401220892526]) 
-        return numpy.sum(weights*self.ws)/h
+        return cSum.cSum(weights*self.ws)/h
     
     def d1w4(self, h):
         weights = numpy.array([-0.539401220892533, 1.57271334190621,
         -3.50592393061268, 0.782075077478921e-10, 3.44251390568290,
         -0.969902096162095])
-        return numpy.sum(weights*self.ws)/h
+        return cSum.cSum(weights*self.ws)/h
 
     def d1w5(self, h):
         weights = numpy.array([0.475562350082834, -1.30709499910509,
         2.30565629452296, -5.04685352597787, -0.298533681980831e-7,
         3.57272991033053]) 
-        return numpy.sum(weights*self.ws)/h
+        return cSum.cSum(weights*self.ws)/h
 
     def d1w6(self, h):
         weights = numpy.array([-0.999999999614890, 2.69982662677075,
         -4.48936929577383, 8.07237453994954, -20.2828318761854, 15.0000000048538]) 
-        return numpy.sum(weights*self.ws)/h
+        return cSum.cSum(weights*self.ws)/h
 
     def d2w1(self, h):
         weights = numpy.array([140.000000016641, -263.163968874741,
         196.996471291466, -120.708905753218, 74.8764032980854, -27.9999999782328]) 
-        return numpy.sum(weights*self.ws)/h**2  
+        return cSum.cSum(weights*self.ws)/h**2  
 
     def d2w6(self, h):
         weights = numpy.array([-27.9999999782335, 74.8764032980873,
         -120.708905753221, 196.996471291469, -263.163968874744, 140.000000016642]) 
-        return numpy.sum(weights*self.ws)/h**2 
+        return cSum.cSum(weights*self.ws)/h**2 
 
     def d3w1(self, h):
         weights = numpy.array([-840.000000234078, 1798.12714381468,
         -1736.74461287884, 1322.01528240287, -879.397812956524, 335.999999851893]) 
-        return numpy.sum(weights*self.ws)/h**3
+        return cSum.cSum(weights*self.ws)/h**3
 
     def d3w6(self, h):
         weights = numpy.array([-335.999999851897, 879.397812956534,
         -1322.01528240289, 1736.74461287886, -1798.12714381470, 840.000000234086]) 
-        return numpy.sum(weights*self.ws)/h**3
+        return cSum.cSum(weights*self.ws)/h**3
 
     def d4w1(self, h):
         values = self.ws
@@ -322,50 +327,50 @@ class RKWKBSolver(object):
         #print(values)
         weights = numpy.array([9744.00062637928, -27851.6858893579, 75653.4044616243,
         -107520.008443354, 61113.3089030151, -15843.0200709916, 4704.00041268436])
-        return numpy.sum(weights*values)/h**4   
+        return cSum.cSum(weights*values)/h**4   
 
     def d1g1(self, h):
         weights = numpy.array([-15.0000000048537, 20.2828318761850,
         -8.07237453994912, 4.48936929577350, -2.69982662677053,
         0.999999999614819])
-        return numpy.sum(weights*self.gs)/h
+        return cSum.cSum(weights*self.gs)/h
 
     def d1g6(self, h):
         weights = numpy.array([-0.999999999614890, 2.69982662677075,
         -4.48936929577383, 8.07237453994954, -20.2828318761854, 15.0000000048538]) 
-        return numpy.sum(weights*self.gs)/h
+        return cSum.cSum(weights*self.gs)/h
 
     def d2g1(self, h):
         weights = numpy.array([140.000000016641, -263.163968874741,
         196.996471291466, -120.708905753218, 74.8764032980854, -27.9999999782328]) 
-        return numpy.sum(weights*self.gs)/h**2  
+        return cSum.cSum(weights*self.gs)/h**2  
 
     def d2g6(self, h):
         weights = numpy.array([-27.9999999782335, 74.8764032980873,
         -120.708905753221, 196.996471291469, -263.163968874744, 140.000000016642]) 
-        return numpy.sum(weights*self.gs)/h**2 
+        return cSum.cSum(weights*self.gs)/h**2 
 
     def d3g1(self, h):
         weights = numpy.array([-840.000000234078, 1798.12714381468,
         -1736.74461287884, 1322.01528240287, -879.397812956524, 335.999999851893]) 
-        return numpy.sum(weights*self.gs)/h**3
+        return cSum.cSum(weights*self.gs)/h**3
 
 # First derivatives at Gauss-Lobatto (n=3) abscissas, excluding endpoints
     
     def d1w2_5(self,h):
         weights = numpy.array([-2.48198050935042, 0.560400997591235e-8,
         3.49148624058567, -1.52752523062733, 0.518019493788063])
-        return numpy.sum(weights*self.ws5)/h
+        return cSum.cSum(weights*self.ws5)/h
 
     def d1w3_5(self,h):
         weights = numpy.array([0.750000000213852, -2.67316915534181,
         0.360673032443906e-10, 2.67316915534181, -0.750000000213853])
-        return numpy.sum(weights*self.ws5)/h
+        return cSum.cSum(weights*self.ws5)/h
 
     def d1w4_5(self,h):
         weights = numpy.array([-0.518019493788065, 1.52752523062733,
         -3.49148624058568, -0.560400043118500e-8, 2.48198050935041])
-        return numpy.sum(weights*self.ws5)/h
+        return cSum.cSum(weights*self.ws5)/h
 
 ##########################################################################
 
@@ -400,8 +405,8 @@ class RKWKBSolver(object):
         return S3
 
     def integrate(self,integrand6,integrand5,h):
-        x6 = h/2.0*numpy.sum(self.legws6*integrand6)
-        x5 = h/2.0*numpy.sum(self.legws5*integrand5)
+        x6 = h/2.0*cSum.cSum(numpy.multiply(self.legws6,integrand6))
+        x5 = h/2.0*cSum.cSum(numpy.multiply(self.legws5,integrand5))
         return x6, x6-x5
 
 class RKWKBSolver1(RKWKBSolver):

@@ -8,10 +8,11 @@ import numpy
 import scipy
 import time
 
-k=10.0
+#k=0.020327352016717128
+k = 1e4
 mp = 1
 phi_p = 23.293
-m = 5e-6#4.51e-6
+m = 4.5e-6#4.51e-6
 n = 2
 calls = 0
 gcalls = 0
@@ -41,30 +42,38 @@ def ic(t):
 def horizon_exit(t, y):
     return y[2]*y[3] - 100*k 
 
-def solve_bg():
+def solve_bg(t0,tf,start,num):
     # Routine to solve inflating FRW background
-    t0 = 1
-    tf = 5e5#1e6
     y0 = ic(t0)
-    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=1e4)
+    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(tf),num=num)
+    if start not in tevals:
+        tevals = numpy.append(tevals,start)
+        tevals.sort()
+    startindex = numpy.where(tevals==start)
     sol = (
     scipy.integrate.odeint(f,y0,tevals,rtol=3e-14,atol=3e-14))
-    ws = k/sol[:,2]
+    ws = 1.0/sol[:,2]
     dy = numpy.array([f(soli, 0.0) for soli in sol])
     gs = 1.5*sol[:,3] + dy[:,1]/sol[:,1] - dy[:,3]/sol[:,3]
-    return tevals, ws, gs
+    y0bg = sol[startindex].flatten()
+    return tevals, ws, gs, y0bg
 
 def main():
-    
-    ts, ws, gs = solve_bg()
+   
+    start = 1e4
+    finish = 8e5
+    t0 = 1.0
+    tf = 1e6
+    num = 1e4
+    ts, ws, gs, y0 = solve_bg(t0,tf,start,num)
     logws = numpy.log(ws)
-    logwfit = scipy.interpolate.interp1d(ts,logws,kind=5) 
-    gfit = scipy.interpolate.interp1d(ts,gs,kind=5)
+    logwfit = scipy.interpolate.interp1d(ts,logws,kind='linear') 
+    gfit = scipy.interpolate.interp1d(ts,gs,kind='linear')
         
     def wnew(t):
         global calls
         calls += 1 
-        return numpy.exp(logwfit(t))
+        return k*numpy.exp(logwfit(t))
 
     def gnew(t):
         global gcalls
@@ -73,27 +82,42 @@ def main():
 
     # For brute-force solving MS
     def F(y,t):
-        return numpy.array([y[1], -wnew(t)**2*y[0]-2*gnew(t)*y[1]])
-
+        # y = [phi, dphi, a, H]
+        ybg = y[2:] 
+        
+        dybg = numpy.array([ybg[1],-3.0*ybg[1]*numpy.sqrt(1.0/(3*mp**2)*(0.5*ybg[1]**2 +
+        V(ybg[0]))) - dV(ybg[0]),ybg[2]*ybg[3],(-1.0/(3*mp**2))*(ybg[1]**2 -
+        V(ybg[0])) -
+        ybg[3]**2])
+        
+        g = 1.5*ybg[3] + dybg[1]/ybg[1] - dybg[3]/ybg[3]
+        w = k/ybg[2]
+        return numpy.concatenate((numpy.array([y[1], -w**2*y[0]-2*g*y[1]]),
+        dybg))
+         
     rk = False
-    start = 1.0
-    t0=1e4
-    finish = 3.5*1e5
-    x0 = 100*k
-    dx0 = 0.0
-    rtol = 1e-3
+    t = start
+    tstart = start # Analyise errors as fn of h at this point
+    x0 = 0.0
+    dx0 = 10*k**2
+    ystart = y0
+    rtol = 1e-4
     atol = 0.0
    
-    if t0 > start:
-        tevals = numpy.array([start, t0])
-        sol1 = scipy.integrate.odeint(F,numpy.array([x0,dx0]),tevals,rtol=1e-6,atol=1e-6)
-        x0,dx0 = sol1[-1,:]
+    if tstart > start:
+        print('evolving from {} to {}'.format(start, tstart))
+        tevals = numpy.logspace(numpy.log10(start), numpy.log10(tstart),num=1e3)
+        sol1 =(
+        scipy.integrate.odeint(F,numpy.concatenate((numpy.array([x0,dx0]),
+        y0)),tevals,rtol=1e-8,atol=1e-10))
+        x0,dx0 = sol1[-1,:2]
+        ystart = sol1[-1,2:]
 
     starttime = time.process_time()
     ts, xs, dxs, wkbs, hs, oscs = [], [], [], [], [], []
-    solver = Solver(wnew,gnew,t=t0,x=x0,dx=dx0,rtol=rtol,atol=atol)
+    solver = Solver(wnew,gnew,t=tstart,x=x0,dx=dx0,rtol=rtol,atol=atol)
        
-    hs = numpy.logspace(numpy.log10(0.01),numpy.log10(3e4),1000)
+    hs = numpy.logspace(numpy.log10(0.01),numpy.log10(7e3),1000)
     rk_steps = numpy.zeros((hs.size,2),dtype=complex)
     wkb_steps = numpy.zeros((hs.size,4),dtype=complex)
     rk_errors = numpy.zeros((hs.size,2),dtype=complex) 
@@ -111,28 +135,36 @@ def main():
         solver.gs = gs
         solver.gs5 = gs5
         x_wkb, dx_wkb, err_wkb, truncerr = solver.RKWKB_step()
-        
+        # WKB errors 
         wkb_steps[i,:] = x_wkb, dx_wkb, x_wkb, dx_wkb
         wkb_errors[i,:] = truncerr[0], truncerr[1], err_wkb[0], err_wkb[1]
         wkb_rerrors[i,:] = (numpy.abs(truncerr[0])/numpy.abs(x_wkb),
-        numpy.abs(truncerr[1])/numpy.abs(dx_wkb), numpy.abs(err_wkb[0])/numpy.abs(x_wkb),
+        numpy.abs(truncerr[1])/numpy.abs(dx_wkb),
+        numpy.abs(err_wkb[0])/numpy.abs(x_wkb),
         numpy.abs(err_wkb[1])/numpy.abs(dx_wkb))
+        # RK errors
         rk_steps[i,:] = x_rk, dx_rk
         rk_errors[i,:] = err_rk[:2]
-        ss[i,:] = solver.rkwkbsolver4.S0(t0,t0+h)[0], solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.S2(h), solver.rkwkbsolver4.S3(h)
-        sserrors[i,:] = solver.rkwkbsolver4.S0(t0,t0+h)[1], solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.Serror[2], solver.rkwkbsolver4.S3(h)
+        # S errors 
+        ss[i,:] = (solver.rkwkbsolver4.S0(tstart,tstart+h)[0],
+        solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.S2(h),
+        solver.rkwkbsolver4.S3(h))
+        sserrors[i,:] = (solver.rkwkbsolver4.S0(tstart,tstart+h)[1],
+        solver.rkwkbsolver4.S1(h), solver.rkwkbsolver4.Serror[2],
+        solver.rkwkbsolver4.S3(h)) #S1, S3 doesn't have error
 
     # scipy numerical solution
-    tevals = numpy.logspace(numpy.log10(t0),numpy.log10(t0+hs[-1]),num=1e4)
+    print('Calculating full solution',x0,dx0,ystart)
+    tevals = numpy.logspace(numpy.log10(tstart),numpy.log10(tstart+hs[-1]),num=1e4)
     sol2 =(
-    scipy.integrate.odeint(F,numpy.array([x0,dx0]),tevals,rtol=1e-6,atol=1e-6))
+    scipy.integrate.odeint(F,numpy.concatenate((numpy.array([x0,dx0]),ystart)),tevals,rtol=1e-8,atol=1e-10))
 
     
     fig, axes = plt.subplots(2,2, sharex=False)
 
     axes[0,0].set_title('Solution')
-    axes[0,0].plot(t0+hs,numpy.real(rk_steps[:,0]),'r.',alpha=0.5)
-    axes[0,0].plot(t0+hs,numpy.real(wkb_steps[:,0]),'g.',alpha=0.5)
+    axes[0,0].plot(tstart+hs,numpy.real(rk_steps[:,0]),'r.',alpha=0.5)
+    axes[0,0].plot(tstart+hs,numpy.real(wkb_steps[:,0]),'g.',alpha=0.5)
     axes[0,0].plot(tevals,sol2[:,0],'b')
     axes[0,0].set_ylim((-100.0, 100.0))
 
