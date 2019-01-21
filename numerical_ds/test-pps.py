@@ -15,8 +15,6 @@ n = 2
 calls = 0
 gcalls = 0
 
-# Necessary for getting w, g
-
 def V(phi):
     # Inflationary potential
     return m**2*phi**n
@@ -121,6 +119,7 @@ def main():
                 calls += 1 
                 return k*numpy.exp(logwfit(t))
         
+
             def gnew(t):
                 global gcalls
                 gcalls += 1
