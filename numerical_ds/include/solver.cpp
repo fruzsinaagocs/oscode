@@ -5,7 +5,6 @@ std::complex<double> g(double t){
 };
     
 std::complex<double> w(double t){
-    std::cout << "w called" << std::endl;
     return t*t;
 };
 

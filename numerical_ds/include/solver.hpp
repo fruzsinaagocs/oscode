@@ -17,6 +17,7 @@ class Solution
     int order;
     bool fo;
     RKSolver rksolver;
+    WKBSolver wkbsolver;
 
 
     public:
@@ -41,15 +42,21 @@ Solution::Solution(de_system de_sys, std::complex<double> x0, std::complex<doubl
     h0 = h_0;
     fo = full_output;
     rksolver = RKSolver(de_sys);
+    wkbsolver = WKBSolver(de_sys);
 
 };
 
 void Solution::solve(){ 
     
     std::cout << "Function w at t=" << t << " is: " << w(t) << ", the order is " << order << std::endl;
-    Eigen::Matrix<std::complex<double>,2,1> y;
-    y << x, dx;
+    Eigen::Matrix<std::complex<double>,1,4> y;
+    y << x, dx, 0.0, 0.0;
     std::cout << "Function f at t=" << t << " is: " << rksolver.f(t,y) << std::endl; 
+    std::cout << "Result of a RK step: " << rksolver.step(x, dx, t, h0) << std::endl;
+    Eigen::Matrix<std::complex<double>,2,2> y1;
+    std::cout << "ws rk: " << rksolver.ws << std::endl;
+    y1 = wkbsolver.step(x, dx, t, h0, rksolver.ws, rksolver.gs, rksolver.ws5, rksolver.gs5);
+    std::cout << "WKB step: " << y1 << std::endl;
 
 
 };

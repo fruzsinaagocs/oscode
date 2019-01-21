@@ -19,9 +19,14 @@ class RKSolver
     // constructors
     RKSolver();
     RKSolver(de_system);
-    //void step();
+    // grid of ws, gs
+    Eigen::Matrix<std::complex<double>,6,1> ws, gs;
+    Eigen::Matrix<std::complex<double>,5,1> ws5, gs5;
+
+    // single step function 
+    Eigen::Matrix<std::complex<double>,2,4> step(std::complex<double>, std::complex<double>, double, double);
     // ODE to solve
-    Eigen::Matrix<std::complex<double>,4,1> f(double, Eigen::Matrix<std::complex<double>,2,1>);  
+    Eigen::Matrix<std::complex<double>,1,4> f(double t, const Eigen::Matrix<std::complex<double>,1,4> &y);  
 
 };
 
@@ -47,16 +52,64 @@ RKSolver::RKSolver(de_system de_sys){
 	RKSolver::butcher_c5 << 0,0.117472338035267653574,0.357384241759677451843,0.642615758240322548157,0.882527661964732346426,1;
 	RKSolver::butcher_b4 << -0.08333333333333333333558,0.5833333333333333333357,0.5833333333333333333356,-0.08333333333333333333558;
 	RKSolver::butcher_c4 << 0,0.172673164646011428100,0.827326835353988571900,1;
-
 };
 
-Eigen::Matrix<std::complex<double>,4,1> RKSolver::f(double t, Eigen::Matrix<std::complex<double>,2,1> y){
+Eigen::Matrix<std::complex<double>,1,4> RKSolver::f(double t, const Eigen::Matrix<std::complex<double>,1,4> &y){
     
     std::complex<double> wi = w(t);
     std::complex<double> gi = g(t);
-    Eigen::Matrix<std::complex<double>,4,1> result;
+    Eigen::Matrix<std::complex<double>,1,4> result;
     result << y[1], -wi*wi*y[0]-2.0*gi*y[1], wi, gi;
     return result;
+};
 
+Eigen::Matrix<std::complex<double>,2,4> RKSolver::step(std::complex<double> x0, std::complex<double> dx0, double t0, double h){
+
+    Eigen::Matrix<std::complex<double>,1,4> y0, y, y4, y5, delta, k5_i, k4_i;
+    y4 = Eigen::Matrix<std::complex<double>,1,4>::Zero();
+    y5 = y4;
+    y0 << x0, dx0, 0.0, 0.0;
+    // TODO: resizing of ws5, gs5, insertion
+    Eigen::Matrix<std::complex<double>,6,4> k5;
+    Eigen::Matrix<std::complex<double>,5,4> k4;
+    Eigen::Matrix<std::complex<double>,2,4> result;
+    k5.row(0) = h*f(t0, y0);
+    ws(0) = k5.row(0)(2)/h;
+    gs(0) = k5.row(0)(2)/h;
+    for(int s=1; s<=5; s++){
+        y = y0;
+        for(int i=0; i<=(s-1); i++)
+            y += butcher_a5(s-1,i)*k5.row(i);
+        k5_i = h*f(t0 + butcher_c5(s)*h, y);
+        k5.row(s) = k5_i;
+        ws(s) = k5_i(2)/h;
+        gs(s) = k5_i(3)/h;
+    }
+    k4.row(0) = k5.row(0);
+    ws5(0) = ws(0);
+    gs5(0) = gs(0);
+    for(int s=1; s<=3; s++){
+       y = y0;
+       for(int i=0; i<=(s-1); i++)
+           y += butcher_a4(s-1,i)*k4.row(i);
+        k4_i = h*f(t0 + butcher_c4(s)*h, y);
+        k4.row(s) = k4_i;
+        ws5(s) = k4_i(2)/h;
+        gs5(s) = k4_i(3)/h;
+    }
+    for(int j=0; j<=5; j++)
+        y5 += butcher_b5(j)*k5.row(j);
+    for(int j=0; j<=3; j++)
+        y4 += butcher_b4(j)*k4.row(j);
+    delta = y5 - y4;
+    result << y5, delta;
+    // Add in missing w, g at t+h/2
+    ws5(4) = ws5(3);
+    ws5(3) = ws5(2);
+    ws5(2) = w(t0 + h/2);
+    gs5(4) = gs5(3);
+    gs5(3) = gs5(2);
+    gs5(2) = g(t0 + h/2);
+    return result;
 };
 
