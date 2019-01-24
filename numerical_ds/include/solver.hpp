@@ -47,13 +47,13 @@ Solution::Solution(de_system de_sys, std::complex<double> x0, std::complex<doubl
     fo = full_output;
     rksolver = RKSolver(de_sys);
     switch(order){
-        case 1: wkbsolver1 = WKBSolver1(de_sys);
+        case 1: wkbsolver1 = WKBSolver1(de_sys, order);
                 wkbsolver = &wkbsolver1;
                 break;
-        case 2: wkbsolver2 = WKBSolver2(de_sys);
+        case 2: wkbsolver2 = WKBSolver2(de_sys, order);
                 wkbsolver = &wkbsolver2;
                 break;
-        case 3: wkbsolver3 = WKBSolver3(de_sys);
+        case 3: wkbsolver3 = WKBSolver3(de_sys, order);
                 wkbsolver = &wkbsolver3;
                 break;
     };
@@ -66,7 +66,7 @@ void Solution::solve(){
     y << x, dx, 0.0, 0.0;
     std::cout << "Function f at t=" << t << " is: " << rksolver.f(t,y) << std::endl; 
     std::cout << "Result of a RK step: " << rksolver.step(x, dx, t, h0) << std::endl;
-    Eigen::Matrix<std::complex<double>,2,2> y1;
+    Eigen::Matrix<std::complex<double>,3,2> y1;
     //std::cout << "ws rk: " << rksolver.ws << std::endl;
     y1 = wkbsolver->step(x, dx, t, h0, rksolver.ws, rksolver.gs, rksolver.ws5, rksolver.gs5);
     std::cout << "WKB step: " << y1 << std::endl;

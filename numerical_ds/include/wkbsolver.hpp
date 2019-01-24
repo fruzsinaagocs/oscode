@@ -77,12 +77,16 @@ class WKBSolver
     // step and stepsize
     double h;
     std::complex<double> x, dx, ddx;
+    // order
+    int order_;
+    // error estimate on step
+    std::complex<double> err_fp, err_fm, err_dfp, err_dfm;
 
     public:
     // constructor
     WKBSolver();
-    WKBSolver(de_system);
-    Eigen::Matrix<std::complex<double>,2,2> step(std::complex<double> x0,
+    WKBSolver(de_system, int);
+    Eigen::Matrix<std::complex<double>,3,2> step(std::complex<double> x0,
     std::complex<double> dx0, double t0, double h0, const
     Eigen::Matrix<std::complex<double>,6,1> &ws, const
     Eigen::Matrix<std::complex<double>,6,1> &gs, const
@@ -94,8 +98,10 @@ class WKBSolver
 WKBSolver::WKBSolver(){
 };
 
-WKBSolver::WKBSolver(de_system de_sys){
-     
+WKBSolver::WKBSolver(de_system de_sys, int order){
+
+    // Set order
+    order_ = order;
     // Set frequency and friction terms
     w = de_sys.w;
     g = de_sys.g;
@@ -144,14 +150,15 @@ WKBSolver::WKBSolver(de_system de_sys){
         -3.49148624058568, -0.560400043118500e-8, 2.48198050935041;
 };
 
-Eigen::Matrix<std::complex<double>,2,2> WKBSolver::step(std::complex<double> x0,
+Eigen::Matrix<std::complex<double>,3,2> WKBSolver::step(std::complex<double> x0,
 std::complex<double> dx0, double t0, double h0, const
 Eigen::Matrix<std::complex<double>,6,1> &ws, const
 Eigen::Matrix<std::complex<double>,6,1> &gs, const
 Eigen::Matrix<std::complex<double>,5,1> &ws5, const
 Eigen::Matrix<std::complex<double>,5,1> &gs5){
     
-    Eigen::Matrix<std::complex<double>,2,2> result;
+    Eigen::Matrix<std::complex<double>,3,2> result;
+    result << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
     // Set grid of ws, gs:
     ws_ = ws;
     gs_ = gs;
@@ -169,34 +176,52 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
     dws_ << d1w1_, d1w2_, d1w3_, d1w4_, d1w5_, d1w6_;
     dws5_ << d1w1_, d1w2_5_, d1w3_5_, d1w4_5_, d1w6_;
     // Higher order step
-    // Calculate A, B
-    fm_ = 1.0;
-    fp_ = 1.0;
-    std::cout << "calculating s, dsi, dds" << std::endl;
-    s_ << 0.0, 0.0, 0.0, 0.0; dsi(); dds();
-    std::cout << "ws last element: " << ws_(5) << std::endl;
-    std::cout << "s_: " << s_ << std::endl;
-    std::cout << "dsi_: " << dsi_ << std::endl;
-    dfpi(); dfmi();
-    ddfp(); ddfm();
-    std::cout << "fs: " << dfpi_ << " " << dfmi_ << " " << ddfp_ << " " << ddfm_ << std::endl;
-    ap(); am(); bp(); bm();
-    std::cout << "a, b: " << ap_ << " " << am_ << " " << bp_ << " " << bm_ << std::endl;
-    // Calculate step
-    s(); 
-    std::cout << "s_: " << s_ << std::endl;
-    dsf();
-    std::cout << "dsf_: " << dsi_ << std::endl;
-    fp(); fm(); 
-    dfpf(); dfmf();
-    result << ap_*fp_ + am_*fm_, bp_*dfpf_ +bm_*dfmf_, 0.0, 0.0;
-
-    std::cout << "ws : " << ws_ << ", gs: " << gs_ << std::endl;
-    //std::cout << "derivatives: " << dws_ << ",  " << dws5_ << " " << d2w1_ << ", " << d2w6_ << ", " << d3w1_ << ", " <<  d3w6_ << ", " <<  d4w1_ << ", " <<  d1g1_ << ", " <<  d1g6_ << ", " <<  d2g1_ << ", " << d2g6_ << ", " << d3g1_  << std::endl;
-    std::cout << "dsf_: " << dsf_ << std::endl;
-    std::cout << "dds_: " << dds_ << std::endl;
-
-
+        // Calculate A, B
+        fm_ = 1.0;
+        fp_ = 1.0;
+        s_ << 0.0, 0.0, 0.0, 0.0; dsi(); dds();
+        dfpi(); dfmi();
+        ddfp(); ddfm();
+        ap(); am(); bp(); bm();
+        // Calculate step
+        s(); 
+        dsf();
+        fp(); fm(); 
+        dfpf(); dfmf();
+        std::cout << "s: " << s_ << std::endl;
+        std::cout << "dsi: " << dsi_ << std::endl;
+        std::cout << "dsf: " << dsf_ << std::endl;
+        std::cout << "dds: " << dds_ << std::endl;
+        std::cout << " fs : " << fp_ << " " << fm_ << std::endl;
+        std::cout << "dfs : " << dfpf_ << " " << dfmf_ << std::endl;
+        std::cout << "a, b: " << ap_  << " " << am_ << " " << bp_ << " " << bm_ << std::endl;
+        std::cout << ap_*fp_ + am_*fm_ << std::endl;
+        result(0,0) = ap_*fp_ + am_*fm_;
+        result(0,1) = bp_*dfpf_ +bm_*dfmf_;
+    // Error estimate on this
+        err_fp = s_.cwiseAbs().sum()*fp_;
+        err_fm = std::conj(err_fp);
+        err_dfp = dfpf_/fp_*err_fp; 
+        err_dfm = std::conj(err_dfp);
+        result(2,0) = ap_*err_fp + am_*err_fm;
+        result(2,1) = bp_*err_dfp + bm_*err_dfm;
+    // Lower order step for correction
+        // A, B
+        dsi_(order_) = 0.0; dds_(order_) = 0.0;
+        dfpi(); dfmi();
+        ddfp(); ddfm();
+        ap(); am(); bp(); bm();
+        // Calculate step
+        s_(order_) = 0.0;
+        dsf_(order_) = 0.0;
+        fp(); fm();
+        dfpf(); dfmf();
+        std::cout << "higher order step: " << result(0,0) << ", " << result(0,1) << std::endl;
+        std::cout << "lower order step : " << ap_*fp_ + am_*fm_ << ", " << bp_*dfpf_ +bm_*dfmf_ << std::endl;
+        result(1,0) = result(0,0) - ap_*fp_ + am_*fm_;
+        result(1,1) = result(0,1) - bp_*dfpf_ +bm_*dfmf_;
+        std::cout << "difference: " << result(0,0) - ap_*fp_ + am_*fm_ << ", " << result(0,1) - bp_*dfpf_ +bm_*dfmf_ << std::endl;
+                
     return result;
 };
 
@@ -366,14 +391,14 @@ class WKBSolver1 : public WKBSolver
 
     public:
         WKBSolver1();
-        WKBSolver1(de_system);
+        WKBSolver1(de_system, int);
 
 };
 
 WKBSolver1::WKBSolver1(){
 };
 
-WKBSolver1::WKBSolver1(de_system de_sys) : WKBSolver(de_sys){
+WKBSolver1::WKBSolver1(de_system de_sys, int order) : WKBSolver(de_sys, order){
 };
 
 void WKBSolver1::dds(){
@@ -386,7 +411,7 @@ void WKBSolver1::dsi(){
 };
 
 void WKBSolver1::dsf(){
-   dsf_ << std::complex<double>(0.0, 1.0)*ws_(5), -0.5*d1w1_/ws_(5)-gs_(5), 0.0, 0.0;
+   dsf_ << std::complex<double>(0.0, 1.0)*ws_(5), -0.5*d1w6_/ws_(5)-gs_(5), 0.0, 0.0;
 };
 
 void WKBSolver1::s(){
@@ -411,20 +436,20 @@ class WKBSolver2 : public WKBSolver
 
     public:
         WKBSolver2();
-        WKBSolver2(de_system);
+        WKBSolver2(de_system, int);
 
 };
 
 WKBSolver2::WKBSolver2(){
 };
 
-WKBSolver2::WKBSolver2(de_system de_sys) : WKBSolver(de_sys){
+WKBSolver2::WKBSolver2(de_system de_sys, int order) : WKBSolver(de_sys, order){
 };
 
 void WKBSolver2::dds(){
     dds_ << std::complex<double>(0,1)*d1w1_,
     1.0/std::pow(ws_(0),2)*std::pow(d1w1_,2)/2.0-1.0/ws_(0)*d2w1_/2.0-d1g1_,
-    std::complex<double>(0,1/8)*(8.0*d1g1_*gs_(0)*std::pow(ws_(0),3)-4.0*d1w1_*std::pow(gs_(0),2)*std::pow(ws_(0),2)+4.0*d2g1_*std::pow(ws_(0),3)-4.0*d1w1_*d1g1_*std::pow(ws_(0),2)+2.0*d3w1_*std::pow(ws_(0),2)-10.0*d1w1_*d2w1_*ws_(0)+9.0*std::pow(d1w1_,3))/std::pow(ws_(0),4), 0.0;
+    -std::complex<double>(0,1/8)*(8.0*d1g1_*gs_(0)*std::pow(ws_(0),3)-4.0*d1w1_*std::pow(gs_(0),2)*std::pow(ws_(0),2)+4.0*d2g1_*std::pow(ws_(0),3)-4.0*d1w1_*d1g1_*std::pow(ws_(0),2)+2.0*d3w1_*std::pow(ws_(0),2)-10.0*d1w1_*d2w1_*ws_(0)+9.0*std::pow(d1w1_,3))/std::pow(ws_(0),4), 0.0;
 };
 
 void WKBSolver2::dsi(){
@@ -434,9 +459,9 @@ void WKBSolver2::dsi(){
 };
 
 void WKBSolver2::dsf(){
-    dsf_ << std::complex<double>(0,1)*ws_(5),-1.0/ws_(5)*d1w1_/2.0-gs_(5),
-    std::complex<double>(0,1/8)*(-4.0*std::pow(gs_(5),2)*std::pow(ws_(5),2)-4.0*d1g1_*std::pow(ws_(5),2)-2.0*d2w1_
-    *ws_(5)+3.0*std::pow(d1w1_,2))/std::pow(ws_(5),3), 0.0;
+    dsf_ << std::complex<double>(0,1)*ws_(5),-1.0/ws_(5)*d1w6_/2.0-gs_(5),
+    std::complex<double>(0,1/8)*(-4.0*std::pow(gs_(5),2)*std::pow(ws_(5),2)-4.0*d1g6_*std::pow(ws_(5),2)-2.0*d2w6_
+    *ws_(5)+3.0*std::pow(d1w6_,2))/std::pow(ws_(5),3), 0.0;
 };
 
 void WKBSolver2::s(){
@@ -455,7 +480,7 @@ void WKBSolver2::s(){
     s2 << integrate(integrand6, integrand5);
     s2(0) = -1/4.0*(dws_(5)/std::pow(ws_(5),2)+2.0*gs_(5)/ws_(5)-
         dws_(0)/std::pow(ws_(0),2)-2.0*gs_(0)/ws_(0))-1/8.0*s2(0);
-    s_ << s0(0), s1(0), s2(0), 0.0;
+    s_ << s0(0), s1(0), std::complex<double>(0,1)*s2(0), 0.0;
     s_error << s0(1), s1(1), std::complex<double>(0,-1/8)*s2(1), 0.0;
 
 };
@@ -472,20 +497,20 @@ class WKBSolver3 : public WKBSolver
 
     public:
         WKBSolver3();
-        WKBSolver3(de_system);
+        WKBSolver3(de_system, int);
 
 };
 
 WKBSolver3::WKBSolver3(){
 };
 
-WKBSolver3::WKBSolver3(de_system de_sys) : WKBSolver(de_sys){
+WKBSolver3::WKBSolver3(de_system de_sys, int order) : WKBSolver(de_sys, order){
 };
 
 void WKBSolver3::dds(){
     dds_ << std::complex<double>(0,1)*d1w1_,
     1.0/std::pow(ws_(0),2)*std::pow(d1w1_,2)/2.0-1.0/ws_(0)*d2w1_/2.0-d1g1_,
-    std::complex<double>(0,1.0/8.0)*(8.0*d1g1_*gs_(0)*std::pow(ws_(0),3)-4.0*d1w1_*std::pow(gs_(0),2)*std::pow(ws_(0),2)+4.0*d2g1_*std::pow(ws_(0),3)-4.0*d1w1_*d1g1_*std::pow(ws_(0),2)+2.0*d3w1_*std::pow(ws_(0),2)-10.0*d1w1_*d2w1_*ws_(0)+9.0*std::pow(d1w1_,3))/std::pow(ws_(0),4),
+    -std::complex<double>(0,1.0/8.0)*(8.0*d1g1_*gs_(0)*std::pow(ws_(0),3)-4.0*d1w1_*std::pow(gs_(0),2)*std::pow(ws_(0),2)+4.0*d2g1_*std::pow(ws_(0),3)-4.0*d1w1_*d1g1_*std::pow(ws_(0),2)+2.0*d3w1_*std::pow(ws_(0),2)-10.0*d1w1_*d2w1_*ws_(0)+9.0*std::pow(d1w1_,3))/std::pow(ws_(0),4),
     (d4w1_*std::pow(ws_(0),3)+2.0*d3g1_*std::pow(ws_(0),4)-9.0*d1w1_*d3w1_*std::pow(ws_(0),2)-6.0*std::pow(d2w1_,2)*std::pow(ws_(0),2) + (42.0*ws_(0)*std::pow(d1w1_,2)-4.0*std::pow(ws_(0),3)*(std::pow(gs_(0),2)+d1g1_))*d2w1_+(4.0*gs_(0)*std::pow(ws_(0),4)-8.0*std::pow(ws_(0),3)*d1w1_)*d2g1_-30.0*std::pow(d1w1_,4)+12.0*std::pow(ws_(0),2)*(std::pow(gs_(0),2)+d1g1_)*std::pow(d1w1_,2)-16.0*d1w1_*d1g1_*gs_(0)*std::pow(ws_(0),3)+4.0*std::pow(d1g1_,2)*std::pow(ws_(0),4))/std::pow(ws_(0),6)/8.0;
 };
 
@@ -499,11 +524,11 @@ void WKBSolver3::dsi(){
 };
 
 void WKBSolver3::dsf(){
-    dsf_ << std::complex<double>(0,1)*ws_(5),-1.0/ws_(5)*d1w1_/2.0-gs_(5),
-    std::complex<double>(0,1.0/8.0)*(-4.0*std::pow(gs_(5),2)*std::pow(ws_(5),2)-4.0*d1g1_*std::pow(ws_(5),2)-2.0*d2w1_
-    *ws_(5)+3.0*std::pow(d1w1_,2))/std::pow(ws_(5),3) ,
-    (d3w1_*std::pow(ws_(5),2)+2.0*d2g1_*std::pow(ws_(5),3)-6.0*d1w1_*d2w1_*ws_(5)+
-    6.0*std::pow(d1w1_,3)-4.0*(std::pow(gs_(5),2)+d1g1_)*std::pow(ws_(5),2)*d1w1_+4.0*d1g1_
+    dsf_ << std::complex<double>(0,1)*ws_(5),-1.0/ws_(5)*d1w6_/2.0-gs_(5),
+    std::complex<double>(0,1.0/8.0)*(-4.0*std::pow(gs_(5),2)*std::pow(ws_(5),2)-4.0*d1g6_*std::pow(ws_(5),2)-2.0*d2w6_
+    *ws_(5)+3.0*std::pow(d1w6_,2))/std::pow(ws_(5),3) ,
+    (d3w6_*std::pow(ws_(5),2)+2.0*d2g6_*std::pow(ws_(5),3)-6.0*d1w6_*d2w6_*ws_(5)+
+    6.0*std::pow(d1w6_,3)-4.0*(std::pow(gs_(5),2)+d1g6_)*std::pow(ws_(5),2)*d1w6_+4.0*d1g6_
     *gs_(5)*std::pow(ws_(5),3))/std::pow(ws_(5),5)/8.0;
 };
 
@@ -528,7 +553,7 @@ void WKBSolver3::s(){
     d1g1_/std::pow(ws_(0),2))-3/16.0*(std::pow(dws_(5),2)/std::pow(ws_(5),4) -
     std::pow(dws_(0),2)/std::pow(ws_(0),4)) + 1/8.0*(d2w6_/std::pow(ws_(5),3) -
     d2w1_/std::pow(ws_(0),3)));
-    s_ << s0(0), s1(0), s2(0), s3;
+    s_ << s0(0), s1(0), std::complex<double>(0,1)*s2(0), s3;
     s_error << s0(1), s1(1), std::complex<double>(0,-1/8)*s2(1), 0.0;
 };
 
