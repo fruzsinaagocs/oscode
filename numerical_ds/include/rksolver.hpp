@@ -75,7 +75,7 @@ Eigen::Matrix<std::complex<double>,2,4> RKSolver::step(std::complex<double> x0, 
     Eigen::Matrix<std::complex<double>,2,4> result;
     k5.row(0) = h*f(t0, y0);
     ws(0) = k5.row(0)(2)/h;
-    gs(0) = k5.row(0)(2)/h;
+    gs(0) = k5.row(0)(3)/h;
     for(int s=1; s<=5; s++){
         y = y0;
         for(int i=0; i<=(s-1); i++)

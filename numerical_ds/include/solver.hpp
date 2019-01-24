@@ -17,12 +17,16 @@ class Solution
     int order;
     bool fo;
     RKSolver rksolver;
-    WKBSolver wkbsolver;
-
+    // TODO: any way not to create all objects here?
+    //WKBSolver wkbsolver
+    WKBSolver * wkbsolver;
+    WKBSolver1 wkbsolver1;
+    WKBSolver2 wkbsolver2;
+    WKBSolver3 wkbsolver3;
 
     public:
     // constructor
-    Solution(de_system de_sys, std::complex<double> x0, std::complex<double> dx0, double t_i, double t_f, int o=4, double r_tol=1e-4, double a_tol=0.0, double h_0=1, bool full_output=false);
+    Solution(de_system de_sys, std::complex<double> x0, std::complex<double> dx0, double t_i, double t_f, int o=3, double r_tol=1e-4, double a_tol=0.0, double h_0=1, bool full_output=false);
     void solve();
 };
 
@@ -42,8 +46,17 @@ Solution::Solution(de_system de_sys, std::complex<double> x0, std::complex<doubl
     h0 = h_0;
     fo = full_output;
     rksolver = RKSolver(de_sys);
-    wkbsolver = WKBSolver(de_sys);
-
+    switch(order){
+        case 1: wkbsolver1 = WKBSolver1(de_sys);
+                wkbsolver = &wkbsolver1;
+                break;
+        case 2: wkbsolver2 = WKBSolver2(de_sys);
+                wkbsolver = &wkbsolver2;
+                break;
+        case 3: wkbsolver3 = WKBSolver3(de_sys);
+                wkbsolver = &wkbsolver3;
+                break;
+    };
 };
 
 void Solution::solve(){ 
@@ -54,8 +67,8 @@ void Solution::solve(){
     std::cout << "Function f at t=" << t << " is: " << rksolver.f(t,y) << std::endl; 
     std::cout << "Result of a RK step: " << rksolver.step(x, dx, t, h0) << std::endl;
     Eigen::Matrix<std::complex<double>,2,2> y1;
-    std::cout << "ws rk: " << rksolver.ws << std::endl;
-    y1 = wkbsolver.step(x, dx, t, h0, rksolver.ws, rksolver.gs, rksolver.ws5, rksolver.gs5);
+    //std::cout << "ws rk: " << rksolver.ws << std::endl;
+    y1 = wkbsolver->step(x, dx, t, h0, rksolver.ws, rksolver.gs, rksolver.ws5, rksolver.gs5);
     std::cout << "WKB step: " << y1 << std::endl;
 
 
