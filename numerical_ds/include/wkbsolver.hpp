@@ -188,14 +188,6 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
         dsf();
         fp(); fm(); 
         dfpf(); dfmf();
-        std::cout << "s: " << s_ << std::endl;
-        std::cout << "dsi: " << dsi_ << std::endl;
-        std::cout << "dsf: " << dsf_ << std::endl;
-        std::cout << "dds: " << dds_ << std::endl;
-        std::cout << " fs : " << fp_ << " " << fm_ << std::endl;
-        std::cout << "dfs : " << dfpf_ << " " << dfmf_ << std::endl;
-        std::cout << "a, b: " << ap_  << " " << am_ << " " << bp_ << " " << bm_ << std::endl;
-        std::cout << ap_*fp_ + am_*fm_ << std::endl;
         result(0,0) = ap_*fp_ + am_*fm_;
         result(0,1) = bp_*dfpf_ +bm_*dfmf_;
     // Error estimate on this
@@ -216,11 +208,8 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
         dsf_(order_) = 0.0;
         fp(); fm();
         dfpf(); dfmf();
-        std::cout << "higher order step: " << result(0,0) << ", " << result(0,1) << std::endl;
-        std::cout << "lower order step : " << ap_*fp_ + am_*fm_ << ", " << bp_*dfpf_ +bm_*dfmf_ << std::endl;
         result(1,0) = result(0,0) - ap_*fp_ + am_*fm_;
         result(1,1) = result(0,1) - bp_*dfpf_ +bm_*dfmf_;
-        std::cout << "difference: " << result(0,0) - ap_*fp_ + am_*fm_ << ", " << result(0,1) - bp_*dfpf_ +bm_*dfmf_ << std::endl;
                 
     return result;
 };
