@@ -67,11 +67,11 @@ Eigen::Matrix<std::complex<double>,2,4> RKSolver::step(std::complex<double> x0, 
 
     Eigen::Matrix<std::complex<double>,1,4> y0, y, y4, y5, delta, k5_i, k4_i;
     y4 = Eigen::Matrix<std::complex<double>,1,4>::Zero();
-    y5 = y4;
     y0 << x0, dx0, 0.0, 0.0;
+    y5 = y4;
     // TODO: resizing of ws5, gs5, insertion
     Eigen::Matrix<std::complex<double>,6,4> k5;
-    Eigen::Matrix<std::complex<double>,5,4> k4;
+    Eigen::Matrix<std::complex<double>,4,4> k4;
     Eigen::Matrix<std::complex<double>,2,4> result;
     k5.row(0) = h*f(t0, y0);
     ws(0) = k5.row(0)(2)/h;
@@ -102,6 +102,7 @@ Eigen::Matrix<std::complex<double>,2,4> RKSolver::step(std::complex<double> x0, 
     for(int j=0; j<=3; j++)
         y4 += butcher_b4(j)*k4.row(j);
     delta = y5 - y4;
+    y5 += y0;
     result << y5, delta;
     // Add in missing w, g at t+h/2
     ws5(4) = ws5(3);

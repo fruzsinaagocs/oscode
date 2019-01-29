@@ -191,7 +191,7 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
         result(0,0) = ap_*fp_ + am_*fm_;
         result(0,1) = bp_*dfpf_ +bm_*dfmf_;
     // Error estimate on this
-        err_fp = s_.cwiseAbs().sum()*fp_;
+        err_fp = s_error.cwiseAbs().sum()*fp_;
         err_fm = std::conj(err_fp);
         err_dfp = dfpf_/fp_*err_fp; 
         err_dfm = std::conj(err_dfp);
@@ -208,9 +208,11 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
         dsf_(order_) = 0.0;
         fp(); fm();
         dfpf(); dfmf();
-        result(1,0) = result(0,0) - ap_*fp_ + am_*fm_;
-        result(1,1) = result(0,1) - bp_*dfpf_ +bm_*dfmf_;
-                
+        //std::cout << "wkb higher order step: " << result.row(0) << std::endl;
+        //std::cout << "wkb lower order step: " << ap_*fp_ + am_*fm_ << ", " << bp_*dfpf_ +bm_*dfmf_ << std::endl;
+        result(1,0) = result(0,0) - ap_*fp_ - am_*fm_;
+        result(1,1) = result(0,1) - bp_*dfpf_ - bm_*dfmf_;
+
     return result;
 };
 
