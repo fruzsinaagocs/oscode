@@ -5,8 +5,8 @@ class RKSolver
 {
     private: 
     // Frequency and friction term
-    std::complex<double> (*w)(double);
-    std::complex<double> (*g)(double);
+    std::function<std::complex<double>(double)> w;
+    std::function<std::complex<double>(double)> g;
     
 
     // Butcher tablaus

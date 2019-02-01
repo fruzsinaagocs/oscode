@@ -10,8 +10,8 @@ class Solution
 {
     private:
     // Parameters for solver
-    std::complex<double> (*w) (double);
-    std::complex<double> (*g) (double);
+//    std::complex<double> (*w) (double);
+//    std::complex<double> (*g) (double);
     double t, tf, rtol, atol, h0;
     std::complex<double> x, dx;
     int order;
@@ -28,18 +28,18 @@ class Solution
     // constructor
     Solution(de_system de_sys, std::complex<double> x0, std::complex<double>
     dx0, double t_i, double t_f, int o=3, double r_tol=1e-4, double a_tol=0.0,
-    double h_0=1, bool full_output=false);
+    double h_0=1, bool full_output=false, bool interp=true);
     void solve();
 };
 
 
 Solution::Solution(de_system de_sys, std::complex<double> x0,
 std::complex<double> dx0, double t_i, double t_f, int o, double r_tol, double
-a_tol, double h_0, bool full_output){
+a_tol, double h_0, bool full_output, bool interp){
     
     // Set parameters for solver
-    w = de_sys.w;
-    g = de_sys.g;
+//    w = de_sys.w;
+//    g = de_sys.g;
     x = x0;
     dx = dx0;
     t = t_i;

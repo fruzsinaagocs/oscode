@@ -4,9 +4,6 @@
 class WKBSolver
 {
     protected: 
-    // Frequency and friction terms 
-    std::complex<double> (*w)(double);
-    std::complex<double> (*g)(double);   
     // Derivative terms 
     void d1w1();
     void d1w2();
@@ -103,8 +100,8 @@ WKBSolver::WKBSolver(de_system de_sys, int order){
     // Set order
     order_ = order;
     // Set frequency and friction terms
-    w = de_sys.w;
-    g = de_sys.g;
+//    w = de_sys.w;
+//    g = de_sys.g;
     // Set Gauss-Lobatto weights
     glws6 << 1.0/15.0,0.3784749562978469803166,0.5548583770354863530167,
         0.5548583770354863530167,0.3784749562978469803166,1.0/15.0;
