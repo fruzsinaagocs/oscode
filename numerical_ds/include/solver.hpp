@@ -2,6 +2,9 @@
 #include <Eigen/Dense>
 #include <fstream>
 #include <iostream>
+#include <vector>
+#include <string>
+#include <iomanip>
 #include "system.hpp"
 #include "rksolver.hpp"
 #include "wkbsolver.hpp"
@@ -10,8 +13,6 @@ class Solution
 {
     private:
     // Parameters for solver
-//    std::complex<double> (*w) (double);
-//    std::complex<double> (*g) (double);
     double t, tf, rtol, atol, h0;
     std::complex<double> x, dx;
     int order;
@@ -30,6 +31,11 @@ class Solution
     dx0, double t_i, double t_f, int o=3, double r_tol=1e-4, double a_tol=0.0,
     double h_0=1, bool full_output=false, bool interp=true);
     void solve();
+    // stats
+    int ssteps,totsteps,wkbsteps;
+    std::vector<std::complex<double>> sol, dsol;
+    std::vector<double> times;
+    std::vector<bool> wkbs;
 };
 
 
@@ -38,8 +44,6 @@ std::complex<double> dx0, double t_i, double t_f, int o, double r_tol, double
 a_tol, double h_0, bool full_output, bool interp){
     
     // Set parameters for solver
-//    w = de_sys.w;
-//    g = de_sys.g;
     x = x0;
     dx = dx0;
     t = t_i;
@@ -83,6 +87,13 @@ void Solution::solve(){
     Eigen::Index maxindex;
     h = h0;
     tnext = t+h;
+    // Initialise stats
+    sol.emplace_back(x);
+    dsol.emplace_back(dx);
+    times.emplace_back(t);
+    ssteps = 0;
+    totsteps = 0;
+    wkbsteps = 0;
     
     while(t < tf){
         // Check if we are reaching the end of integration
@@ -134,14 +145,25 @@ void Solution::solve(){
                 dxnext = rkx(1);
                 hnext = hrk;
             };
+            totsteps += 1;
             // check if chosen step was successful
             if(hnext>=h){
                 std::cout << "wkb: " << wkb << ", t: "<< tnext << ", x: " << xnext << ", dx: " << dxnext << std::endl;
+                sol.emplace_back(xnext);
+                dsol.emplace_back(dxnext);
+                times.emplace_back(tnext);
                 tnext += hnext;
                 x = xnext;
                 dx = dxnext;
                 t += h;
                 h = hnext;
+                ssteps +=1;
+                if(wkb){
+                    wkbsteps +=1;
+                    wkbs.emplace_back(true);
+                }
+                else
+                    wkbs.emplace_back(false);
                 break;
             }
             else{
@@ -158,4 +180,22 @@ void Solution::solve(){
             };
         };
     };
+
+    // Write output to file if prompted
+    if(fo){
+        std::string output;
+        std::cout << "Please enter filename to print output to: " << std::endl;
+        std::cin >> output;
+        std::ofstream f;
+        f.open(output);
+        f << "# Summary:\n# total steps taken: " + std::to_string(totsteps) +
+        "\n# of which successful: " + std::to_string(ssteps) + "\n# of which"+
+        +"wkb: " + std::to_string(wkbsteps) + "\n# time, x, dx, wkb\n";
+        for(int i=0; i<ssteps; i++)
+            f << std::setprecision(20) << times[i] << " " <<
+            std::setprecision(20) << sol[i] << " " << std::setprecision(20) <<
+            dsol[i] << " " << wkbs[i] << "\n"; 
+        f.close();
+    }
+    
 };

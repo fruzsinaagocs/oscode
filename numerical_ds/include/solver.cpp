@@ -21,10 +21,10 @@ int main(){
     std::complex<double> x0, dx0;
     double ti, tf;
     ti = 1.0;
-    tf = 1e7;
+    tf = 1e5;
     x0 = std::complex<double>(boost::math::airy_ai(-ti), boost::math::airy_bi(-ti));
     dx0 = std::complex<double>(-boost::math::airy_ai_prime(-ti), -boost::math::airy_bi_prime(-ti));
-    Solution solution(sys, x0, dx0, ti, tf); 
+    Solution solution(sys, x0, dx0, ti, tf, 3, 1e-4, 0.0, 1.0, true); 
     auto t1 = std::chrono::high_resolution_clock::now();
     solution.solve();
     auto t2 = std::chrono::high_resolution_clock::now();
@@ -34,7 +34,7 @@ int main(){
 
     // Example of the same solution, but with t,w,g supplied as a grid
     int n = 100000;
-    Eigen::VectorXd logts = Eigen::VectorXd::LinSpaced(n, 0.0, 3.0);
+    Eigen::VectorXd logts = Eigen::VectorXd::LinSpaced(n, 0.0, 5.2);
     Eigen::VectorXd ts = logts;
     Eigen::VectorXcd ws = Eigen::VectorXcd::Zero(n);
     Eigen::VectorXcd gs = Eigen::VectorXcd::Zero(n); 
@@ -42,9 +42,9 @@ int main(){
         ts(i) = std::pow(10,ts(i));
         ws(i) = std::pow(ts(i), 0.5);
     };
-    auto t3 = std::chrono::high_resolution_clock::now();
     de_system sys2(ts, ws, gs);
-    Solution solution2(sys2, x0, dx0, ti, 500.0);
+    Solution solution2(sys2, x0, dx0, ti, tf);
+    auto t3 = std::chrono::high_resolution_clock::now();
     solution2.solve();
     auto t4 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double,std::milli> t34 = t4-t3;

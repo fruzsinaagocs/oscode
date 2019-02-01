@@ -1,0 +1,76 @@
+import matplotlib.pyplot as plt
+import numpy as np
+f1 = 'test/testpps3_x.txt'
+f2 = 'test/testpps3_x1.txt'
+data1 = np.genfromtxt(f1,dtype=complex,filling_values=0.0)
+data2 = np.genfromtxt(f2,dtype=complex,filling_values=0.0)
+#k = data[:,0]
+#pow1 = data[:,-1]
+#pow2 = data[:,-2]
+fig,axes=plt.subplots(1,2,sharex=True,sharey=True)
+axes[0].semilogx(data1[:,0],data1[:,-1],label='cubic')
+axes[0].semilogx(data2[:,0],data2[:,-1],label='linear')
+axes[0].set_title('HD')
+axes[0].set_ylim([0.5e-9,3.5e-9])
+axes[0].legend()
+axes[1].semilogx(data1[:,0],data1[:,-2],label='cubic')
+axes[1].semilogx(data2[:,0],data2[:,-2],label='linear')
+axes[1].set_title('RST')
+axes[1].set_ylim([0.5e-9,3.5e-9])
+axes[1].legend()
+plt.show()
+
+
+data = np.genfromtxt('test/timepps2_cont.txt',dtype=complex, filling_values=0.0)
+data2 = np.genfromtxt('test/timepps2.txt',dtype=complex,filling_values=0.0)
+data3 = np.genfromtxt('test/timepps1.txt',dtype=complex,filling_values=0.0)
+data4 = np.genfromtxt('test/timepps1cont.txt',dtype=complex,filling_values=0.0)
+fig,axes = plt.subplots(2,2,sharex=True)
+axes[0,0].loglog(data[:-110,0],data[:-110,-1],color='blue',label='rst,cubic',alpha=0.5)
+axes[0,0].loglog(data2[:,0],data2[:,-1],color='blue',alpha=0.5)
+axes[0,0].loglog(data[:-110,0],data[:-110,-2],color='orange',label='hd,cubic',alpha=0.7)
+axes[0,0].loglog(data2[:,0],data2[:,-2],color='orange',alpha=0.7)
+axes[0,0].loglog(data3[:,0],data3[:,-1],color='green',label='rst,linear',alpha=0.5)
+axes[0,0].loglog(data4[:,0],data4[:,-1],color='green',alpha=0.5)
+axes[0,0].loglog(data3[:,0],data3[:,-2],color='red',label='hd,linear',alpha=0.7)
+axes[0,0].loglog(data4[:,0],data4[:,-2],color='red',alpha=0.7)
+
+axes[0,1].loglog(data[:-110,0],data[:-110,3],label='total steps, cubic',alpha=0.7)
+axes[0,1].loglog(data2[:,0],data2[:,3],alpha=0.7,color='orange')
+axes[0,1].loglog(data[:,0],data[:,4],label='wkb steps, cubic',alpha=0.7,color='blue') 
+axes[0,1].loglog(data2[:,0],data2[:,4],alpha=0.7,color='blue')
+axes[0,1].loglog(data3[:,0],data3[:,3],label='total steps, linear',alpha=0.7,color='red') 
+axes[0,1].loglog(data4[:,0],data4[:,3],alpha=0.7,color='red')
+axes[0,1].loglog(data3[:,0],data3[:,4],label='wkb steps, linear',alpha=0.7,color='green') 
+axes[0,1].loglog(data4[:,0],data4[:,4],alpha=0.7,color='green')
+axes[0,1].set_title('Step breakdown')
+axes[0,1].legend()
+
+axes[1,0].loglog(data[:,0],data[:,5],color='blue',label='cubic spline',alpha=0.5)
+axes[1,0].loglog(data2[:,0],data2[:,5],color='blue',alpha=0.5)
+axes[1,0].loglog(data3[:,0],data3[:,5],color='orange',alpha=0.5)
+axes[1,0].loglog(data4[:,0],data4[:,5],color='orange',label='linear',alpha=0.5)
+axes[1,0].legend()
+axes[1,0].set_title('Total time')
+axes[1,0].set_ylabel('time/s')
+
+axes[0,0].set_title('PPS with different interpolation methods')
+axes[0,0].set_xlabel('k (Planck units)')
+axes[0,0].set_ylabel('$P_{\mathcal{R}_k}$')
+axes[0,0].legend()
+#plt.savefig('test/stepstot_cubic.pdf')
+plt.show()
+
+
+data = np.genfromtxt('test/timeinterp_cubic.txt')
+data2 = np.genfromtxt('test/timeinterp_linear.txt')
+plt.xlabel('total number of points, N')
+plt.ylabel('time/s')
+plt.title('Timing test of interpolating methods')
+plt.loglog(data[:,0],data[:,1],label='to create interp object, cubic')
+plt.loglog(data[:,0],data[:,2],label='to call, cubic')
+plt.loglog(data2[:,0],data2[:,1],label='to create interp object, linear')
+plt.loglog(data2[:,0],data2[:,2],label='to call, linear')
+plt.legend()
+plt.savefig('plots/interptimetest.pdf')
+plt.show()
