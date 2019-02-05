@@ -21,13 +21,13 @@ class de_system
   
 };
     
-de_system::de_system(std::complex<double> (*W)(double), std::complex<double> (*G)(double)){
+de_system::de_system(std::complex<double> (*W)(double), std::complex<double>
+(*G)(double)){
         // default constructor for a system of differential equations
     
         interp = false;
         w = W;
         g = G;
-//        std::cout << w(1.0) << std::endl;
     };
 
 de_system::de_system(Eigen::VectorXd ts, Eigen::VectorXcd ws, Eigen::VectorXcd gs){

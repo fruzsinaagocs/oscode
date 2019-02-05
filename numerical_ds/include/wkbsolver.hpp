@@ -1,4 +1,5 @@
 #pragma once
+#include <iomanip>
 #include "system.hpp"
 
 class WKBSolver
@@ -154,6 +155,16 @@ Eigen::Matrix<std::complex<double>,6,1> &gs, const
 Eigen::Matrix<std::complex<double>,5,1> &ws5, const
 Eigen::Matrix<std::complex<double>,5,1> &gs5){
     
+    // Debugging
+    Eigen::Matrix<std::complex<double>,1,4> sana, dsanai, dsanaf, ddsana;  
+    sana << std::complex<double>(0,1)*2.0/3.0*(std::pow(t0+h0,1.5)-std::pow(t0,1.5)),
+    -0.25*std::log((t0+h0)/t0),
+    std::complex<double>(0,-1)*5.0/48.0*(std::pow(t0+h0,-1.5)-std::pow(t0,-1.5)),
+    -5.0/64.0*(std::pow(t0+h0,-3)-std::pow(t0,-3));
+    dsanai << std::complex<double>(0,1)*std::pow(t0,0.5), -0.25/t0, std::complex<double>(0,1)*5.0/32.0*std::pow(t0,-2.5), 15.0/64.0*std::pow(t0, -4);
+    dsanaf << std::complex<double>(0,1)*std::pow((t0+h0),0.5), -0.25/(t0+h0), std::complex<double>(0,1)*5.0/32.0*std::pow((t0+h0),-2.5), 15.0/64.0*std::pow((t0+h0), -4);
+    ddsana << std::complex<double>(0,1)*0.5*std::pow(t0,-0.5), 0.25*std::pow(t0,-2), std::complex<double>(0,-1)*25.0/64.0*std::pow(t0,-3.5), -15.0/16.0*std::pow(t0,-5);
+    // 
     Eigen::Matrix<std::complex<double>,3,2> result;
     result << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
     // Set grid of ws, gs:
@@ -182,9 +193,29 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
         ap(); am(); bp(); bm();
         // Calculate step
         s(); 
+        std::cout << std::setprecision(10) << "s: " << s_ << ", analytic: " << sana <<  std::endl;
+        //std::cout << "dsi: " << dsi_ << ", analytic: " << dsanai << std::endl;
+        //std::cout << std::setprecision(10) << "dfpi: " << dfpi_ << ", dfmi: " << dfmi_ << std::endl;
+        //std::cout << "analytic: " << std::complex<double>(0,1)*std::pow(t0,0.5)
+        //- 0.25/t0 + std::complex<double>(0,1)*5.0/32.0*std::pow(t0,-2.5) +
+        //15.0/64.0*std::pow(t0, -4) << ", "<<
+        //std::complex<double>(0,-1)*std::pow(t0,0.5) -0.25/t0 +
+        //std::complex<double>(0,-1)*5.0/32.0*std::pow(t0,-2.5)+
+        //15.0/64.0*std::pow(t0, -4) << std::endl;
         dsf();
+        //std::cout << "dsf: " << dsf_ << ", analytic: " << dsanaf << std::endl;
+        //std::cout << "dds: " << dds_ << ", analytic: " << ddsana << std::endl;
         fp(); fm(); 
         dfpf(); dfmf();
+        std::cout << "exp(sum(s)): " << std::exp(s_.sum()) << std::endl;
+        std::cout << "analytic: " << std::exp(sana.sum()) << std::endl;
+        //std::cout << "dfpf: " << dfpf_ << ", dfmf: " << dfmf_ << std::endl;
+        //std::cout << "analytic: " << (std::complex<double>(0,1)*std::pow((t0+h0),0.5)
+        //- 0.25/(t0+h0) + std::complex<double>(0,1)*5.0/32.0*std::pow((t0+h0),-2.5) +
+        //15.0/64.0*std::pow((t0+h0), -4))*std::exp(sana.sum()) << ", "<<
+        //(std::complex<double>(0,-1)*std::pow((t0+h0),0.5) -0.25/(t0+h0) +
+        //std::complex<double>(0,-1)*5.0/32.0*std::pow((t0+h0),-2.5)+
+        //15.0/64.0*std::pow((t0+h0), -4))*std::exp(std::conj(sana.sum())) << std::endl;
         result(0,0) = ap_*fp_ + am_*fm_;
         result(0,1) = bp_*dfpf_ +bm_*dfmf_;
     // Error estimate on this

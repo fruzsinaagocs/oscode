@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <iomanip>
+#include <boost/math/special_functions/airy.hpp>
 #include "system.hpp"
 #include "rksolver.hpp"
 #include "wkbsolver.hpp"
@@ -137,7 +138,7 @@ void Solution::solve(){
                 dxnext = wkbx(1);
                 // if wkb step chosen, ignore truncation error in
                 // stepsize-increase
-                wkbdelta = std::max(1e-10, std::abs(wkbdeltas.tail(2).maxCoeff()));
+                wkbdelta = std::max(1e-8, std::abs(wkbdeltas.tail(2).maxCoeff()));
                 hnext = h*std::pow(rtol/wkbdelta,1.0/nwkb2);
             }
             else{
@@ -167,6 +168,7 @@ void Solution::solve(){
                 break;
             }
             else{
+                //std::cout << "unsuccessful step" << std::endl;
                 if(wkb){
                     if(maxindex<=1)
                         hnext = h*std::pow(rtol/wkbdelta,1.0/(nwkb1-1));
@@ -190,11 +192,14 @@ void Solution::solve(){
         f.open(output);
         f << "# Summary:\n# total steps taken: " + std::to_string(totsteps) +
         "\n# of which successful: " + std::to_string(ssteps) + "\n# of which"+
-        +"wkb: " + std::to_string(wkbsteps) + "\n# time, x, dx, wkb\n";
-        for(int i=0; i<ssteps; i++)
+        +"wkb: " + std::to_string(wkbsteps) + "\n# time, x, dx, wkb, Ai(-t)+i*Bi(-t)\n";
+        for(int i=0; i<=ssteps; i++)
             f << std::setprecision(20) << times[i] << " " <<
             std::setprecision(20) << sol[i] << " " << std::setprecision(20) <<
-            dsol[i] << " " << wkbs[i] << "\n"; 
+            dsol[i] << " " << wkbs[i] 
+            << " " << std::setprecision(20) << std::complex<double>(boost::math::airy_ai(-times[i]), boost::math::airy_bi(-times[i])) 
+            << " " << std::setprecision(20) << -std::complex<double>(boost::math::airy_ai_prime(-times[i]), boost::math::airy_bi_prime(-times[i]))
+            << "\n"; 
         f.close();
     }
     
