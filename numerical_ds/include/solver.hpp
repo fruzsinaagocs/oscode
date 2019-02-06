@@ -73,8 +73,8 @@ void Solution::solve(){
     int nrk, nwkb1, nwkb2;
     // Settings for MS
     nrk = 5;
-    nwkb1 = 2;
-    nwkb2 = 4;
+    nwkb1 = 1;
+    nwkb2 = 8;
     Eigen::Matrix<std::complex<double>,2,4> rkstep;
     Eigen::Matrix<std::complex<double>,3,2> wkbstep;
     Eigen::Matrix<std::complex<double>,1,2> rkx, wkbx;
@@ -115,10 +115,11 @@ void Solution::solve(){
             wkberr = wkbstep.row(2);
             truncerr = wkbstep.row(1);
             // dominant error calculation
-            wkbdeltas << std::abs(truncerr(0))/std::abs(rkx(0)),
-            std::abs(truncerr(1))/std::abs(rkx(1)),
+            wkbdeltas << std::abs(truncerr(0))/std::abs(wkbx(0)),
+            std::abs(truncerr(1))/std::abs(wkbx(1)),
             std::abs(wkberr(0))/std::abs(wkbx(0)),
             std::abs(wkberr(1))/std::abs(wkbx(1));
+            std::cout << wkbdeltas << std::endl;
             rkdeltas << std::abs(rkerr(0))/std::abs(rkx(0)), std::abs(rkerr(1))/std::abs(rkx(1));
             wkbdelta = std::max(1e-10, wkbdeltas.maxCoeff(&maxindex));
             rkdelta = std::max(1e-10, rkdeltas.maxCoeff()); 
@@ -138,7 +139,7 @@ void Solution::solve(){
                 dxnext = wkbx(1);
                 // if wkb step chosen, ignore truncation error in
                 // stepsize-increase
-                wkbdelta = std::max(1e-8, std::abs(wkbdeltas.tail(2).maxCoeff()));
+                wkbdelta = std::max(1e-10, std::abs(wkbdeltas.tail(2).maxCoeff()));
                 hnext = h*std::pow(rtol/wkbdelta,1.0/nwkb2);
             }
             else{
@@ -168,10 +169,13 @@ void Solution::solve(){
                 break;
             }
             else{
-                //std::cout << "unsuccessful step" << std::endl;
                 if(wkb){
-                    if(maxindex<=1)
-                        hnext = h*std::pow(rtol/wkbdelta,1.0/(nwkb1-1));
+                    if(maxindex<=1){
+                        if(nwkb1 > 1)
+                            hnext = h*std::pow(rtol/wkbdelta,1.0/(nwkb1-1));
+                        else
+                            hnext = 0.95*h*rtol/wkbdelta;
+                    }
                     else
                         hnext = h*std::pow(rtol/wkbdelta,1.0/(nwkb2-1));
                 }
@@ -197,8 +201,8 @@ void Solution::solve(){
             f << std::setprecision(20) << times[i] << " " <<
             std::setprecision(20) << sol[i] << " " << std::setprecision(20) <<
             dsol[i] << " " << wkbs[i] 
-            << " " << std::setprecision(20) << std::complex<double>(boost::math::airy_ai(-times[i]), boost::math::airy_bi(-times[i])) 
-            << " " << std::setprecision(20) << -std::complex<double>(boost::math::airy_ai_prime(-times[i]), boost::math::airy_bi_prime(-times[i]))
+            //<< " " << std::setprecision(20) << std::complex<double>(boost::math::airy_ai(-times[i]), boost::math::airy_bi(-times[i])) 
+            //<< " " << std::setprecision(20) << -std::complex<double>(boost::math::airy_ai_prime(-times[i]), boost::math::airy_bi_prime(-times[i]))
             << "\n"; 
         f.close();
     }
