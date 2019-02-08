@@ -100,9 +100,6 @@ WKBSolver::WKBSolver(de_system de_sys, int order){
 
     // Set order
     order_ = order;
-    // Set frequency and friction terms
-//    w = de_sys.w;
-//    g = de_sys.g;
     // Set Gauss-Lobatto weights
     glws6 << 1.0/15.0,0.3784749562978469803166,0.5548583770354863530167,
         0.5548583770354863530167,0.3784749562978469803166,1.0/15.0;
@@ -206,8 +203,6 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
         dsf_(order_) = 0.0;
         fp(); fm();
         dfpf(); dfmf();
-        //std::cout << "wkb higher order step: " << result.row(0) << std::endl;
-        //std::cout << "wkb lower order step: " << ap_*fp_ + am_*fm_ << ", " << bp_*dfpf_ +bm_*dfmf_ << std::endl;
         result(1,0) = result(0,0) - ap_*fp_ - am_*fm_;
         result(1,1) = result(0,1) - bp_*dfpf_ - bm_*dfmf_;
 
@@ -218,8 +213,8 @@ Eigen::Matrix<std::complex<double>,2,1> WKBSolver::integrate(const
 Eigen::Matrix<std::complex<double>,6,1> &integrand6, const
 Eigen::Matrix<std::complex<double>,5,1> &integrand5){
     
-    std::complex<double> x6 = h/2*glws6.dot(integrand6);
-    std::complex<double> x5 = h/2*glws5.dot(integrand5);
+    std::complex<double> x6 = h/2.0*glws6.dot(integrand6);
+    std::complex<double> x5 = h/2.0*glws5.dot(integrand5);
     Eigen::Matrix<std::complex<double>,2,1> result;
     result << x6, x6-x5;
     return result;
@@ -543,6 +538,6 @@ void WKBSolver3::s(){
     std::pow(dws_(0),2)/std::pow(ws_(0),4)) + 1/8.0*(d2w6_/std::pow(ws_(5),3) -
     d2w1_/std::pow(ws_(0),3)));
     s_ << s0(0), s1(0), std::complex<double>(0,1)*s2(0), s3;
-    s_error << s0(1), s1(1), std::complex<double>(0,-1/8)*s2(1), 0.0;
+    s_error << s0(1), s1(1), std::complex<double>(0,-1.0/8.0)*s2(1), 0.0;
 };
 

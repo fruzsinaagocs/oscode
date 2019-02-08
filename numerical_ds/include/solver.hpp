@@ -119,7 +119,6 @@ void Solution::solve(){
             std::abs(truncerr(1))/std::abs(wkbx(1)),
             std::abs(wkberr(0))/std::abs(wkbx(0)),
             std::abs(wkberr(1))/std::abs(wkbx(1));
-            std::cout << wkbdeltas << std::endl;
             rkdeltas << std::abs(rkerr(0))/std::abs(rkx(0)), std::abs(rkerr(1))/std::abs(rkx(1));
             wkbdelta = std::max(1e-10, wkbdeltas.maxCoeff(&maxindex));
             rkdelta = std::max(1e-10, rkdeltas.maxCoeff()); 

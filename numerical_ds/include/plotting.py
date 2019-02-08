@@ -1,10 +1,12 @@
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.special as sp
 import re
 
 # Airy equation with w(t), g(t) given analytically
-f1 = 'test/test-airy-vhighprec.txt'
+f1 = 'test/airy/airycorr_o1.txt'
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair, 4:parse_pair, 5:parse_pair})
 times = np.logspace(0,2,5000)
 analytic = np.array([sp.airy(-ti)[0] + 1j*sp.airy(-ti)[2] for ti in times ])
@@ -31,7 +33,8 @@ axes[0].semilogx(t[wkb==1],dx[wkb==1],'x',color='green')
 axes[0].semilogx(t[wkb==0],dx[wkb==0],'x',color='red')
 
 axes[0].set_title('Example solution x(t)')
-axes[1].loglog(t, errs,'x',color='black')
+axes[1].loglog(t[wkb==1], errs[wkb==1],'x',color='green')
+axes[1].loglog(t[wkb==0], errs[wkb==0],'x',color='red')
 axes[1].set_title('Relative error')
 plt.show()
 
@@ -42,10 +45,10 @@ def parse_pair(s):
     return complex(*map(float, pair.match(s).groups()))
 
 # Burst equation with w(t), g(t) given analytically
-f1 = 'test/test-burst-n1e5'
-n =  1e5 
+f1 = 'test/burst/n1e10_afterdebug.txt'
+n = 1e10
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair})
-times = np.linspace(-1.5*n,1.5*n,5000)
+times = np.linspace(-1.5*n,1.5*n,10000)
 analytic = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in times ])
 danalytic = np.array([100.0/np.sqrt(ti**2+1)/n*( (ti + 1j*n ) * np.cos(n*np.arctan(ti)) + (1j*ti - n ) * np.sin(n*np.arctan(ti))) for ti in times ])
 t = data[:,0]
@@ -58,18 +61,18 @@ errs = np.abs(sols - x)/np.abs(sols)
 derrs = np.abs(dsols - dx)/np.abs(dsols)
 fig,axes=plt.subplots(1,2)
 
-axes[0].loglog(t, derrs, 'x', color='black')
 
 axes[0].plot(times,analytic, color='black')
 axes[0].plot(t[wkb==1],x[wkb==1],'x',color='green')
 axes[0].plot(t[wkb==0],x[wkb==0],'x',color='red')
 
-axes[0].semilogx(times,danalytic)
-axes[0].semilogx(t[wkb==1],dx[wkb==1],'x',color='green')
-axes[0].semilogx(t[wkb==0],dx[wkb==0],'x',color='red')
+#axes[0].semilogx(times,danalytic)
+#axes[0].semilogx(t[wkb==1],dx[wkb==1],'x',color='green')
+#axes[0].semilogx(t[wkb==0],dx[wkb==0],'x',color='red')
 
 axes[0].set_title('Example solution x(t)')
-axes[1].semilogy(t, errs,'x',color='black')
+axes[1].semilogy(t[wkb==1], errs[wkb==1],'x',color='green')
+axes[1].semilogy(t[wkb==0], errs[wkb==0],'x',color='red')
 axes[1].set_title('Relative error')
 plt.show()
 

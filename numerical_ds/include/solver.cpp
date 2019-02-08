@@ -5,7 +5,7 @@
 #include <chrono>
 #include <boost/math/special_functions/airy.hpp>
 
-double n = 1e9;
+double n = 1e10;
 
 std::complex<double> g0(double t){
     return 0.0;
@@ -48,8 +48,8 @@ int main(){
     double ti, tf;
     ti = -2*n;
     tf = 2*n;
-    x0 = xairy(ti); 
-    dx0 = dxairy(ti); 
+    x0 = xburst(ti); 
+    dx0 = dxburst(ti); 
     Solution solution(sys, x0, dx0, ti, tf, 3, 1e-4, 0.0, 1.0, true); 
     auto t1 = std::chrono::high_resolution_clock::now();
     solution.solve();
