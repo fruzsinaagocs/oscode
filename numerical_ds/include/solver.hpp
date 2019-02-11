@@ -149,7 +149,7 @@ void Solution::solve(){
             totsteps += 1;
             // check if chosen step was successful
             if(hnext>=h){
-                std::cout << "wkb: " << wkb << ", t: "<< tnext << ", x: " << xnext << ", dx: " << dxnext << std::endl;
+                //std::cout << "wkb: " << wkb << ", t: "<< tnext << ", x: " << xnext << ", dx: " << dxnext << std::endl;
                 sol.emplace_back(xnext);
                 dsol.emplace_back(dxnext);
                 times.emplace_back(tnext);

@@ -4,8 +4,10 @@
 #include <cmath>
 #include <chrono>
 #include <boost/math/special_functions/airy.hpp>
+#include <fstream>
+#include <string>
 
-double n = 1e10;
+double n = 1e5;
 
 std::complex<double> g0(double t){
     return 0.0;
@@ -41,23 +43,55 @@ std::complex<double> dxairy(double t){
 int main(){
    
     // Example with w(t), g(t) analytically given
-    // Solving the Airy equation from t=1 to t=10^6
-    de_system sys(&wburst, &g0);
-    // solution takes: system, x0, dx0, ti, tf, (order, rtol, atol, h, full_output)
+    std::ofstream f;
+    int no = 500;
+    Eigen::VectorXd ns = Eigen::VectorXd::LinSpaced(no,1.0,10.0);
+    std::vector<int> steps,totsteps,wkbsteps;
+    std::vector<double> runtimes;
     std::complex<double> x0, dx0;
-    double ti, tf;
-    ti = -2*n;
-    tf = 2*n;
-    x0 = xburst(ti); 
-    dx0 = dxburst(ti); 
-    Solution solution(sys, x0, dx0, ti, tf, 3, 1e-4, 0.0, 1.0, true); 
-    auto t1 = std::chrono::high_resolution_clock::now();
-    solution.solve();
-    auto t2 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double,std::milli> t12 = t2-t1;
-    std::cout << "time: " << t12.count() << " ms." << std::endl;
-    std::cout << "\n\n\n" << std::endl;
-
+    double ti, tf, rtol, atol, h0, runtime;
+    bool full_output = false;
+    int order = 3;   
+    for(int i=0; i<no; i++){
+        n = round(std::pow(10,ns(i)));
+        std::cout << "n: " << n << std::endl;
+        de_system sys(&wburst, &g0);
+        ti = -2*n;
+        tf = 2*n;
+        x0 = xburst(ti); 
+        dx0 = dxburst(ti); 
+        rtol = 1e-6;
+        atol = 0.0;
+        h0 = 1.0;
+        runtime = 0.0;
+        for(int j=0; j<1; j++){
+            Solution solution(sys, x0, dx0, ti, tf, order, rtol, atol, h0, full_output); 
+            auto t1 = std::chrono::high_resolution_clock::now();
+            solution.solve();
+            auto t2 = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double,std::milli> t12 = t2-t1;
+            runtime += t12.count();
+        };
+        std::cout << "time: " << runtime/100.0 << " ms." << std::endl;
+        
+        Solution solution(sys, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
+        solution.solve();
+        steps.emplace_back(solution.ssteps);
+        wkbsteps.emplace_back(solution.wkbsteps);
+        totsteps.emplace_back(solution.totsteps);
+        runtimes.emplace_back(runtime/100.0);
+        std::cout << "steps: " << solution.totsteps << std::endl;
+    };
+    
+    f.open("plots/bursttimingtol-6_stepscorr.txt");
+    f << "# Testing how tolerance affects runtime in the burst equation\n" <<
+    "# tolerance rtol = " << rtol << "\n" << 
+    "# log10(n), total steps, successful steps, wkb steps" << std::endl;
+    for(int i=0; i<no; i++){
+        f << std::setprecision(20) << ns(i) << ", " << totsteps[i] << ", " << steps[i] << ", " << wkbsteps[i] << std::endl;  
+    };
+    f.close();
+    
     // Example of the same solution, but with t,w,g supplied as a grid
 //    int n = 100000;
 //    Eigen::VectorXd logts = Eigen::VectorXd::LinSpaced(n, 0.0, 5.2);

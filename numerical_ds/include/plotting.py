@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.special as sp
@@ -45,101 +45,120 @@ def parse_pair(s):
     return complex(*map(float, pair.match(s).groups()))
 
 # Burst equation with w(t), g(t) given analytically
-f1 = 'test/burst/n1e10_afterdebug.txt'
-n = 1e10
+# Single solution at low n 
+f1 = 'plots/burstn40.txt'
+n = 40.0 
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair})
-times = np.linspace(-1.5*n,1.5*n,10000)
+times = np.linspace(-2*n,2*n,10000)
 analytic = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in times ])
-danalytic = np.array([100.0/np.sqrt(ti**2+1)/n*( (ti + 1j*n ) * np.cos(n*np.arctan(ti)) + (1j*ti - n ) * np.sin(n*np.arctan(ti))) for ti in times ])
 t = data[:,0]
 x = data[:,1]
 dx = data[:,2]
 wkb = data[:,3]
 sols = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in t])
-dsols = np.array([100.0/np.sqrt(ti**2+1)/n*( (ti + 1j*n ) * np.cos(n*np.arctan(ti)) + (1j*ti - n ) * np.sin(n*np.arctan(ti))) for ti in t])
+
+plt.figure()
+plt.style.use('fyr')
+plt.plot(times,analytic, color='black',label='true solution')
+plt.plot(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
+plt.plot(t[wkb==0],x[wkb==0],'x',color='red',label='RK step')
+plt.xlim((-40,40))
+plt.ylim((-60,60))
+plt.xlabel('t')
+plt.ylabel('$\Re{\{x(t)\}}$')
+plt.legend()
+plt.savefig("plots/burstn40_x_fyrstyle.pdf")
+plt.show()
+
+# Error progression in this example
 errs = np.abs(sols - x)/np.abs(sols)
-derrs = np.abs(dsols - dx)/np.abs(dsols)
-fig,axes=plt.subplots(1,2)
+plt.figure()
+plt.style.use('fyr')
+plt.semilogy(t,errs,'x-',color='black')
+plt.ylabel('relative error, $\\frac{|\Delta x|}{|x|}$')
+plt.xlabel('t')
+plt.savefig("plots/burstn40_err_fyrstyle.pdf")
+#plt.show()
+
+# Changing rtol at n=1e5, effect on relative error progression and timings
+f1 = 'plots/burstn1e5_tol-4.txt'
+f2 = 'plots/burstn1e5_tol-5.txt'
+f3 = 'plots/burstn1e5_tol-6.txt'
+n = 1e5 
+data1 = np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair})
+data2 = np.loadtxt(f2,dtype=complex,converters={1:parse_pair, 2:parse_pair})
+data3 = np.loadtxt(f3,dtype=complex,converters={1:parse_pair, 2:parse_pair})
+t1 = data1[:,0]
+x1 = data1[:,1]
+wkb1 = data1[:,3]
+sols1 = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in t1])
+errs1 = np.abs(sols1 - x1)/np.abs(sols1)
+#
+t2 = data2[:,0]
+x2 = data2[:,1]
+wkb2 = data2[:,3]
+sols2 = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in t2])
+errs2 = np.abs(sols2 - x2)/np.abs(sols2)
+#
+t3 = data3[:,0]
+x3 = data3[:,1]
+wkb3 = data3[:,3]
+sols3 = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in t3])
+errs3 = np.abs(sols3 - x3)/np.abs(sols3)
+#
+plt.figure()
+plt.style.use('fyr')
+plt.semilogy(t1,errs1,'-',color='black',label='rtol=$10^{-4}$')
+plt.semilogy(t2,errs2,'-.',color='black',label='rtol=$10^{-5}$')
+plt.semilogy(t3,errs3,'--',color='black',label='rtol=$10^{-6}$')
+plt.ylabel('relative error, $\\frac{|\Delta x|}{|x|}$')
+plt.xlabel('t')
+plt.legend()
+plt.savefig("plots/burstn1e5_rtols.pdf")
+
+# Effect of changing rtol and n on runtime, steps 
+f1 = 'plots/bursttimingtol-4.txt'
+f2 = 'plots/bursttimingtol-5.txt'
+f3 = 'plots/bursttimingtol-6.txt'
+data1 = np.loadtxt(f1, delimiter=',')
+data2 = np.loadtxt(f2, delimiter=',')
+data3 = np.loadtxt(f3, delimiter=',')
+ns = data1[:,0]
+t1 = data1[:,-1]
+t2 = data2[:,-1]
+t3 = data3[:,-1]
+plt.figure()
+plt.style.use('fyr')
+plt.loglog(10**ns,t1,'-',color='black',label='rtol=$10^{-4}$')
+plt.loglog(10**ns,t2,'-.',color='black',label='rtol=$10^{-5}$')
+plt.loglog(10**ns,t3,'--',color='black',label='rtol=$10^{-6}$')
+plt.ylabel('runtime/ms')
+plt.xlabel('t')
+plt.legend()
+plt.show()
 
 
-axes[0].plot(times,analytic, color='black')
-axes[0].plot(t[wkb==1],x[wkb==1],'x',color='green')
-axes[0].plot(t[wkb==0],x[wkb==0],'x',color='red')
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #axes[0].semilogx(times,danalytic)
 #axes[0].semilogx(t[wkb==1],dx[wkb==1],'x',color='green')
 #axes[0].semilogx(t[wkb==0],dx[wkb==0],'x',color='red')
-
-axes[0].set_title('Example solution x(t)')
 axes[1].semilogy(t[wkb==1], errs[wkb==1],'x',color='green')
 axes[1].semilogy(t[wkb==0], errs[wkb==0],'x',color='red')
 axes[1].set_title('Relative error')
-plt.show()
+dsols = np.array([100.0/np.sqrt(ti**2+1)/n*( (ti + 1j*n ) * np.cos(n*np.arctan(ti)) + (1j*ti - n ) * np.sin(n*np.arctan(ti))) for ti in t])
+errs = np.abs(sols - x)/np.abs(sols)
+derrs = np.abs(dsols - dx)/np.abs(dsols)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-data = np.genfromtxt('test/timepps2_cont.txt',dtype=complex, filling_values=0.0)
-data2 = np.genfromtxt('test/timepps2.txt',dtype=complex,filling_values=0.0)
-data3 = np.genfromtxt('test/timepps1.txt',dtype=complex,filling_values=0.0)
-data4 = np.genfromtxt('test/timepps1cont.txt',dtype=complex,filling_values=0.0)
-fig,axes = plt.subplots(2,2,sharex=True)
-axes[0,0].loglog(data[:-110,0],data[:-110,-1],color='blue',label='rst,cubic',alpha=0.5)
-axes[0,0].loglog(data2[:,0],data2[:,-1],color='blue',alpha=0.5)
-axes[0,0].loglog(data[:-110,0],data[:-110,-2],color='orange',label='hd,cubic',alpha=0.7)
-axes[0,0].loglog(data2[:,0],data2[:,-2],color='orange',alpha=0.7)
-axes[0,0].loglog(data3[:,0],data3[:,-1],color='green',label='rst,linear',alpha=0.5)
-axes[0,0].loglog(data4[:,0],data4[:,-1],color='green',alpha=0.5)
-axes[0,0].loglog(data3[:,0],data3[:,-2],color='red',label='hd,linear',alpha=0.7)
-axes[0,0].loglog(data4[:,0],data4[:,-2],color='red',alpha=0.7)
-
-axes[0,1].loglog(data[:-110,0],data[:-110,3],label='total steps, cubic',alpha=0.7)
-axes[0,1].loglog(data2[:,0],data2[:,3],alpha=0.7,color='orange')
-axes[0,1].loglog(data[:,0],data[:,4],label='wkb steps, cubic',alpha=0.7,color='blue') 
-axes[0,1].loglog(data2[:,0],data2[:,4],alpha=0.7,color='blue')
-axes[0,1].loglog(data3[:,0],data3[:,3],label='total steps, linear',alpha=0.7,color='red') 
-axes[0,1].loglog(data4[:,0],data4[:,3],alpha=0.7,color='red')
-axes[0,1].loglog(data3[:,0],data3[:,4],label='wkb steps, linear',alpha=0.7,color='green') 
-axes[0,1].loglog(data4[:,0],data4[:,4],alpha=0.7,color='green')
-axes[0,1].set_title('Step breakdown')
-axes[0,1].legend()
-
-axes[1,0].loglog(data[:,0],data[:,5],color='blue',label='cubic spline',alpha=0.5)
-axes[1,0].loglog(data2[:,0],data2[:,5],color='blue',alpha=0.5)
-axes[1,0].loglog(data3[:,0],data3[:,5],color='orange',alpha=0.5)
-axes[1,0].loglog(data4[:,0],data4[:,5],color='orange',label='linear',alpha=0.5)
-axes[1,0].legend()
-axes[1,0].set_title('Total time')
-axes[1,0].set_ylabel('time/s')
-
-axes[0,0].set_title('PPS with different interpolation methods')
-axes[0,0].set_xlabel('k (Planck units)')
-axes[0,0].set_ylabel('$P_{\mathcal{R}_k}$')
-axes[0,0].legend()
-#plt.savefig('test/stepstot_cubic.pdf')
-plt.show()
-
-
-data = np.genfromtxt('test/timeinterp_cubic.txt')
-data2 = np.genfromtxt('test/timeinterp_linear.txt')
-plt.xlabel('total number of points, N')
-plt.ylabel('time/s')
-plt.title('Timing test of interpolating methods')
-plt.loglog(data[:,0],data[:,1],label='to create interp object, cubic')
-plt.loglog(data[:,0],data[:,2],label='to call, cubic')
-plt.loglog(data2[:,0],data2[:,1],label='to create interp object, linear')
-plt.loglog(data2[:,0],data2[:,2],label='to call, linear')
-plt.legend()
-plt.savefig('plots/interptimetest.pdf')
-plt.show()
