@@ -80,7 +80,33 @@ plt.xlabel('t')
 plt.savefig("plots/burstn40_err_fyrstyle.pdf")
 #plt.show()
 
-# Changing rtol at n=1e5, effect on relative error progression and timings
+# Large n example: number of oscillations traversed
+f = "plots/burstn1e5_tol-4.txt"
+n = 1e5
+data = np.loadtxt(f,dtype=complex,converters={1:parse_pair, 2:parse_pair})
+ts = data[:,0]
+xs = data[:,1]
+wkbs = data[:,-1]
+oscs = np.zeros(ts.size) 
+for i,t in enumerate(ts): 
+    if i!=0:
+        oscs[i] = ((n*np.arctan(t)/(2*np.pi))-(n*np.arctan(ts[i-1])/(2*np.pi)))
+    else:
+        oscs[i] = None
+
+plt.figure();
+plt.style.use("fyr")
+plt.semilogy(ts,oscs,color='black')
+plt.semilogy(ts[wkbs==1],oscs[wkbs==1],'.',label='WKB step',color='green')
+plt.semilogy(ts[wkbs==0],oscs[wkbs==0],'.',label='RK step',color='red')
+plt.xlim((-n,n))
+plt.xlabel('t')
+plt.ylim((1e-2,1e4))
+plt.ylabel('oscillations traversed')
+plt.legend()
+plt.savefig('plots/burstn1e5_oscs.pdf')
+
+# Changing rtol at n=1e5, effect on relative error progression 
 f1 = 'plots/burstn1e5_tol-4.txt'
 f2 = 'plots/burstn1e5_tol-5.txt'
 f3 = 'plots/burstn1e5_tol-6.txt'
@@ -116,7 +142,7 @@ plt.xlabel('t')
 plt.legend()
 plt.savefig("plots/burstn1e5_rtols.pdf")
 
-# Effect of changing rtol and n on runtime, steps 
+# Effect of changing rtol and n on runtime
 f1 = 'plots/bursttimingtol-4.txt'
 f2 = 'plots/bursttimingtol-5.txt'
 f3 = 'plots/bursttimingtol-6.txt'
@@ -127,16 +153,54 @@ ns = data1[:,0]
 t1 = data1[:,-1]
 t2 = data2[:,-1]
 t3 = data3[:,-1]
+pivot = t1[249]
+t1 = t1/pivot
+t2 = t2/pivot
+t3 = t3/pivot
 plt.figure()
 plt.style.use('fyr')
 plt.loglog(10**ns,t1,'-',color='black',label='rtol=$10^{-4}$')
 plt.loglog(10**ns,t2,'-.',color='black',label='rtol=$10^{-5}$')
 plt.loglog(10**ns,t3,'--',color='black',label='rtol=$10^{-6}$')
-plt.ylabel('runtime/ms')
-plt.xlabel('t')
+plt.loglog([10**ns[249],10**ns[249]],[0.3,1.0],'k:')
+plt.loglog([4.0,10**ns[249]],[1.0, 1.0], 'k:')
+plt.ylabel('relative runtime')
+plt.xlabel('n')
+plt.xlim((4.0,2.5*10**(10)))
+plt.ylim((0.3,4.5))
 plt.legend()
-plt.show()
+plt.savefig("plots/bursttiming.pdf")
 
+# Effect of changing n, rtol on number of steps
+f1 = 'plots/bursttimingtol-4_stepscorr.txt'
+f2 = 'plots/bursttimingtol-5_stepscorr.txt'
+f3 = 'plots/bursttimingtol-6_stepscorr.txt'
+data1 = np.loadtxt(f1, delimiter=',')
+data2 = np.loadtxt(f2, delimiter=',')
+data3 = np.loadtxt(f3, delimiter=',')
+ns = data1[:,0]
+ts1 = data1[:,1]
+#ts2 = data2[:,1]
+#ts3 = data3[:,1]
+ss1 = data1[:,2]
+#ss2 = data2[:,2]
+#ss3 = data3[:,2]
+wkbs1 = data1[:,3]
+#wkbs2 = data2[:,3]
+#wkbs3 = data3[:,3]
+plt.figure()
+plt.style.use('fyr')
+plt.loglog(10**ns,ts1,':',color='black',label='total steps')
+plt.loglog(10**ns,ss1,'-',color='black',label='accepted steps')
+plt.loglog(10**ns,wkbs1,'-',color='green',label='WKB steps')
+plt.loglog(10**ns,ss1-wkbs1,'-',color='red',label='RK steps')
+#plt.loglog(10**ns,t2,'-.',color='black',label='rtol=$10^{-5}$')
+#plt.loglog(10**ns,t3,'--',color='black',label='rtol=$10^{-6}$')
+#plt.loglog([10**ns[249],10**ns[249]],[0.3,1.0],'k:')
+plt.ylabel('number of steps')
+plt.xlabel('n')
+plt.legend()
+plt.savefig("plots/burststeps.pdf")
 
 
 
