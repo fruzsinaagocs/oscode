@@ -44,8 +44,8 @@ int main(){
    
     // Example with w(t), g(t) analytically given
     std::ofstream f;
-    int no = 500;
-    Eigen::VectorXd ns = Eigen::VectorXd::LinSpaced(no,1.0,10.0);
+    int no = 400;
+    Eigen::VectorXd rtols = Eigen::VectorXd::LinSpaced(no,-3.0,-7.0);
     std::vector<int> steps,totsteps,wkbsteps;
     std::vector<double> runtimes;
     std::complex<double> x0, dx0;
@@ -53,18 +53,17 @@ int main(){
     bool full_output = false;
     int order = 3;   
     for(int i=0; i<no; i++){
-        n = round(std::pow(10,ns(i)));
         std::cout << "n: " << n << std::endl;
         de_system sys(&wburst, &g0);
         ti = -2*n;
         tf = 2*n;
         x0 = xburst(ti); 
         dx0 = dxburst(ti); 
-        rtol = 1e-6;
+        rtol = std::pow(10, rtols(i));
         atol = 0.0;
         h0 = 1.0;
         runtime = 0.0;
-        for(int j=0; j<1; j++){
+        for(int j=0; j<100; j++){
             Solution solution(sys, x0, dx0, ti, tf, order, rtol, atol, h0, full_output); 
             auto t1 = std::chrono::high_resolution_clock::now();
             solution.solve();
@@ -83,12 +82,12 @@ int main(){
         std::cout << "steps: " << solution.totsteps << std::endl;
     };
     
-    f.open("plots/bursttimingtol-6_stepscorr.txt");
+    f.open("plots/bursttimingn1e5.txt");
     f << "# Testing how tolerance affects runtime in the burst equation\n" <<
-    "# tolerance rtol = " << rtol << "\n" << 
-    "# log10(n), total steps, successful steps, wkb steps" << std::endl;
+    "# n = " << n << "\n" << 
+    "# rtol, runtime/ms, total steps, successful steps, wkb steps" << std::endl;
     for(int i=0; i<no; i++){
-        f << std::setprecision(20) << ns(i) << ", " << totsteps[i] << ", " << steps[i] << ", " << wkbsteps[i] << std::endl;  
+        f << std::setprecision(20) << rtols(i) << ", " << runtimes[i] << ", " << totsteps[i] << ", " << steps[i] << ", " << wkbsteps[i] << std::endl;  
     };
     f.close();
     

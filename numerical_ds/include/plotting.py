@@ -137,6 +137,49 @@ plt.xlabel('t')
 plt.legend()
 plt.show()
 
+# Version 2 of the above plot - vary rtol rather than n
+from cycler import cycler
+grays = cycler(color=['0.00','0.20', '0.40', '0.50', '0.60', '0.70'])
+f1 = 'plots/bursttimingn1e1.txt'
+f2 = 'plots/bursttimingn1e2.txt'
+f3 = 'plots/bursttimingn1e3.txt'
+f4 = 'plots/bursttimingn1e4.txt'
+f5 = 'plots/bursttimingn1e5.txt'
+f6 = 'plots/bursttimingn1e6.txt'
+data1 = np.loadtxt(f1, delimiter=',')
+data2 = np.loadtxt(f2, delimiter=',')
+data3 = np.loadtxt(f3, delimiter=',')
+data4 = np.loadtxt(f4, delimiter=',')
+data5 = np.loadtxt(f5, delimiter=',')
+data6 = np.loadtxt(f6, delimiter=',')
+rtols = data1[:,0]
+t1 = data1[:,1]
+t2 = data2[:,1]
+t3 = data3[:,1]
+t4 = data4[:,1]
+t5 = data5[:,1]
+t6 = data6[:,1]
+pivot_t = t1[199]
+pivot_rtol = rtols[199]
+fig, ax = plt.subplots(1,1)
+plt.style.use('fyr')
+ax.set_prop_cycle(grays)
+plt.loglog(10**rtols,t1/pivot_t,label='n=$10^{1}$')
+plt.loglog(10**rtols,t2/pivot_t,label='n=$10^{2}$')
+plt.loglog(10**rtols,t3/pivot_t,label='n=$10^{3}$')
+plt.loglog(10**rtols,t4/pivot_t,label='n=$10^{4}$')
+plt.loglog(10**rtols,t5/pivot_t,label='n=$10^{5}$')
+plt.loglog(10**rtols,t6/pivot_t,label='n=$10^{6}$')
+plt.loglog([10**pivot_rtol, 10**pivot_rtol],[1e-1,1.0],':',color='black')
+plt.loglog([1e-7, 10**pivot_rtol],[1.0,1.0],':',color='black')
+plt.ylabel('relative runtime')
+plt.xlabel("relative tolerance `rtol'")
+plt.legend()
+plt.show()
+
+#plt.savefig('plots/bursttiming_rtol.pdf')
+
+
 
 
 
