@@ -46,8 +46,8 @@ def parse_pair(s):
 
 # Burst equation with w(t), g(t) given analytically
 # Single solution at low n 
-f1 = 'plots/burstn40.txt'
-n = 40.0 
+f1 = 'test/burst/logwinterp_n1e5.txt' #'plots/burstn40.txt'
+n = 1e5 
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair})
 times = np.linspace(-2*n,2*n,10000)
 analytic = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in times ])
@@ -62,12 +62,12 @@ plt.style.use('fyr')
 plt.plot(times,analytic, color='black',label='true solution')
 plt.plot(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
 plt.plot(t[wkb==0],x[wkb==0],'x',color='red',label='RK step')
-plt.xlim((-40,40))
-plt.ylim((-60,60))
+#plt.xlim((-40,40))
+#plt.ylim((-60,60))
 plt.xlabel('t')
 plt.ylabel('$\Re{\{x(t)\}}$')
 plt.legend()
-plt.savefig("plots/burstn40_x_fyrstyle.pdf")
+#plt.savefig("plots/burstn40_x_fyrstyle.pdf")
 plt.show()
 
 # Error progression in this example
@@ -77,8 +77,8 @@ plt.style.use('fyr')
 plt.semilogy(t,errs,'x-',color='black')
 plt.ylabel('relative error, $\\frac{|\Delta x|}{|x|}$')
 plt.xlabel('t')
-plt.savefig("plots/burstn40_err_fyrstyle.pdf")
-#plt.show()
+#plt.savefig("plots/burstn40_err_fyrstyle.pdf")
+plt.show()
 
 # Large n example: number of oscillations traversed
 f = "plots/burstn1e5_tol-4.txt"

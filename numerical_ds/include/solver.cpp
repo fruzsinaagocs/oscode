@@ -7,7 +7,7 @@
 #include <fstream>
 #include <string>
 
-double n = 40;
+double n = 1e5;
 
 std::complex<double> g0(double t){
     return 0.0;
@@ -43,25 +43,33 @@ std::complex<double> dxairy(double t){
 int main(){
      
     // Example of the same solution, but with t,w,g supplied as a grid
-    const int n = round(5e3);
-    double ti, tf;
+    const int no = round(5e4);
+    double ti, tf, rtol, atol, h0;
     std::complex<double> x0, dx0;
+    int order = 3;
+    bool full_output = true;
+    rtol = 1e-4;
+    atol = 0.0;
+    h0 = 1.0;
     ti = -2*n;
     tf = 2*n;
     x0 = xburst(ti);
     dx0 = dxburst(ti);
-    Eigen::VectorXd logts = Eigen::VectorXd::LinSpaced(n, -6, std::log10(2*n));
-    Eigen::Matrix<double,(2*n+1),1> Ts;
-    Ts << -logts.colwise().reverse(), -16.0, logts; 
+    Eigen::VectorXd logts = Eigen::VectorXd::LinSpaced(no, -6, std::log10(2*no));
+    Eigen::Matrix<double,(2*no+2),1> Ts;
+    Ts << logts.colwise().reverse(), -16.0, -16.0, logts; 
     Eigen::VectorXd ts = Ts;
-    Eigen::VectorXcd logws = Eigen::VectorXcd::Zero(2*n+1);
-    Eigen::VectorXcd gs = Eigen::VectorXcd::Zero(2*n+1); 
-    for(int i=0; i<(2*n+1); i++){
-        ts(i) = std::pow(10,ts(i));
+    Eigen::VectorXcd logws = Eigen::VectorXcd::Zero(2*no+2);
+    Eigen::VectorXcd gs = Eigen::VectorXcd::Zero(2*no+2); 
+    for(int i=0; i<(2*no+2); i++){
+        if(i<no+1)
+            ts(i) = -std::pow(10,ts(i));
+        else
+            ts(i) = std::pow(10,ts(i));
         logws(i) = std::log(std::pow(n*n - 1.0,0.5)/(1.0 + ts(i)*ts(i)));
     };
     de_system sys2(ts, logws, gs, true);
-    Solution solution2(sys2, x0, dx0, ti, tf);
+    Solution solution2(sys2, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
     auto t3 = std::chrono::high_resolution_clock::now();
     solution2.solve();
     auto t4 = std::chrono::high_resolution_clock::now();
