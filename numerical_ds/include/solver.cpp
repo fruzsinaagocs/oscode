@@ -7,7 +7,7 @@
 #include <fstream>
 #include <string>
 
-double n = 40.0;
+double n = 1e8;
 
 std::complex<double> g0(double t){
     return 0.0;
@@ -55,14 +55,14 @@ int main(){
     tf = 2*n;
     x0 = xburst(ti);
     dx0 = dxburst(ti);
-    Eigen::VectorXd logts = Eigen::VectorXd::LinSpaced(no, -6, std::log10(2*no));
+    Eigen::VectorXd logts = Eigen::VectorXd::LinSpaced(no, -6, std::log10(tf));
     Eigen::VectorXd Ts(2*no+2);
-    Ts << logts.colwise().reverse(), -16.0, -16.0, logts; 
+    Ts << logts.colwise().reverse(), -360.0, -360.0, logts; 
     Eigen::VectorXd ts = Ts;
     Eigen::VectorXcd logws = Eigen::VectorXcd::Zero(2*no+2);
     Eigen::VectorXcd gs = Eigen::VectorXcd::Zero(2*no+2); 
     for(int i=0; i<(2*no+2); i++){
-        if(i<no+1)
+        if(i<(no+1))
             ts(i) = -std::pow(10,ts(i));
         else
             ts(i) = std::pow(10,ts(i));
