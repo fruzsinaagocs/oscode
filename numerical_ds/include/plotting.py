@@ -46,8 +46,8 @@ def parse_pair(s):
 
 # Burst equation with w(t), g(t) given analytically
 # Single solution at low n 
-f1 = 'test/burst/logwinterp_n1e5.txt' #'plots/burstn40.txt'
-n = 1e5 
+f1 = 'test/burst/heapburst_n40.txt' #'plots/burstn40.txt'
+n = 40.0 
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair})
 times = np.linspace(-2*n,2*n,10000)
 analytic = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in times ])

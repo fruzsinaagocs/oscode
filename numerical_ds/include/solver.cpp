@@ -7,7 +7,7 @@
 #include <fstream>
 #include <string>
 
-double n = 1e5;
+double n = 40.0;
 
 std::complex<double> g0(double t){
     return 0.0;
@@ -43,7 +43,7 @@ std::complex<double> dxairy(double t){
 int main(){
      
     // Example of the same solution, but with t,w,g supplied as a grid
-    const int no = round(5e4);
+    const int no = round(9e5);
     double ti, tf, rtol, atol, h0;
     std::complex<double> x0, dx0;
     int order = 3;
@@ -56,7 +56,7 @@ int main(){
     x0 = xburst(ti);
     dx0 = dxburst(ti);
     Eigen::VectorXd logts = Eigen::VectorXd::LinSpaced(no, -6, std::log10(2*no));
-    Eigen::Matrix<double,(2*no+2),1> Ts;
+    Eigen::VectorXd Ts(2*no+2);
     Ts << logts.colwise().reverse(), -16.0, -16.0, logts; 
     Eigen::VectorXd ts = Ts;
     Eigen::VectorXcd logws = Eigen::VectorXcd::Zero(2*no+2);
