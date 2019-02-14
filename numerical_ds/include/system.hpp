@@ -10,13 +10,15 @@ class de_system
 
     public:
         // constructors
-        template<typename X, typename Y, typename Z> de_system(X ts, Y ws, Z gs);
+        template<typename X, typename Y, typename Z> de_system(X ts, Y ws, Z gs, bool isglogw=false, bool islogg=false);
         de_system(std::complex<double> (*w)(double), std::complex<double> (*g)(double));
-        de_system(Eigen::VectorXd ts, Eigen::VectorXcd ws, Eigen::VectorXcd gs);
+        de_system(const Eigen::VectorXd &ts, const Eigen::VectorXcd &ws, const Eigen::VectorXcd &gs, bool islogw=false, bool islogg=false);
         std::function<std::complex<double>(double)> w;
         std::function<std::complex<double>(double)> g;
         std::complex<double> _w(double);
         std::complex<double> _g(double);
+        std::complex<double> _logw(double);
+        std::complex<double> _logg(double);
         bool interp;
   
 };
@@ -30,7 +32,7 @@ de_system::de_system(std::complex<double> (*W)(double), std::complex<double>
         g = G;
     };
 
-de_system::de_system(Eigen::VectorXd ts, Eigen::VectorXcd ws, Eigen::VectorXcd gs){
+de_system::de_system(const Eigen::VectorXd &ts, const Eigen::VectorXcd &ws, const Eigen::VectorXcd &gs, bool islogw, bool islogg){
     
     interp = true;
     LinearInterpolator<double, std::complex<double>> winterp;
@@ -42,12 +44,17 @@ de_system::de_system(Eigen::VectorXd ts, Eigen::VectorXcd ws, Eigen::VectorXcd g
     };
     _winterp = winterp;
     _ginterp = ginterp;
-    w = std::bind(&de_system::_w, this, std::placeholders::_1);
-    g = std::bind(&de_system::_g, this, std::placeholders::_1);
-   
+    if(islogw)
+        w = std::bind(&de_system::_logw, this, std::placeholders::_1);
+    else
+        w = std::bind(&de_system::_w, this, std::placeholders::_1);
+    if(islogg)
+        g = std::bind(&de_system::_logg, this, std::placeholders::_1);
+    else
+        g = std::bind(&de_system::_g, this, std::placeholders::_1);
 };
 
-template<typename X, typename Y, typename Z> de_system::de_system(X ts, Y ws, Z gs){
+template<typename X, typename Y, typename Z> de_system::de_system(X ts, Y ws, Z gs, bool islogw, bool islogg){
     
     interp = true;
     LinearInterpolator<double, std::complex<double>> winterp;
@@ -64,9 +71,14 @@ template<typename X, typename Y, typename Z> de_system::de_system(X ts, Y ws, Z 
     };
     _winterp = winterp;
     _ginterp = ginterp;
-    w = std::bind(&de_system::_w, this, std::placeholders::_1);
-    g = std::bind(&de_system::_g, this, std::placeholders::_1);
-
+    if(islogw)
+        w = std::bind(&de_system::_logw, this, std::placeholders::_1);
+    else
+        w = std::bind(&de_system::_w, this, std::placeholders::_1);
+    if(islogg)
+        g = std::bind(&de_system::_logg, this, std::placeholders::_1);
+    else
+        g = std::bind(&de_system::_g, this, std::placeholders::_1);
 };
 
 std::complex<double> de_system::_w(double t){
@@ -75,5 +87,13 @@ std::complex<double> de_system::_w(double t){
 
 std::complex<double> de_system::_g(double t){
     return _ginterp(t);
+};
+
+std::complex<double> de_system::_logw(double t){
+    return std::exp(_winterp(t));
+};
+
+std::complex<double> de_system::_logg(double t){
+    return std::exp(_ginterp(t));
 };
 
