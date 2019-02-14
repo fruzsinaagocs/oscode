@@ -2,7 +2,7 @@
 #include <Eigen/Dense>
 #include <fstream>
 #include <iostream>
-#include <vector>
+#include <list>
 #include <string>
 #include <iomanip>
 #include <boost/math/special_functions/airy.hpp>
@@ -34,9 +34,9 @@ class Solution
     void solve();
     // stats
     int ssteps,totsteps,wkbsteps;
-    std::vector<std::complex<double>> sol, dsol;
-    std::vector<double> times;
-    std::vector<bool> wkbs;
+    std::list<std::complex<double>> sol, dsol;
+    std::list<double> times;
+    std::list<bool> wkbs;
 };
 
 
@@ -89,9 +89,9 @@ void Solution::solve(){
     h = h0;
     tnext = t+h;
     // Initialise stats
-    sol.emplace_back(x);
-    dsol.emplace_back(dx);
-    times.emplace_back(t);
+    sol.push_back(x);
+    dsol.push_back(dx);
+    times.push_back(t);
     ssteps = 0;
     totsteps = 0;
     wkbsteps = 0;
@@ -150,9 +150,9 @@ void Solution::solve(){
             // check if chosen step was successful
             if(hnext>=h){
                 //std::cout << "wkb: " << wkb << ", t: "<< tnext << ", x: " << xnext << ", dx: " << dxnext << std::endl;
-                sol.emplace_back(xnext);
-                dsol.emplace_back(dxnext);
-                times.emplace_back(tnext);
+                sol.push_back(xnext);
+                dsol.push_back(dxnext);
+                times.push_back(tnext);
                 tnext += hnext;
                 x = xnext;
                 dx = dxnext;
@@ -161,10 +161,10 @@ void Solution::solve(){
                 ssteps +=1;
                 if(wkb){
                     wkbsteps +=1;
-                    wkbs.emplace_back(true);
+                    wkbs.push_back(true);
                 }
                 else
-                    wkbs.emplace_back(false);
+                    wkbs.push_back(false);
                 break;
             }
             else{
@@ -187,23 +187,23 @@ void Solution::solve(){
     };
 
     // Write output to file if prompted
-    if(fo){
-        std::string output;
-        std::cout << "Please enter filename to print output to: " << std::endl;
-        std::cin >> output;
-        std::ofstream f;
-        f.open(output);
-        f << "# Summary:\n# total steps taken: " + std::to_string(totsteps) +
-        "\n# of which successful: " + std::to_string(ssteps) + "\n# of which"+
-        +"wkb: " + std::to_string(wkbsteps) + "\n# time, x, dx, wkb, Ai(-t)+i*Bi(-t)\n";
-        for(int i=0; i<=ssteps; i++)
-            f << std::setprecision(20) << times[i] << " " <<
-            std::setprecision(20) << sol[i] << " " << std::setprecision(20) <<
-            dsol[i] << " " << wkbs[i] 
-            //<< " " << std::setprecision(20) << std::complex<double>(boost::math::airy_ai(-times[i]), boost::math::airy_bi(-times[i])) 
-            //<< " " << std::setprecision(20) << -std::complex<double>(boost::math::airy_ai_prime(-times[i]), boost::math::airy_bi_prime(-times[i]))
-            << "\n"; 
-        f.close();
-    }
+    //if(fo){
+    //    std::string output;
+    //    std::cout << "Please enter filename to print output to: " << std::endl;
+    //    std::cin >> output;
+    //    std::ofstream f;
+    //    f.open(output);
+    //    f << "# Summary:\n# total steps taken: " + std::to_string(totsteps) +
+    //    "\n# of which successful: " + std::to_string(ssteps) + "\n# of which"+
+    //    +"wkb: " + std::to_string(wkbsteps) + "\n# time, x, dx, wkb, Ai(-t)+i*Bi(-t)\n";
+    //    for(int i=0; i<=ssteps; i++)
+    //        f << std::setprecision(20) << times[i] << " " <<
+    //        std::setprecision(20) << sol[i] << " " << std::setprecision(20) <<
+    //        dsol[i] << " " << wkbs[i] 
+    //        //<< " " << std::setprecision(20) << std::complex<double>(boost::math::airy_ai(-times[i]), boost::math::airy_bi(-times[i])) 
+    //        //<< " " << std::setprecision(20) << -std::complex<double>(boost::math::airy_ai_prime(-times[i]), boost::math::airy_bi_prime(-times[i]))
+    //        << "\n"; 
+    //    f.close();
+    //}
     
 };

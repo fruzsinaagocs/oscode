@@ -12,7 +12,7 @@ class de_system
         // constructors
         template<typename X, typename Y, typename Z> de_system(X ts, Y ws, Z gs, bool isglogw=false, bool islogg=false);
         de_system(std::complex<double> (*w)(double), std::complex<double> (*g)(double));
-        de_system(Eigen::VectorXd ts, Eigen::VectorXcd ws, Eigen::VectorXcd gs, bool islogw=false, bool islogg=false);
+        de_system(const Eigen::VectorXd &ts, const Eigen::VectorXcd &ws, const Eigen::VectorXcd &gs, bool islogw=false, bool islogg=false);
         std::function<std::complex<double>(double)> w;
         std::function<std::complex<double>(double)> g;
         std::complex<double> _w(double);
@@ -32,7 +32,7 @@ de_system::de_system(std::complex<double> (*W)(double), std::complex<double>
         g = G;
     };
 
-de_system::de_system(Eigen::VectorXd ts, Eigen::VectorXcd ws, Eigen::VectorXcd gs, bool islogw, bool islogg){
+de_system::de_system(const Eigen::VectorXd &ts, const Eigen::VectorXcd &ws, const Eigen::VectorXcd &gs, bool islogw, bool islogg){
     
     interp = true;
     LinearInterpolator<double, std::complex<double>> winterp;
