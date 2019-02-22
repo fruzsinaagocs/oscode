@@ -4,9 +4,8 @@
 class de_system
     {
     private:
-        // interpolator
         // interpolation checker
-        LinearInterpolator<double, std::complex<double>> _winterp, _ginterp;
+        
 
     public:
         // constructors
@@ -20,7 +19,7 @@ class de_system
         std::complex<double> _logw(double);
         std::complex<double> _logg(double);
         bool interp;
-  
+        LinearInterpolator<double, std::complex<double>> _winterp, _ginterp;
 };
     
 de_system::de_system(std::complex<double> (*W)(double), std::complex<double>
