@@ -28,7 +28,7 @@ class Solution
 
     public:
     // constructor
-    Solution(de_system de_sys, std::complex<double> x0, std::complex<double>
+    Solution(de_system &de_sys, std::complex<double> x0, std::complex<double>
     dx0, double t_i, double t_f, int o=3, double r_tol=1e-4, double a_tol=0.0,
     double h_0=1, bool full_output=false, bool interp=true);
     void solve();
@@ -40,7 +40,7 @@ class Solution
 };
 
 
-Solution::Solution(de_system de_sys, std::complex<double> x0,
+Solution::Solution(de_system &de_sys, std::complex<double> x0,
 std::complex<double> dx0, double t_i, double t_f, int o, double r_tol, double
 a_tol, double h_0, bool full_output, bool interp){
     
@@ -73,8 +73,8 @@ void Solution::solve(){
     int nrk, nwkb1, nwkb2;
     // Settings for MS
     nrk = 5;
-    nwkb1 = 1;
-    nwkb2 = 8;
+    nwkb1 = 2;//1;
+    nwkb2 = 4;//8;
     Eigen::Matrix<std::complex<double>,2,4> rkstep;
     Eigen::Matrix<std::complex<double>,3,2> wkbstep;
     Eigen::Matrix<std::complex<double>,1,2> rkx, wkbx;
@@ -120,8 +120,12 @@ void Solution::solve(){
             std::abs(wkberr(0))/std::abs(wkbx(0)),
             std::abs(wkberr(1))/std::abs(wkbx(1));
             rkdeltas << std::abs(rkerr(0))/std::abs(rkx(0)), std::abs(rkerr(1))/std::abs(rkx(1));
-            wkbdelta = std::max(1e-10, wkbdeltas.maxCoeff(&maxindex));
             rkdelta = std::max(1e-10, rkdeltas.maxCoeff()); 
+            if(isnan(wkbdeltas.maxCoeff())==false && isinf(std::real(wkbx(0)))==false && isinf(std::real(wkbx(1)))==false)
+                wkbdelta = std::max(1e-10, wkbdeltas.maxCoeff(&maxindex));
+            else
+                wkbdelta = 1e3*rkdelta;
+
             // predict next stepsize 
             hrk = h*std::pow((rtol/rkdelta),1.0/nrk);
             if(maxindex<=1)
@@ -187,23 +191,29 @@ void Solution::solve(){
     };
 
     // Write output to file if prompted
-    //if(fo){
-    //    std::string output;
-    //    std::cout << "Please enter filename to print output to: " << std::endl;
-    //    std::cin >> output;
-    //    std::ofstream f;
-    //    f.open(output);
-    //    f << "# Summary:\n# total steps taken: " + std::to_string(totsteps) +
-    //    "\n# of which successful: " + std::to_string(ssteps) + "\n# of which"+
-    //    +"wkb: " + std::to_string(wkbsteps) + "\n# time, x, dx, wkb, Ai(-t)+i*Bi(-t)\n";
-    //    for(int i=0; i<=ssteps; i++)
-    //        f << std::setprecision(20) << times[i] << " " <<
-    //        std::setprecision(20) << sol[i] << " " << std::setprecision(20) <<
-    //        dsol[i] << " " << wkbs[i] 
-    //        //<< " " << std::setprecision(20) << std::complex<double>(boost::math::airy_ai(-times[i]), boost::math::airy_bi(-times[i])) 
-    //        //<< " " << std::setprecision(20) << -std::complex<double>(boost::math::airy_ai_prime(-times[i]), boost::math::airy_bi_prime(-times[i]))
-    //        << "\n"; 
-    //    f.close();
-    //}
+    if(fo){
+        std::string output;
+        std::cout << "Please enter filename to print output to: " << std::endl;
+        std::cin >> output;
+        std::ofstream f;
+        f.open(output);
+        f << "# Summary:\n# total steps taken: " + std::to_string(totsteps) +
+        "\n# of which successful: " + std::to_string(ssteps) + "\n# of which"+
+        +"wkb: " + std::to_string(wkbsteps) + "\n# time, x, dx, wkb, Ai(-t)+i*Bi(-t)\n";
+        auto it_t = times.begin();
+        auto it_w = wkbs.begin();
+        auto it_x = sol.begin();
+        auto it_dx = dsol.begin();
+        for(int i=0; i<=ssteps; i++){
+            f << std::setprecision(20) << *it_t << " " <<
+            std::setprecision(20) << *it_x << " " << std::setprecision(20) <<
+            *it_dx << " " << *it_w << "\n"; 
+            ++it_t;
+            ++it_x;
+            ++it_dx;
+            ++it_w;
+        };
+        f.close();
+    }
     
 };

@@ -83,7 +83,7 @@ class WKBSolver
     public:
     // constructor
     WKBSolver();
-    WKBSolver(de_system, int);
+    WKBSolver(de_system &de_sys, int order);
     Eigen::Matrix<std::complex<double>,3,2> step(std::complex<double> x0,
     std::complex<double> dx0, double t0, double h0, const
     Eigen::Matrix<std::complex<double>,6,1> &ws, const
@@ -96,7 +96,7 @@ class WKBSolver
 WKBSolver::WKBSolver(){
 };
 
-WKBSolver::WKBSolver(de_system de_sys, int order){
+WKBSolver::WKBSolver(de_system &de_sys, int order){
 
     // Set order
     order_ = order;
@@ -376,14 +376,14 @@ class WKBSolver1 : public WKBSolver
 
     public:
         WKBSolver1();
-        WKBSolver1(de_system, int);
+        WKBSolver1(de_system &de_sys, int order);
 
 };
 
 WKBSolver1::WKBSolver1(){
 };
 
-WKBSolver1::WKBSolver1(de_system de_sys, int order) : WKBSolver(de_sys, order){
+WKBSolver1::WKBSolver1(de_system &de_sys, int order) : WKBSolver(de_sys, order){
 };
 
 void WKBSolver1::dds(){
@@ -421,14 +421,14 @@ class WKBSolver2 : public WKBSolver
 
     public:
         WKBSolver2();
-        WKBSolver2(de_system, int);
+        WKBSolver2(de_system &de_sys, int order);
 
 };
 
 WKBSolver2::WKBSolver2(){
 };
 
-WKBSolver2::WKBSolver2(de_system de_sys, int order) : WKBSolver(de_sys, order){
+WKBSolver2::WKBSolver2(de_system &de_sys, int order) : WKBSolver(de_sys, order){
 };
 
 void WKBSolver2::dds(){
@@ -482,14 +482,14 @@ class WKBSolver3 : public WKBSolver
 
     public:
         WKBSolver3();
-        WKBSolver3(de_system, int);
+        WKBSolver3(de_system &de_sys, int);
 
 };
 
 WKBSolver3::WKBSolver3(){
 };
 
-WKBSolver3::WKBSolver3(de_system de_sys, int order) : WKBSolver(de_sys, order){
+WKBSolver3::WKBSolver3(de_system &de_sys, int order) : WKBSolver(de_sys, order){
 };
 
 void WKBSolver3::dds(){

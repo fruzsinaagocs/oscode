@@ -18,7 +18,7 @@ class RKSolver
     public:
     // constructors
     RKSolver();
-    RKSolver(de_system);
+    RKSolver(de_system &de_sys);
     // grid of ws, gs
     Eigen::Matrix<std::complex<double>,6,1> ws, gs;
     Eigen::Matrix<std::complex<double>,5,1> ws5, gs5;
@@ -33,7 +33,7 @@ class RKSolver
 RKSolver::RKSolver(){
 };
 
-RKSolver::RKSolver(de_system de_sys){
+RKSolver::RKSolver(de_system &de_sys){
     
     // Set frequency and friction terms
     RKSolver::w = de_sys.w;
