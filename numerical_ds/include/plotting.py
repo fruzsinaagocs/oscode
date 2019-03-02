@@ -5,6 +5,11 @@ import numpy as np
 import scipy.special as sp
 import re
 
+# To parse complex numbers of the form (a,b) from file
+pair = re.compile(r'\(([^,\)]+),([^,\)]+)\)')
+def parse_pair(s):
+    return complex(*map(float, pair.match(s).groups()))
+
 # Airy equation with w(t), g(t) given analytically
 f1 = 'test/airy/airycorr_o1.txt'
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair, 4:parse_pair, 5:parse_pair})
@@ -39,14 +44,9 @@ axes[1].set_title('Relative error')
 plt.show()
 
 
-# To parse complex numbers of the form (a,b) from file
-pair = re.compile(r'\(([^,\)]+),([^,\)]+)\)')
-def parse_pair(s):
-    return complex(*map(float, pair.match(s).groups()))
-
 # Burst equation with w(t), g(t) given analytically
 # Single solution at low n 
-f1 = 'test/burst/heapburst_n40.txt' #'plots/burstn40.txt'
+f1 = 'test/burst/d4w1less_n40.txt' #'plots/burstn40.txt'
 n = 40.0 
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair})
 times = np.linspace(-2*n,2*n,10000)
@@ -243,8 +243,88 @@ plt.legend()
 plt.show()
 #plt.savefig('plots/bursttiming_rtol.pdf')
 
+# Mukhanov--Sasaki equation
+# NAG files: ms1 has k=0.1, ms2 k=10.0, ms3 k=0.03
 
+fsolver = "test/ms/ms-singlek-k5e-1.txt"
+fnag = "test/ms/nag-ms-k5e-1.txt"
+dsolver = np.loadtxt(fsolver,dtype=complex,converters={1:parse_pair, 2:parse_pair})
+dnag = np.loadtxt(fnag,delimiter=",")
+t = dsolver[:,0]
+x = dsolver[:,1]
+dx = dsolver[:,2]
+wkb = dsolver[:,3]
+tnag = dnag[:,0]
+xnag = dnag[:,1]
 
+plt.figure()
+plt.style.use('fyr')
+plt.semilogx(tnag,xnag, color='black',label='true solution', lw=0.5)
+plt.semilogx(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
+plt.semilogx(t[wkb==0],x[wkb==0],'x',color='red',label='RK step')
+plt.xlim((9900,2e5))
+#plt.ylim((-60,60))
+plt.xlabel('t')
+plt.ylabel('$\Re{\{x(t)\}}$')
+plt.legend()
+plt.savefig("plots/ms-k51e-1.pdf")
+#plt.show()
+
+# PPS
+f = "test/ms/pps-timed.txt"
+data = np.genfromtxt(f,delimiter=",",dtype=float,missing_values='nan',filling_values=0.0)
+k = data[:,0]
+phd = data[:,1]
+prst = data[:,2]
+plt.figure()
+plt.style.use("default")
+plt.xlabel("k")
+plt.ylabel("P_{\mathcal{R}}(k)")
+plt.loglog(k, phd, '-',label='hd')
+plt.loglog(k, prst, '-',label='rst')
+plt.legend()
+#plt.show()
+plt.savefig("plots/example-pps.pdf")
+
+# Timing comparison with BINGO 
+from cycler import cycler
+grays = cycler(color=['0.00','0.40', '0.60', '0.50', '0.60', '0.70'])
+
+fsolver = "test/ms/pps-timed.txt"
+fbingo1 = "plots/bingo-pps-1e2.txt"
+fbingo2 = "plots/bingo-pps-1e3.txt"
+dsolver = np.genfromtxt(fsolver,delimiter=",")
+dbingo1 = np.genfromtxt(fbingo1)
+dbingo2 = np.genfromtxt(fbingo2)
+k = dsolver[:,0]
+t = dsolver[:,-1]
+kbingo1 = dbingo1[:,0]
+tbingo1 = dbingo1[:,-1]
+kbingo2 = dbingo2[:,0]
+tbingo2 = dbingo2[:,-1]
+
+fig,ax=plt.subplots(1,1)
+ax.set_prop_cycle(grays)
+plt.style.use('fyr')
+plt.loglog(kbingo1,tbingo1,'.',label='BINGO - $k/aH=10^2$ start')
+plt.loglog(kbingo2,tbingo2,'.',label='BINGO - $k/aH=10^3$ start')
+plt.loglog(k,t,'.',label='RKWKB')
+plt.xlabel('k')
+plt.ylabel('runtime/s')
+plt.legend()
+plt.show()
+plt.savefig("plots/bingo-rkwkb-abst.pdf")
+
+fig,ax=plt.subplots(1,1)
+ax.set_prop_cycle(grays)
+plt.style.use('fyr')
+plt.loglog(kbingo1,tbingo1/t,'.',label='$k/aH=10^2$ start')
+plt.loglog(kbingo1,tbingo2/t,'.',label='$k/aH=10^3$ start')
+plt.xlabel('k')
+plt.ylabel('$t_{\mathrm{BINGO}}/t_{\mathrm{RKWKB}}$')
+plt.legend()
+plt.show()
+plt.savefig("plots/bing-rkwkb-relt.pdf")
 
 
 
