@@ -1,5 +1,5 @@
 CXX = mpiCC
-CXXFLAGS = -g -Wall -std=c++11 -O3
+CXXFLAGS = -g -Wall -std=c++11 -stdlib=libc++ -std=gnu++14 -O3
 naginc = /home/fruzsina/NAG/cll6i261dl/include
 nagshare = /home/fruzsina/NAG/cll6i261dl/lib/libnagc_nag.so
 deps =  system.hpp rksolver.hpp wkbsolver.hpp interpolator.hpp solver.hpp
