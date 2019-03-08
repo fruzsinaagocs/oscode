@@ -277,11 +277,11 @@ k = data[:,0]
 phd = data[:,1]
 prst = data[:,2]
 plt.figure()
-plt.style.use("default")
+plt.style.use("fyr")
 plt.xlabel("k")
-plt.ylabel("P_{\mathcal{R}}(k)")
-plt.loglog(k, phd, '-',label='hd')
-plt.loglog(k, prst, '-',label='rst')
+plt.ylabel("$P_{\mathcal{R}}(k)$")
+plt.loglog(k, phd, '-',label='HD',color='gray')
+plt.loglog(k, prst, '-',label='RST')
 plt.legend()
 #plt.show()
 plt.savefig("plots/example-pps.pdf")
@@ -326,10 +326,58 @@ plt.legend()
 plt.show()
 plt.savefig("plots/bing-rkwkb-relt.pdf")
 
+# Plot of quadratic potential with a step
+# Params:
+# phi_0: location of step, BINGO default: 14.668
+# alpha: height of step, BINGO: 0.001606
+# delta_phi: width of step, BINGO: 0.031108
+# m: mass of inflaton field, BINGO: 7.15e-6
 
+m = 7.15e-6
+phi_0 = 23.0
+alpha = 0.002
+delta_phi = 0.03
+phi = np.linspace(25,0,5000)
+V = 0.5*m**2*phi**2*(1.0+alpha*np.tanh((phi-phi_0)/delta_phi))
+fig,ax=plt.subplots(1,1)
+plt.plot(phi, V)
+plt.show()
 
+# PPS with quadratic step in potential
+f1 = "test/ms/pps-quadratic-hankel-3-rtol5.txt"
+f2 = "test/ms/pps-quadstep-hankel-3-rtol5_opt.txt"
+data1 = np.loadtxt(f1,delimiter=", ",dtype=complex,converters={1:parse_pair, 2:parse_pair})
+data2 = np.loadtxt(f2,delimiter=", ",dtype=complex,converters={1:parse_pair, 2:parse_pair})
+k1 = data1[:,0]
+phd1 = data1[:,3]
+prst1 = data1[:,4]
+pkd1 = data1[:,5]
+k2 = data2[:,0]
+phd2 = data2[:,3]
+prst2 = data2[:,4]
+pkd2 = data2[:,5]
+plt.figure()
+plt.style.use("default")
+plt.xlabel("k")
+plt.ylabel("$P_{\mathcal{R}}(k)$")
+#plt.loglog(k1, phd1, '-',label='hd - quadratic')
+#plt.loglog(k2, phd2, '-',label='hd - step')
+#plt.loglog(k1, prst1, '-',label='rst - quadratic')
+#plt.loglog(k2, prst2, '-',label='rst - step')
+#plt.loglog(k1, pkd1, label='kd - quadratic')
+plt.loglog(k2, pkd2, label='kd - optimised')
+plt.legend()
+plt.tight_layout()
+plt.show()
+#plt.savefig("plots/pps-kd-step-comparison.pdf")
 
-
+# Background
+f = "test/ms/pps-quadstep-3-bg.txt"
+data = np.genfromtxt(f,delimiter=',')
+t = data[:,0]
+phi = data[:,1]
+plt.semilogx(t,phi)
+plt.show()
 
 
 

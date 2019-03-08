@@ -44,9 +44,9 @@ class WKBSolver
     void bp();
     void bm();
     // Gauss-Lobatto integration
-    Eigen::Matrix<std::complex<double>,2,1> integrate(const
-    Eigen::Matrix<std::complex<double>,6,1> &integrand6, const
-    Eigen::Matrix<std::complex<double>,5,1> &integrand5);
+    Eigen::Matrix<double,2,1> integrate(const
+    Eigen::Matrix<double,6,1> &integrand6, const
+    Eigen::Matrix<double,5,1> &integrand5);
 
     // Gauss-Lobatto n=6, 5 weights
     Eigen::Matrix<double,6,1> glws6;
@@ -57,15 +57,15 @@ class WKBSolver
     d2w1_w, d2w6_w, d3w1_w, d3w6_w, d1g1_w, d1g6_w, d2g1_w, d2g6_w, d3g1_w;
     Eigen::Matrix<double,5,1> d1w2_5_w, d1w3_5_w, d1w4_5_w;
     // grid of ws, gs
-    Eigen::Matrix<std::complex<double>,7,1> ws7_;
-    Eigen::Matrix<std::complex<double>,6,1> ws_, gs_;
-    Eigen::Matrix<std::complex<double>,5,1> ws5_, gs5_;
+    Eigen::Matrix<double,7,1> ws7_;
+    Eigen::Matrix<double,6,1> ws_, gs_;
+    Eigen::Matrix<double,5,1> ws5_, gs5_;
     // derivatives
-    std::complex<double> d1w1_, d1w2_, d1w3_, d1w4_, d1w5_, d1w6_, d2w1_, d2w6_,
+    double d1w1_, d1w2_, d1w3_, d1w4_, d1w5_, d1w6_, d2w1_, d2w6_,
     d3w1_, d3w6_, d4w1_, d1g1_, d1g6_, d2g1_, d2g6_, d3g1_; 
-    std::complex<double> d1w2_5_, d1w3_5_, d1w4_5_;
-    Eigen::Matrix<std::complex<double>,6,1> dws_;
-    Eigen::Matrix<std::complex<double>,5,1> dws5_;
+    double d1w2_5_, d1w3_5_, d1w4_5_;
+    Eigen::Matrix<double,6,1> dws_;
+    Eigen::Matrix<double,5,1> dws5_;
     // WKB series and their derivatives
     Eigen::Matrix<std::complex<double>,1,4> dds_, dsi_, dsf_, s_; 
     // Error in WKB series
@@ -86,10 +86,10 @@ class WKBSolver
     WKBSolver(de_system &de_sys, int order);
     Eigen::Matrix<std::complex<double>,3,2> step(std::complex<double> x0,
     std::complex<double> dx0, double t0, double h0, const
-    Eigen::Matrix<std::complex<double>,6,1> &ws, const
-    Eigen::Matrix<std::complex<double>,6,1> &gs, const
-    Eigen::Matrix<std::complex<double>,5,1> &ws5, const
-    Eigen::Matrix<std::complex<double>,5,1> &gs5); 
+    Eigen::Matrix<double,6,1> &ws, const
+    Eigen::Matrix<double,6,1> &gs, const
+    Eigen::Matrix<double,5,1> &ws5, const
+    Eigen::Matrix<double,5,1> &gs5); 
 
 };
 
@@ -148,10 +148,10 @@ WKBSolver::WKBSolver(de_system &de_sys, int order){
 
 Eigen::Matrix<std::complex<double>,3,2> WKBSolver::step(std::complex<double> x0,
 std::complex<double> dx0, double t0, double h0, const
-Eigen::Matrix<std::complex<double>,6,1> &ws, const
-Eigen::Matrix<std::complex<double>,6,1> &gs, const
-Eigen::Matrix<std::complex<double>,5,1> &ws5, const
-Eigen::Matrix<std::complex<double>,5,1> &gs5){
+Eigen::Matrix<double,6,1> &ws, const
+Eigen::Matrix<double,6,1> &gs, const
+Eigen::Matrix<double,5,1> &ws5, const
+Eigen::Matrix<double,5,1> &gs5){
     
     Eigen::Matrix<std::complex<double>,3,2> result;
     result << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
@@ -209,14 +209,13 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
 
     return result;
 };
-
-Eigen::Matrix<std::complex<double>,2,1> WKBSolver::integrate(const
-Eigen::Matrix<std::complex<double>,6,1> &integrand6, const
-Eigen::Matrix<std::complex<double>,5,1> &integrand5){
+Eigen::Matrix<double,2,1> WKBSolver::integrate(const
+Eigen::Matrix<double,6,1> &integrand6, const
+Eigen::Matrix<double,5,1> &integrand5){
     
-    std::complex<double> x6 = h/2.0*glws6.dot(integrand6);
-    std::complex<double> x5 = h/2.0*glws5.dot(integrand5);
-    Eigen::Matrix<std::complex<double>,2,1> result;
+    double x6 = h/2.0*glws6.dot(integrand6);
+    double x5 = h/2.0*glws5.dot(integrand5);
+    Eigen::Matrix<double,2,1> result;
     result << x6, x6-x5;
     return result;
 };
@@ -451,8 +450,8 @@ void WKBSolver2::dsf(){
 
 void WKBSolver2::s(){
     Eigen::Matrix<std::complex<double>,2,1> s0, s1, s2;  
-    Eigen::Matrix<std::complex<double>,6,1> integrand6;
-    Eigen::Matrix<std::complex<double>,5,1> integrand5;
+    Eigen::Matrix<double,6,1> integrand6;
+    Eigen::Matrix<double,5,1> integrand5;
     integrand6 = 4*gs_.cwiseProduct(gs_).cwiseQuotient(ws_) +
     4*dws_.cwiseProduct(gs_).cwiseQuotient(ws_.cwiseProduct(ws_)) +
     dws_.cwiseProduct(dws_).cwiseQuotient(ws_.cwiseProduct(ws_.cwiseProduct(ws_)));
@@ -494,33 +493,33 @@ WKBSolver3::WKBSolver3(de_system &de_sys, int order) : WKBSolver(de_sys, order){
 
 void WKBSolver3::dds(){
     dds_ << std::complex<double>(0,1)*d1w1_,
-    1.0/std::pow(ws_(0),2)*std::pow(d1w1_,2)/2.0-1.0/ws_(0)*d2w1_/2.0-d1g1_,
-    -std::complex<double>(0,1.0/8.0)*(8.0*d1g1_*gs_(0)*std::pow(ws_(0),3)-4.0*d1w1_*std::pow(gs_(0),2)*std::pow(ws_(0),2)+4.0*d2g1_*std::pow(ws_(0),3)-4.0*d1w1_*d1g1_*std::pow(ws_(0),2)+2.0*d3w1_*std::pow(ws_(0),2)-10.0*d1w1_*d2w1_*ws_(0)+9.0*std::pow(d1w1_,3))/std::pow(ws_(0),4),
-    (d4w1_*std::pow(ws_(0),3)+2.0*d3g1_*std::pow(ws_(0),4)-9.0*d1w1_*d3w1_*std::pow(ws_(0),2)-6.0*std::pow(d2w1_,2)*std::pow(ws_(0),2) + (42.0*ws_(0)*std::pow(d1w1_,2)-4.0*std::pow(ws_(0),3)*(std::pow(gs_(0),2)+d1g1_))*d2w1_+(4.0*gs_(0)*std::pow(ws_(0),4)-8.0*std::pow(ws_(0),3)*d1w1_)*d2g1_-30.0*std::pow(d1w1_,4)+12.0*std::pow(ws_(0),2)*(std::pow(gs_(0),2)+d1g1_)*std::pow(d1w1_,2)-16.0*d1w1_*d1g1_*gs_(0)*std::pow(ws_(0),3)+4.0*std::pow(d1g1_,2)*std::pow(ws_(0),4))/std::pow(ws_(0),6)/8.0;
+    1.0/(ws_(0)*ws_(0))*(d1w1_*d1w1_)/2.0-1.0/ws_(0)*d2w1_/2.0-d1g1_,
+    -std::complex<double>(0,1.0/8.0)*(8.0*d1g1_*gs_(0)*(ws_(0)*ws_(0)*ws_(0))-4.0*d1w1_*(gs_(0)*gs_(0))*ws_(0)*ws_(0)+4.0*d2g1_*(ws_(0)*ws_(0)*ws_(0))-4.0*d1w1_*d1g1_*ws_(0)*ws_(0)+2.0*d3w1_*ws_(0)*ws_(0)-10.0*d1w1_*d2w1_*ws_(0)+9.0*(d1w1_*d1w1_*d1w1_))/(ws_(0)*ws_(0)*ws_(0)*ws_(0)),
+    (d4w1_*(ws_(0)*ws_(0)*ws_(0))+2.0*d3g1_*(ws_(0)*ws_(0)*ws_(0)*ws_(0))-9.0*d1w1_*d3w1_*ws_(0)*ws_(0)-6.0*(d2w1_*d2w1_)*ws_(0)*ws_(0) + (42.0*ws_(0)*(d1w1_*d1w1_)-4.0*(ws_(0)*ws_(0)*ws_(0))*((gs_(0)*gs_(0))+d1g1_))*d2w1_+(4.0*gs_(0)*(ws_(0)*ws_(0)*ws_(0)*ws_(0))-8.0*(ws_(0)*ws_(0)*ws_(0))*d1w1_)*d2g1_-30.0*(d1w1_*d1w1_*d1w1_*d1w1_)+12.0*ws_(0)*ws_(0)*((gs_(0)*gs_(0))+d1g1_)*(d1w1_*d1w1_)-16.0*d1w1_*d1g1_*gs_(0)*(ws_(0)*ws_(0)*ws_(0))+4.0*(d1g1_*d1g1_)*(ws_(0)*ws_(0)*ws_(0)*ws_(0)))/(ws_(0)*ws_(0)*ws_(0)*ws_(0)*ws_(0)*ws_(0))/8.0;
 };
 
 void WKBSolver3::dsi(){
     dsi_ << std::complex<double>(0,1)*ws_(0),-1.0/ws_(0)*d1w1_/2.0-gs_(0),
-    std::complex<double>(0,1.0/8.0)*(-4.0*std::pow(gs_(0),2)*std::pow(ws_(0),2)-4.0*d1g1_*std::pow(ws_(0),2)-2.0*d2w1_
-    *ws_(0)+3.0*std::pow(d1w1_,2))/std::pow(ws_(0),3) ,
-    (d3w1_*std::pow(ws_(0),2)+2.0*d2g1_*std::pow(ws_(0),3)-6.0*d1w1_*d2w1_*ws_(0)+
-    6.0*std::pow(d1w1_,3)-4.0*(std::pow(gs_(0),2)+d1g1_)*std::pow(ws_(0),2)*d1w1_+4.0*d1g1_
-    *gs_(0)*std::pow(ws_(0),3))/std::pow(ws_(0),5)/8.0;
+    std::complex<double>(0,1.0/8.0)*(-4.0*(gs_(0)*gs_(0))*ws_(0)*ws_(0)-4.0*d1g1_*ws_(0)*ws_(0)-2.0*d2w1_
+    *ws_(0)+3.0*(d1w1_*d1w1_))/(ws_(0)*ws_(0)*ws_(0)) ,
+    (d3w1_*ws_(0)*ws_(0)+2.0*d2g1_*(ws_(0)*ws_(0)*ws_(0))-6.0*d1w1_*d2w1_*ws_(0)+
+    6.0*(d1w1_*d1w1_*d1w1_)-4.0*((gs_(0)*gs_(0))+d1g1_)*ws_(0)*ws_(0)*d1w1_+4.0*d1g1_
+    *gs_(0)*(ws_(0)*ws_(0)*ws_(0)))/(ws_(0)*ws_(0)*ws_(0)*ws_(0)*ws_(0))/8.0;
 };
 
 void WKBSolver3::dsf(){
     dsf_ << std::complex<double>(0,1)*ws_(5),-1.0/ws_(5)*d1w6_/2.0-gs_(5),
-    std::complex<double>(0,1.0/8.0)*(-4.0*std::pow(gs_(5),2)*std::pow(ws_(5),2)-4.0*d1g6_*std::pow(ws_(5),2)-2.0*d2w6_
-    *ws_(5)+3.0*std::pow(d1w6_,2))/std::pow(ws_(5),3) ,
-    (d3w6_*std::pow(ws_(5),2)+2.0*d2g6_*std::pow(ws_(5),3)-6.0*d1w6_*d2w6_*ws_(5)+
-    6.0*std::pow(d1w6_,3)-4.0*(std::pow(gs_(5),2)+d1g6_)*std::pow(ws_(5),2)*d1w6_+4.0*d1g6_
-    *gs_(5)*std::pow(ws_(5),3))/std::pow(ws_(5),5)/8.0;
+    std::complex<double>(0,1.0/8.0)*(-4.0*(gs_(5)*gs_(5))*(ws_(5)*ws_(5))-4.0*d1g6_*(ws_(5)*ws_(5))-2.0*d2w6_
+    *ws_(5)+3.0*(d1w6_*d1w6_))/(ws_(5)*ws_(5)*ws_(5)) ,
+    (d3w6_*(ws_(5)*ws_(5))+2.0*d2g6_*(ws_(5)*ws_(5)*ws_(5))-6.0*d1w6_*d2w6_*ws_(5)+
+    6.0*(d1w6_*d1w6_*d1w6_)-4.0*((gs_(5)*gs_(5))+d1g6_)*(ws_(5)*ws_(5))*d1w6_+4.0*d1g6_
+    *gs_(5)*(ws_(5)*ws_(5)*ws_(5)))/(ws_(5)*ws_(5)*ws_(5)*ws_(5)*ws_(5))/8.0;
 };
 
 void WKBSolver3::s(){
     Eigen::Matrix<std::complex<double>,2,1> s0, s1, s2;  
-    Eigen::Matrix<std::complex<double>,6,1> integrand6;
-    Eigen::Matrix<std::complex<double>,5,1> integrand5;
+    Eigen::Matrix<double,6,1> integrand6;
+    Eigen::Matrix<double,5,1> integrand5;
     integrand6 = 4.0*gs_.cwiseProduct(gs_).cwiseQuotient(ws_) +
     4.0*dws_.cwiseProduct(gs_).cwiseQuotient(ws_.cwiseProduct(ws_)) +
     dws_.cwiseProduct(dws_).cwiseQuotient(ws_.cwiseProduct(ws_.cwiseProduct(ws_)));
@@ -531,13 +530,13 @@ void WKBSolver3::s(){
     s1 << integrate(gs_, gs5_);
     s1(0) = std::log(std::sqrt(ws_(0)/ws_(5))) - s1(0);
     s2 << integrate(integrand6, integrand5);
-    s2(0) = -1/4.0*(dws_(5)/std::pow(ws_(5),2)+2.0*gs_(5)/ws_(5)-
-        dws_(0)/std::pow(ws_(0),2)-2.0*gs_(0)/ws_(0))-1/8.0*s2(0);
-    std::complex<double> s3 = (1/4.0*(std::pow(gs_(5),2)/std::pow(ws_(5),2) -
-    std::pow(gs_(0),2)/std::pow(ws_(0),2)) + 1/4.0*(d1g6_/std::pow(ws_(5),2) -
-    d1g1_/std::pow(ws_(0),2))-3/16.0*(std::pow(dws_(5),2)/std::pow(ws_(5),4) -
-    std::pow(dws_(0),2)/std::pow(ws_(0),4)) + 1/8.0*(d2w6_/std::pow(ws_(5),3) -
-    d2w1_/std::pow(ws_(0),3)));
+    s2(0) = -1/4.0*(dws_(5)/(ws_(5)*ws_(5))+2.0*gs_(5)/ws_(5)-
+        dws_(0)/(ws_(0)*ws_(0))-2.0*gs_(0)/ws_(0))-1/8.0*s2(0);
+    std::complex<double> s3 = (1/4.0*(gs_(5)*gs_(5)/(ws_(5)*ws_(5)) -
+    gs_(0)*gs_(0)/(ws_(0)*ws_(0))) + 1/4.0*(d1g6_/(ws_(5)*ws_(5)) -
+    d1g1_/(ws_(0)*ws_(0)))-3/16.0*(dws_(5)*dws_(5)/(ws_(5)*ws_(5)*ws_(5)*ws_(5)) -
+    dws_(0)*dws_(0)/(ws_(0)*ws_(0)*ws_(0)*ws_(0))) + 1/8.0*(d2w6_/(ws_(5)*ws_(5)*ws_(5)) -
+    d2w1_/(ws_(0)*ws_(0)*ws_(0))));
     s_ << s0(0), s1(0), std::complex<double>(0,1)*s2(0), s3;
     s_error << s0(1), s1(1), std::complex<double>(0,-1.0/8.0)*s2(1), 0.0;
 };

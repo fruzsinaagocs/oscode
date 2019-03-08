@@ -7,43 +7,64 @@
 #include <fstream>
 #include <Eigen/Dense>
 #include <chrono>
+#include <valgrind/callgrind.h>
+#include <boost/math/special_functions/bessel_prime.hpp>
+#include <boost/math/special_functions/bessel.hpp>
 #include "interpolator.hpp"
 #include "system.hpp"
 #include "solver.hpp"
 #include "mpi.h"
-
 int nv=2;
 double m=4.51e-6;
 double k;
 double phi_p=23.293;
 double mp=1;
-LinearInterpolator<double, std::complex<double>> winterp, ginterp;
+double alpha=0.005;
+double phi_s=22.50;
+double delta_phi=0.03;
+
+LinearInterpolator<double, double> winterp, ginterp;
+
+
+std::complex<double> hankel1_0(double x){
+    return std::complex<double>(boost::math::cyl_bessel_j(0,x), boost::math::cyl_neumann(0,x));
+};
+
+std::complex<double> hankel1_0_prime(double x){
+    return std::complex<double>(boost::math::cyl_bessel_j_prime(0,x), boost::math::cyl_neumann_prime(0,x));
+};
 
 double hd(double ki, const double *ybg, const double *dybg, std::complex<double> rk1, std::complex<double> rk2){
-    // Initial conditions for the perturbations
-    
+    // Initial conditions for the perturbations, Bunch--Davies
     double z = ybg[1]*ybg[2]/ybg[3];
     double dz_z = ybg[3] + dybg[1]/ybg[1] - dybg[3]/ybg[3];
     double a = -1.0/(z*std::pow(2.0*ki,0.5)*100*ki);
     std::complex<double> b = std::complex<double>(-dz_z*10.0/ki*a, -10.0/ybg[2]*a);
-    //std::cout << "ybg: " << ybg[0] << " " << ybg[1] << " " << ybg[2] << " " << ybg[3] << std::endl;
-    //std::cout << a << ", "<< b << std::endl;
     return std::pow(std::abs(a*rk1 + b*rk2),2)*std::pow(ki,3)/(2.0*M_PI*M_PI);
 };
 
 double rst(double ki, const double *ybg, const double *dybg, std::complex<double> rk1, std::complex<double> rk2){
-    // Initial conditions for the perturbations
+    // Initial conditions for the perturbations with renormalised SET
     double z = ybg[1]*ybg[2]/ybg[3];
     double a = -1.0/(z*std::pow(2.0*ki,0.5)*100*ki);
     std::complex<double> b = std::complex<double>(0.0, -10.0/ybg[2]*a);
     return std::pow(std::abs(a*rk1 + b*rk2),2)*std::pow(ki,3)/(2.0*M_PI*M_PI);
 };
 
-std::complex<double> w(double t){
+double kd(double t0, double ki, const double *ybg, const double *dybg, std::complex<double> rk1, std::complex<double> rk2){
+    // Initial conditions for the perturbations in Kinetic Dominance at t0
+    double z = ybg[1]*ybg[2]/ybg[3];
+    double dz_z = ybg[3] + dybg[1]/ybg[1] - dybg[3]/ybg[3];
+    std::complex<double> a = 1.0/(100.0*ki*z)*std::pow(3.0*M_PI/8.0,0.5)*std::pow(t0,1.0/3.0)*hankel1_0(3.0/2.0*ki*std::pow(t0,2.0/3.0));
+    std::complex<double> b = 10.0/ki*(-dz_z + 1.0/(3.0*t0) + ki*std::pow(t0,-1.0/3.0)*hankel1_0_prime(3.0/2.0*ki*std::pow(t0,2.0/3.0))/hankel1_0(3.0/2.0*ki*std::pow(t0,2.0/3.0)))*a;
+    return std::pow(std::abs(a*rk1 + b*rk2),2)*std::pow(ki,3)/(2.0*M_PI*M_PI);
+};
+
+double w(double t){
     return k*std::exp(winterp(t));
 };
 
-std::complex<double> g(double t){
+double g(double t){
     return ginterp(t); 
 };
 
@@ -56,11 +77,14 @@ Eigen::Matrix<double,1,4> background(double t){
 };
 
 double V(double phi){
-    return std::pow(m,2)*std::pow(phi,nv);
+    return std::pow(m,2)*std::pow(phi,nv);//*(1.0+alpha*tanh((phi-phi_s)/delta_phi));
 };
 
 double dV(double phi){
-    return std::pow(m,2)*nv*std::pow(phi,nv-1);
+    return
+    std::pow(m,2)*nv*std::pow(phi,nv-1);//*(1.0+alpha*tanh((phi-phi_s)/delta_phi))
+    //+
+    //std::pow(m,2)*std::pow(phi,nv)*alpha/(delta_phi*std::pow(cosh((phi-phi_s)/delta_phi),2));
 };
 
 static void NAG_CALL f(double t, Integer n, const double *y, double *yp,
@@ -77,8 +101,8 @@ int main(){
 
 
     // Range of wavenumbers
-    int nk=3000;
-    Eigen::VectorXd ks=Eigen::VectorXd::LinSpaced(nk,-3,5);
+    int nk=1000;
+    Eigen::VectorXd ks=Eigen::VectorXd::LinSpaced(nk,-3,0);
     for(int i=0; i<nk; i++)
         ks(i) = std::pow(10,ks(i));
     Eigen::VectorXd exits=Eigen::VectorXd::Zero(nk);
@@ -86,13 +110,14 @@ int main(){
     // These will contain t,w,g
     int N = round(1e6);
     Eigen::VectorXd ts=Eigen::VectorXd::Zero(N);
-    Eigen::VectorXcd logws=Eigen::VectorXcd::Zero(N), gs=Eigen::VectorXcd::Zero(N);
-    
+    Eigen::VectorXd logws=Eigen::VectorXd::Zero(N), gs=Eigen::VectorXd::Zero(N);
+    // To log background evolution
+    Eigen::VectorXd phis=Eigen::VectorXd::Zero(N);
     std::cout << "Starting background calculation" << std::endl;
     // Use the NAG library to solve for the scale factor a(t) (and phi(t),
     // dphi(t), H(t))
     Integer liwsav, lrwsav, exit_status=0, npts=round(N-1), n=4;
-    double tgot, tol, tnext, twant, tstart=1.0, ti=1e4, tend=1e6, tinc=(tend-tstart)/npts;
+    double tgot, tol, tnext, twant, tstart=1.0, ti=10.0, tend=1e6, tinc=(tend-tstart)/npts;
     double *rwsav=0, *thresh=0, *ygot=0, *yinit=0, *dyinit=0, *ybg=0, *dybg=0, *ymax=0;
     double *ypgot=0;
     Integer *iwsav=0;
@@ -128,6 +153,7 @@ int main(){
     thresh[3] = 1.0e-14;
     tol = 1.0e-14;
     ts(0) = tstart;
+    phis(0)=phi_p;
     logws(0) = -std::log(yinit[2]);
     gs(0) = 1.5*yinit[3] + dyinit[1]/yinit[1] - dyinit[3]/yinit[3];
     nag_ode_ivp_rkts_setup(n, tstart, tend, yinit, tol, thresh, method, errass, 0.0, iwsav, rwsav, &fail);
@@ -146,6 +172,7 @@ int main(){
             tnext = tgot; 
             };
         ts(i) = twant;
+        phis(i) = ygot[0];
         logws(i) = -std::log(ygot[2]);
         gs(i) = 1.5*ygot[3] + ypgot[1]/ygot[1] - ypgot[3]/ygot[3];
         next_horizon = 100.0/ypgot[2];
@@ -161,6 +188,7 @@ int main(){
                 if(100.0/ypgot[2] < 1.0/ks(j)){
                     exits(j) = ts(i);
                     start=j+1;
+                    //std::cout << exits(j) << std::endl;
                     break;
                 };
             };
@@ -177,6 +205,17 @@ int main(){
     NAG_FREE(rwsav);
     NAG_FREE(iwsav);
     NAG_FREE(dyinit);
+
+    std::cout << "background params. ti: " << ti << ", ybg: " << ybg[0] << "," << ybg[1] << "," << ybg[2] << "," << ybg[3] << ", dybg: " << dybg << dybg[0] << "," << dybg[1] << "," << dybg[2] << "," << dybg[3] <<std::endl;
+
+
+    // Write phi(t) to file:
+    //std::ofstream fbg;
+    //fbg.open("test/ms/pps-quadstep-3-bg.txt");
+    //for(int i=0; i<N; i++){
+    //    fbg << ts(i) << ", " << phis(i) << std::endl;
+    //};
+    //fbg.close();
     std::cout << "Done solving background" << std::endl;
 
     // Construct interpolating functions w,g from grids
@@ -193,14 +232,17 @@ int main(){
     std::complex<double> x0, dx0;
     int order=3;
     bool full_output=false;
-    rtol=1e-4;
+    rtol=1e-5;
     atol=0.0;
     h0=1.0;
     
     std::list<std::complex<double>> rk1, rk2;
     std::list<double> times;
-    double t1,t2;   
-
+    double t1,t2,timing0,timing1;   
+    
+    timing0 = MPI_Wtime();
+    CALLGRIND_START_INSTRUMENTATION;
+    CALLGRIND_TOGGLE_COLLECT;
     for(int i=0; i<nk; i++){
         k = ks(i);
         tf = exits(i); 
@@ -220,6 +262,10 @@ int main(){
         times.push_back(t2-t1);
 
     };
+    CALLGRIND_TOGGLE_COLLECT;
+    CALLGRIND_STOP_INSTRUMENTATION;
+    timing1 = MPI_Wtime();
+    std::cout << "total time: " << timing1-timing0 << " s." << std::endl;
     
     auto it_1 = rk1.begin();
     auto it_2 = rk2.begin();
@@ -233,12 +279,13 @@ int main(){
 
     // Write PPS to file
     std::ofstream f;
-    f.open("test/ms/pps-timed.txt");
+    f.open("test/ms/pps-quadstep-hankel-3-rtol5_opt.txt");
     it_1 = rk1.begin();
     it_2 = rk2.begin();
     it_3 = times.begin();
     for(int k=0; k<nk; k++){
-        f << ks(k) << ", " << hd(ks(k),ybg,dybg,*it_1,*it_2) << ", " << rst(ks(k),ybg,dybg,*it_1,*it_2) << ", " << *it_3 << std::endl;
+        f << ks(k) << ", "  << *it_1 << ", " << *it_2 << ", " << hd(ks(k),ybg,dybg,*it_1,*it_2) << ", " << rst(ks(k),ybg,dybg,*it_1,*it_2) << ", " << kd(ti, ks(k),ybg,dybg,*it_1,*it_2) << ", " << *it_3 << std::endl;
+        //f << ks(k) << ", " << hd(ks(k),ybg,dybg,*it_1,*it_2) << ", " << rst(ks(k),ybg,dybg,*it_1,*it_2) << ", " << *it_3 << std::endl;
         ++it_1;
         ++it_2;
         ++it_3;

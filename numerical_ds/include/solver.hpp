@@ -19,8 +19,6 @@ class Solution
     int order;
     bool fo;
     RKSolver rksolver;
-    // TODO: any way not to create all objects here?
-    //WKBSolver wkbsolver
     WKBSolver * wkbsolver;
     WKBSolver1 wkbsolver1;
     WKBSolver2 wkbsolver2;
@@ -75,7 +73,7 @@ void Solution::solve(){
     nrk = 5;
     nwkb1 = 2;//1;
     nwkb2 = 4;//8;
-    Eigen::Matrix<std::complex<double>,2,4> rkstep;
+    Eigen::Matrix<std::complex<double>,2,2> rkstep;
     Eigen::Matrix<std::complex<double>,3,2> wkbstep;
     Eigen::Matrix<std::complex<double>,1,2> rkx, wkbx;
     Eigen::Matrix<std::complex<double>,1,2> rkerr, wkberr, truncerr;

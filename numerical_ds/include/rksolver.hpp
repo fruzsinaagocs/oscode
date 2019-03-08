@@ -5,8 +5,8 @@ class RKSolver
 {
     private: 
     // Frequency and friction term
-    std::function<std::complex<double>(double)> w;
-    std::function<std::complex<double>(double)> g;
+    std::function<double(double)> w;
+    std::function<double(double)> g;
     
 
     // Butcher tablaus
@@ -14,19 +14,22 @@ class RKSolver
     Eigen::Matrix<double,3,3> butcher_a4;
     Eigen::Matrix<double,6,1> butcher_b5, butcher_c5;
     Eigen::Matrix<double,4,1> butcher_b4, butcher_c4;
+
+    // Current values of w, g
+    double wi, gi;
    
     public:
     // constructors
     RKSolver();
     RKSolver(de_system &de_sys);
     // grid of ws, gs
-    Eigen::Matrix<std::complex<double>,6,1> ws, gs;
-    Eigen::Matrix<std::complex<double>,5,1> ws5, gs5;
+    Eigen::Matrix<double,6,1> ws, gs;
+    Eigen::Matrix<double,5,1> ws5, gs5;
 
     // single step function 
-    Eigen::Matrix<std::complex<double>,2,4> step(std::complex<double>, std::complex<double>, double, double);
+    Eigen::Matrix<std::complex<double>,2,2> step(std::complex<double>, std::complex<double>, double, double);
     // ODE to solve
-    Eigen::Matrix<std::complex<double>,1,4> f(double t, const Eigen::Matrix<std::complex<double>,1,4> &y);  
+    Eigen::Matrix<std::complex<double>,1,2> f(double t, const Eigen::Matrix<std::complex<double>,1,2> &y);  
 
 };
 
@@ -54,36 +57,36 @@ RKSolver::RKSolver(de_system &de_sys){
 	RKSolver::butcher_c4 << 0,0.172673164646011428100,0.827326835353988571900,1;
 };
 
-Eigen::Matrix<std::complex<double>,1,4> RKSolver::f(double t, const Eigen::Matrix<std::complex<double>,1,4> &y){
+Eigen::Matrix<std::complex<double>,1,2> RKSolver::f(double t, const Eigen::Matrix<std::complex<double>,1,2> &y){
     
-    std::complex<double> wi = w(t);
-    std::complex<double> gi = g(t);
-    Eigen::Matrix<std::complex<double>,1,4> result;
-    result << y[1], -wi*wi*y[0]-2.0*gi*y[1], wi, gi;
+    wi = w(t);
+    gi = g(t);
+    Eigen::Matrix<std::complex<double>,1,2> result;
+    result << y[1], -wi*wi*y[0]-2.0*gi*y[1];
     return result;
 };
 
-Eigen::Matrix<std::complex<double>,2,4> RKSolver::step(std::complex<double> x0, std::complex<double> dx0, double t0, double h){
+Eigen::Matrix<std::complex<double>,2,2> RKSolver::step(std::complex<double> x0, std::complex<double> dx0, double t0, double h){
 
-    Eigen::Matrix<std::complex<double>,1,4> y0, y, y4, y5, delta, k5_i, k4_i;
-    y4 = Eigen::Matrix<std::complex<double>,1,4>::Zero();
-    y0 << x0, dx0, 0.0, 0.0;
+    Eigen::Matrix<std::complex<double>,1,2> y0, y, y4, y5, delta, k5_i, k4_i;
+    y4 = Eigen::Matrix<std::complex<double>,1,2>::Zero();
+    y0 << x0, dx0;
     y5 = y4;
     // TODO: resizing of ws5, gs5, insertion
-    Eigen::Matrix<std::complex<double>,6,4> k5;
-    Eigen::Matrix<std::complex<double>,4,4> k4;
-    Eigen::Matrix<std::complex<double>,2,4> result;
+    Eigen::Matrix<std::complex<double>,6,2> k5;
+    Eigen::Matrix<std::complex<double>,4,2> k4;
+    Eigen::Matrix<std::complex<double>,2,2> result;
     k5.row(0) = h*f(t0, y0);
-    ws(0) = k5.row(0)(2)/h;
-    gs(0) = k5.row(0)(3)/h;
+    ws(0) = wi;
+    gs(0) = gi;
     for(int s=1; s<=5; s++){
         y = y0;
         for(int i=0; i<=(s-1); i++)
             y += butcher_a5(s-1,i)*k5.row(i);
         k5_i = h*f(t0 + butcher_c5(s)*h, y);
         k5.row(s) = k5_i;
-        ws(s) = k5_i(2)/h;
-        gs(s) = k5_i(3)/h;
+        ws(s) = wi;
+        gs(s) = gi;
     }
     k4.row(0) = k5.row(0);
     ws5(0) = ws(0);
@@ -94,8 +97,8 @@ Eigen::Matrix<std::complex<double>,2,4> RKSolver::step(std::complex<double> x0, 
            y += butcher_a4(s-1,i)*k4.row(i);
         k4_i = h*f(t0 + butcher_c4(s)*h, y);
         k4.row(s) = k4_i;
-        ws5(s) = k4_i(2)/h;
-        gs5(s) = k4_i(3)/h;
+        ws5(s) = wi;
+        gs5(s) = gi;
     }
     for(int j=0; j<=5; j++)
         y5 += butcher_b5(j)*k5.row(j);
