@@ -18,7 +18,6 @@ class Solution
     std::complex<double> x, dx;
     int order;
     bool fo;
-    RKSolver rksolver;
     WKBSolver * wkbsolver;
     WKBSolver1 wkbsolver1;
     WKBSolver2 wkbsolver2;
@@ -26,6 +25,7 @@ class Solution
 
     public:
     // constructor
+    RKSolver rksolver;
     Solution(de_system &de_sys, std::complex<double> x0, std::complex<double>
     dx0, double t_i, double t_f, int o=3, double r_tol=1e-4, double a_tol=0.0,
     double h_0=1, bool full_output=false, bool interp=true);

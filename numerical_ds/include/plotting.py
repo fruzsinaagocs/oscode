@@ -246,8 +246,8 @@ plt.show()
 # Mukhanov--Sasaki equation
 # NAG files: ms1 has k=0.1, ms2 k=10.0, ms3 k=0.03
 
-fsolver = "test/ms/ms-singlek-k5e-1.txt"
-fnag = "test/ms/nag-ms-k5e-1.txt"
+fsolver = "test/ms/ms-singlek-diffgrid3.txt"#"test/ms/ms-singlek-k5e-1.txt"
+fnag = "test/ms/nag-ms-kd1.txt" #"test/ms/nag-ms-k5e-1.txt"
 dsolver = np.loadtxt(fsolver,dtype=complex,converters={1:parse_pair, 2:parse_pair})
 dnag = np.loadtxt(fnag,delimiter=",")
 t = dsolver[:,0]
@@ -259,16 +259,16 @@ xnag = dnag[:,1]
 
 plt.figure()
 plt.style.use('fyr')
-plt.semilogx(tnag,xnag, color='black',label='true solution', lw=0.5)
-plt.semilogx(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
-plt.semilogx(t[wkb==0],x[wkb==0],'x',color='red',label='RK step')
-plt.xlim((9900,2e5))
+plt.plot(tnag,xnag, color='black',label='true solution',lw=0.5)
+plt.plot(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
+plt.plot(t[wkb==0],x[wkb==0],'x',color='red',label='RK step')
+#plt.xlim((9900,2e5))
 #plt.ylim((-60,60))
 plt.xlabel('t')
 plt.ylabel('$\Re{\{x(t)\}}$')
 plt.legend()
-plt.savefig("plots/ms-k51e-1.pdf")
-#plt.show()
+#plt.savefig("plots/ms-k51e-1.pdf")
+plt.show()
 
 # PPS
 f = "test/ms/pps-timed.txt"
@@ -290,9 +290,9 @@ plt.savefig("plots/example-pps.pdf")
 from cycler import cycler
 grays = cycler(color=['0.00','0.40', '0.60', '0.50', '0.60', '0.70'])
 
-fsolver = "test/ms/pps-timed.txt"
-fbingo1 = "plots/bingo-pps-1e2.txt"
-fbingo2 = "plots/bingo-pps-1e3.txt"
+fsolver = "test/ms/pps-hd_rst_opt.txt"
+fbingo1 = "plots/bingo-pps-k1e3-1e2.txt"
+fbingo2 = "plots/bingo-pps-k1e3-1e3.txt"
 dsolver = np.genfromtxt(fsolver,delimiter=",")
 dbingo1 = np.genfromtxt(fbingo1)
 dbingo2 = np.genfromtxt(fbingo2)
@@ -312,8 +312,8 @@ plt.loglog(k,t,'.',label='RKWKB')
 plt.xlabel('k')
 plt.ylabel('runtime/s')
 plt.legend()
-plt.show()
-plt.savefig("plots/bingo-rkwkb-abst.pdf")
+#plt.show()
+plt.savefig("plots/bingo-rkwkb-abst_opt.pdf")
 
 fig,ax=plt.subplots(1,1)
 ax.set_prop_cycle(grays)
@@ -323,8 +323,8 @@ plt.loglog(kbingo1,tbingo2/t,'.',label='$k/aH=10^3$ start')
 plt.xlabel('k')
 plt.ylabel('$t_{\mathrm{BINGO}}/t_{\mathrm{RKWKB}}$')
 plt.legend()
-plt.show()
-plt.savefig("plots/bing-rkwkb-relt.pdf")
+#plt.show()
+plt.savefig("plots/bing-rkwkb-relt_opt.pdf")
 
 # Plot of quadratic potential with a step
 # Params:
@@ -343,9 +343,9 @@ fig,ax=plt.subplots(1,1)
 plt.plot(phi, V)
 plt.show()
 
-# PPS with quadratic step in potential
-f1 = "test/ms/pps-quadratic-hankel-3-rtol5.txt"
-f2 = "test/ms/pps-quadstep-hankel-3-rtol5_opt.txt"
+# PPS with different (HD, RST, KD) initial conditions
+f1 = "test/ms/pps-kd_opt.txt"
+f2 = "test/ms/pps-hd_rst_opt.txt"
 data1 = np.loadtxt(f1,delimiter=", ",dtype=complex,converters={1:parse_pair, 2:parse_pair})
 data2 = np.loadtxt(f2,delimiter=", ",dtype=complex,converters={1:parse_pair, 2:parse_pair})
 k1 = data1[:,0]
@@ -360,23 +360,55 @@ plt.figure()
 plt.style.use("default")
 plt.xlabel("k")
 plt.ylabel("$P_{\mathcal{R}}(k)$")
-#plt.loglog(k1, phd1, '-',label='hd - quadratic')
-#plt.loglog(k2, phd2, '-',label='hd - step')
-#plt.loglog(k1, prst1, '-',label='rst - quadratic')
-#plt.loglog(k2, prst2, '-',label='rst - step')
-#plt.loglog(k1, pkd1, label='kd - quadratic')
-plt.loglog(k2, pkd2, label='kd - optimised')
+plt.loglog(k2, phd2, '-',label='hd')
+plt.loglog(k2, prst2, '-',label='rst')
+plt.loglog(k1, pkd1, label='kd')
 plt.legend()
 plt.tight_layout()
 plt.show()
 #plt.savefig("plots/pps-kd-step-comparison.pdf")
 
 # Background
-f = "test/ms/pps-quadstep-3-bg.txt"
+f = "test/ms/pps-bg.txt"
 data = np.genfromtxt(f,delimiter=',')
 t = data[:,0]
-phi = data[:,1]
-plt.semilogx(t,phi)
+aH = data[:,1]
+phi = data[:,2]
+fig, ax = plt.subplots(1,1)
+#plt.axvline(x=1e4)
+#plt.loglog(t,aH**(-1)/100, label='BINGO start')
+#plt.loglog(t,aH**(-1), label='Hubble horizon')
+#ax.axhspan(1e-3, 1e3, alpha=0.5, color='green')
+#plt.xlabel('t')
+#plt.ylabel('lengthscales')
+#plt.legend()
+#plt.show()
+
+plt.semilogx(t,phi,label='$\phi$')
+plt.show()
+
+# Testing grid fineness
+plt.style.use("default")
+f = "test/ms/pps-kd-diffgrid2-t10.txt"
+f2 = "test/ms/pps-testinggrid9-scaled.txt"
+data = np.genfromtxt(f,delimiter=', ',dtype=complex,converters={1:parse_pair, 2:parse_pair})
+data2 = np.genfromtxt(f2,delimiter=', ',dtype=complex,converters={1:parse_pair, 2:parse_pair})
+k = data[:,0]
+hd = data[:,3]
+rst = data[:,4]
+kd = data[:,5]
+k2 = data2[:,0]
+hd2 = data2[:,3]
+rst2 = data2[:,4]
+kd2 = data2[:,5]
+fig, ax = plt.subplots(1,1)
+#plt.loglog(k,hd,label='hd')
+#plt.loglog(k,rst,label='rst')
+plt.loglog(k,kd,label='kd-'+f)
+plt.loglog(k2,kd2,label='kd-'+f2)
+plt.xlabel('k')
+plt.ylabel('$P_{\mathcal{R}}(k)$')
+plt.legend()
 plt.show()
 
 
@@ -386,13 +418,4 @@ plt.show()
 
 
 
-#axes[0].semilogx(times,danalytic)
-#axes[0].semilogx(t[wkb==1],dx[wkb==1],'x',color='green')
-#axes[0].semilogx(t[wkb==0],dx[wkb==0],'x',color='red')
-axes[1].semilogy(t[wkb==1], errs[wkb==1],'x',color='green')
-axes[1].semilogy(t[wkb==0], errs[wkb==0],'x',color='red')
-axes[1].set_title('Relative error')
-dsols = np.array([100.0/np.sqrt(ti**2+1)/n*( (ti + 1j*n ) * np.cos(n*np.arctan(ti)) + (1j*ti - n ) * np.sin(n*np.arctan(ti))) for ti in t])
-errs = np.abs(sols - x)/np.abs(sols)
-derrs = np.abs(dsols - dx)/np.abs(dsols)
 

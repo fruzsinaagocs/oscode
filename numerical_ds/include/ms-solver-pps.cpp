@@ -22,9 +22,10 @@ double mp=1;
 double alpha=0.005;
 double phi_s=22.50;
 double delta_phi=0.03;
-
-LinearInterpolator<double, double> winterp, ginterp;
-
+int N=round(1e6), npts1=3e3, npts=round(N-npts1-1);
+double tstart=1.0, tend1=3e3, tend=1e6, tinc1=(tend1-tstart)/npts1,
+tinc=(tend-tend1)/npts;
+Eigen::VectorXd logws, listgs;
 
 std::complex<double> hankel1_0(double x){
     return std::complex<double>(boost::math::cyl_bessel_j(0,x), boost::math::cyl_neumann(0,x));
@@ -56,16 +57,46 @@ double kd(double t0, double ki, const double *ybg, const double *dybg, std::comp
     double z = ybg[1]*ybg[2]/ybg[3];
     double dz_z = ybg[3] + dybg[1]/ybg[1] - dybg[3]/ybg[3];
     std::complex<double> a = 1.0/(100.0*ki*z)*std::pow(3.0*M_PI/8.0,0.5)*std::pow(t0,1.0/3.0)*hankel1_0(3.0/2.0*ki*std::pow(t0,2.0/3.0));
-    std::complex<double> b = 10.0/ki*(-dz_z + 1.0/(3.0*t0) + ki*std::pow(t0,-1.0/3.0)*hankel1_0_prime(3.0/2.0*ki*std::pow(t0,2.0/3.0))/hankel1_0(3.0/2.0*ki*std::pow(t0,2.0/3.0)))*a;
+    std::complex<double> b = 1.0/(10.0*ki)*(-dz_z + 1.0/(3.0*t0) + ki*std::pow(t0,-1.0/3.0)*hankel1_0_prime(3.0/2.0*ki*std::pow(t0,2.0/3.0))/hankel1_0(3.0/2.0*ki*std::pow(t0,2.0/3.0)))*a;
     return std::pow(std::abs(a*rk1 + b*rk2),2)*std::pow(ki,3)/(2.0*M_PI*M_PI);
 };
 
-double w(double t){
-    return k*std::exp(winterp(t));
+double RKSolver::w(double t){
+    int i; double dt, t0;
+    if(t < tend1){
+        i=int((t-tstart)/tinc1);
+        dt=tinc1;
+        t0=tstart+tinc1*i;
+    }
+    else{
+        i=int(npts1+(t-tend1)/tinc);
+        dt=tinc;
+        t0=tend1+(i-npts1)*tinc;
+    }
+    double logw0 = logws(i);
+    double logw1 = logws(i+1);
+    return k*std::exp(logw0+(logw1-logw0)*(t-t0)/dt);
 };
 
-double g(double t){
-    return ginterp(t); 
+double RKSolver::g(double t){
+    int i; double dt, t0;
+    if(t < tend1){
+        i=int((t-tstart)/tinc1);
+        dt=tinc1;
+        t0=tstart+tinc1*i;
+    }
+    else{
+        i=int(npts1+(t-tend1)/tinc);
+        dt=tinc;
+        t0=tend1+(i-npts1)*tinc;
+    }
+    double g0 = listgs(i);
+    double g1 = listgs(i+1);
+    return (g0+(g1-g0)*(t-t0)/dt);
+};
+
+double win(double){
+    return 0.0;
 };
 
 Eigen::Matrix<double,1,4> background(double t){
@@ -77,14 +108,12 @@ Eigen::Matrix<double,1,4> background(double t){
 };
 
 double V(double phi){
-    return std::pow(m,2)*std::pow(phi,nv);//*(1.0+alpha*tanh((phi-phi_s)/delta_phi));
+    return std::pow(m,2)*std::pow(phi,nv);
 };
 
 double dV(double phi){
     return
-    std::pow(m,2)*nv*std::pow(phi,nv-1);//*(1.0+alpha*tanh((phi-phi_s)/delta_phi))
-    //+
-    //std::pow(m,2)*std::pow(phi,nv)*alpha/(delta_phi*std::pow(cosh((phi-phi_s)/delta_phi),2));
+    std::pow(m,2)*nv*std::pow(phi,nv-1);
 };
 
 static void NAG_CALL f(double t, Integer n, const double *y, double *yp,
@@ -101,23 +130,24 @@ int main(){
 
 
     // Range of wavenumbers
-    int nk=1000;
-    Eigen::VectorXd ks=Eigen::VectorXd::LinSpaced(nk,-3,0);
+    int nk=3000;
+    Eigen::VectorXd ks=Eigen::VectorXd::LinSpaced(nk,-3,3);
     for(int i=0; i<nk; i++)
         ks(i) = std::pow(10,ks(i));
     Eigen::VectorXd exits=Eigen::VectorXd::Zero(nk);
     
     // These will contain t,w,g
-    int N = round(1e6);
+    
     Eigen::VectorXd ts=Eigen::VectorXd::Zero(N);
-    Eigen::VectorXd logws=Eigen::VectorXd::Zero(N), gs=Eigen::VectorXd::Zero(N);
+    logws=Eigen::VectorXd::Zero(N);
+    listgs=Eigen::VectorXd::Zero(N);
     // To log background evolution
-    Eigen::VectorXd phis=Eigen::VectorXd::Zero(N);
+    Eigen::VectorXd aHs=Eigen::VectorXd::Zero(N), phis=Eigen::VectorXd::Zero(N);
     std::cout << "Starting background calculation" << std::endl;
     // Use the NAG library to solve for the scale factor a(t) (and phi(t),
     // dphi(t), H(t))
-    Integer liwsav, lrwsav, exit_status=0, npts=round(N-1), n=4;
-    double tgot, tol, tnext, twant, tstart=1.0, ti=10.0, tend=1e6, tinc=(tend-tstart)/npts;
+    Integer liwsav, lrwsav, n=4;
+    double tgot, tol, tnext, twant, ti=1e4;
     double *rwsav=0, *thresh=0, *ygot=0, *yinit=0, *dyinit=0, *ybg=0, *dybg=0, *ymax=0;
     double *ypgot=0;
     Integer *iwsav=0;
@@ -146,6 +176,11 @@ int main(){
     yinit[1] = y0(1);
     yinit[2] = y0(2);
     yinit[3] = y0(3);
+    // Set initial value of ybg as y0
+    ybg[0] = y0(0);
+    ybg[1] = y0(1);
+    ybg[2] = y0(2);
+    ybg[3] = y0(3);
     f(tstart,n,yinit,dyinit,&comm);
     thresh[0] = 1.0e-14;
     thresh[1] = 1.0e-14;
@@ -153,18 +188,21 @@ int main(){
     thresh[3] = 1.0e-14;
     tol = 1.0e-14;
     ts(0) = tstart;
-    phis(0)=phi_p;
+    aHs(0)=y0(2)*y0(3);
+    phis(0)=y0(0);
     logws(0) = -std::log(yinit[2]);
-    gs(0) = 1.5*yinit[3] + dyinit[1]/yinit[1] - dyinit[3]/yinit[3];
+    listgs(0) = 1.5*yinit[3] + dyinit[1]/yinit[1] - dyinit[3]/yinit[3];
     nag_ode_ivp_rkts_setup(n, tstart, tend, yinit, tol, thresh, method, errass, 0.0, iwsav, rwsav, &fail);
     twant=tstart;
     int start=0;
     double prev_horizon = 100.0/dyinit[2];
     double next_horizon = prev_horizon; 
-    for(int i=0; i<(npts-2); i++){
+    for(int i=1; i<(npts-1); i++){
         tnext = twant;
         if(twant+tinc > ti and twant < ti)
             twant = ti;
+        else if(i < npts1)
+            twant+=tinc1;
         else
             twant+=tinc; 
         while(tnext < twant){
@@ -172,9 +210,10 @@ int main(){
             tnext = tgot; 
             };
         ts(i) = twant;
+        aHs(i) = ygot[2]*ygot[3];
         phis(i) = ygot[0];
         logws(i) = -std::log(ygot[2]);
-        gs(i) = 1.5*ygot[3] + ypgot[1]/ygot[1] - ypgot[3]/ygot[3];
+        listgs(i) = 1.5*ygot[3] + ypgot[1]/ygot[1] - ypgot[3]/ygot[3];
         next_horizon = 100.0/ypgot[2];
         if(std::abs(twant-ti)<1e-6){
             ybg[0] = ygot[0];
@@ -186,7 +225,7 @@ int main(){
         if(next_horizon < prev_horizon){
             for(int j=start; j<nk; j++){
                 if(100.0/ypgot[2] < 1.0/ks(j)){
-                    exits(j) = ts(i);
+                    exits(j) = tstart+tinc*i;
                     start=j+1;
                     //std::cout << exits(j) << std::endl;
                     break;
@@ -206,26 +245,17 @@ int main(){
     NAG_FREE(iwsav);
     NAG_FREE(dyinit);
 
-    std::cout << "background params. ti: " << ti << ", ybg: " << ybg[0] << "," << ybg[1] << "," << ybg[2] << "," << ybg[3] << ", dybg: " << dybg << dybg[0] << "," << dybg[1] << "," << dybg[2] << "," << dybg[3] <<std::endl;
-
-
     // Write phi(t) to file:
-    //std::ofstream fbg;
-    //fbg.open("test/ms/pps-quadstep-3-bg.txt");
-    //for(int i=0; i<N; i++){
-    //    fbg << ts(i) << ", " << phis(i) << std::endl;
-    //};
-    //fbg.close();
-    std::cout << "Done solving background" << std::endl;
-
-    // Construct interpolating functions w,g from grids
-    std::cout << "Making w(t), g(t)" << std::endl;
+    std::ofstream fbg;
+    fbg.open("test/ms/pps-bg.txt");
     for(int i=0; i<N; i++){
-        winterp.insert(ts(i),logws(i));
-        ginterp.insert(ts(i),gs(i));
-    }; 
-    de_system system(&w,&g);
-    std::cout << "Done making w(t), g(t)" << std::endl;
+        fbg << ts(i) << ", " << aHs(i) << ", " << phis(i) << std::endl;
+    };
+    fbg.close();
+    std::cout << "Done solving background" << std::endl;
+    
+    // Construct system to solve
+    de_system system(&win,&win);
     
     // Solve the evolution of each perturbation
     double tf, rtol, atol, h0;
@@ -254,7 +284,7 @@ int main(){
         solution1.solve();
         rk1.push_back(solution1.sol.back());
         x0 = 0.0;
-        dx0 = 10.0*k*k;
+        dx0 = 1000.0*k*k;
         Solution solution2(system, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
         solution2.solve();
         t2 = MPI_Wtime();
@@ -279,13 +309,12 @@ int main(){
 
     // Write PPS to file
     std::ofstream f;
-    f.open("test/ms/pps-quadstep-hankel-3-rtol5_opt.txt");
+    f.open("test/ms/pps-recap");
     it_1 = rk1.begin();
     it_2 = rk2.begin();
     it_3 = times.begin();
     for(int k=0; k<nk; k++){
         f << ks(k) << ", "  << *it_1 << ", " << *it_2 << ", " << hd(ks(k),ybg,dybg,*it_1,*it_2) << ", " << rst(ks(k),ybg,dybg,*it_1,*it_2) << ", " << kd(ti, ks(k),ybg,dybg,*it_1,*it_2) << ", " << *it_3 << std::endl;
-        //f << ks(k) << ", " << hd(ks(k),ybg,dybg,*it_1,*it_2) << ", " << rst(ks(k),ybg,dybg,*it_1,*it_2) << ", " << *it_3 << std::endl;
         ++it_1;
         ++it_2;
         ++it_3;

@@ -13,16 +13,24 @@
 
 int nv=2;
 double m=4.51e-6;
-double k=0.5;
+double k=0.001;
 double phi_p=23.293;
 double mp=1;
-LinearInterpolator<double, std::complex<double>> winterp, ginterp;
+LinearInterpolator<double, double> winterp, ginterp;
 
-std::complex<double> w(double t){
+double w(double t){
+    return k*winterp(t);
+};
+
+double g(double t){
+    return ginterp(t); 
+};
+
+double RKSolver::w(double t){
     return k*std::exp(winterp(t));
 };
 
-std::complex<double> g(double t){
+double RKSolver::g(double t){
     return ginterp(t); 
 };
 
@@ -72,13 +80,14 @@ int main(){
     // These will contain t,w,g
     int N = round(1e6);
     Eigen::VectorXd ts=Eigen::VectorXd::Zero(N);
-    Eigen::VectorXcd logws=Eigen::VectorXcd::Zero(N), gs=Eigen::VectorXcd::Zero(N);
+    Eigen::VectorXd logws=Eigen::VectorXd::Zero(N), gs=Eigen::VectorXd::Zero(N);
     
     std::cout << "Starting background calculation" << std::endl;
     // Use the NAG library to solve for the scale factor a(t) (and phi(t),
     // dphi(t), H(t))
-    Integer liwsav, lrwsav, exit_status=0, npts=round(N-1), n=4;
-    double tgot, tol, tnext, twant, tstart=1.0, tend=1e6, tinc=(tend-tstart)/npts;
+    Integer liwsav, lrwsav, exit_status=0, npts1=1e3, npts=round(N-1-npts1), n=4;
+    double tgot, tol, tnext, twant, tstart=1.0, tend=1e6, tend1=1e2,
+    tinc1=(tend1-tstart)/npts1, tinc=(tend-tend1)/npts;
     double *rwsav=0, *thresh=0, *ygot=0, *yinit=0, *dyinit=0, *yend=0, *ymax=0;
     double *ypgot=0;
     Integer *iwsav=0;
@@ -113,13 +122,16 @@ int main(){
     thresh[3] = 1.0e-14;
     tol = 1.0e-14;
     ts(0) = tstart;
-    logws(0) = -std::log(yinit[2]);
+    logws(0) = 1.0/yinit[2];
     gs(0) = 1.5*yinit[3] + dyinit[1]/yinit[1] - dyinit[3]/yinit[3];
     nag_ode_ivp_rkts_setup(n, tstart, tend, yinit, tol, thresh, method, errass, 0.0, iwsav, rwsav, &fail);
     twant=tstart;
-    for(int i=0; i<npts; i++){
+    for(int i=1; i<(npts-1); i++){
         tnext = twant;
-        twant+=tinc; 
+        if(i < npts1)
+            twant+=tinc1; 
+        else
+            twant+=tinc;
         while(tnext < twant){
             nag_ode_ivp_rkts_range(f,4,twant,&tgot,ygot,ypgot,ymax,&comm,iwsav,rwsav,&fail);
             tnext = tgot; 
@@ -146,7 +158,7 @@ int main(){
         ginterp.insert(ts(i),gs(i));
     }; 
     de_system system(&w,&g);
-    std::cout << "Done making w(t), g(t)" << std::endl;
+    //std::cout << "Done making w(t), g(t)" << std::endl;
     
     // Solve the evolution of the perturbation
     auto t1 = std::chrono::high_resolution_clock::now();
@@ -158,10 +170,10 @@ int main(){
     rtol=1e-4;
     atol=0.0;
     h0=1.0;
-    ti=1e4;
+    ti=1.6;
     tf=5e5;
-    x0=100.0*k;
-    dx0=0.0;
+    x0=0.0;
+    dx0=10.0*k*k;
     Solution solution(system, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
     solution.solve();
     auto t2 = std::chrono::high_resolution_clock::now();
@@ -174,7 +186,7 @@ int main(){
     auto t3 = std::chrono::high_resolution_clock::now();
     // First solve up to the start 
     exit_status=0;
-    tstart=1.0; tend=1e4;   
+    tstart=1.0; tend=ti;   
     INIT_FAIL(fail);
     n = 4;
     liwsav = 130;
@@ -210,6 +222,13 @@ int main(){
     yend[1] = ygot[1];
     yend[2] = ygot[2];
     yend[3] = ygot[3];
+    // For the KD specific case
+    if(tstart == ti){
+        yend[0] = y0(0);
+        yend[1] = y0(1);
+        yend[2] = y0(2);
+        yend[3] = y0(3);
+    };
 
     NAG_FREE(thresh);
     NAG_FREE(yinit);
@@ -218,10 +237,11 @@ int main(){
     NAG_FREE(ymax);
     NAG_FREE(rwsav);
     NAG_FREE(iwsav);
-   
+    
+    std::cout << "background done with nag" << std::endl;
     // Then from tstart with the perturbation
-    exit_status=0; npts=round(3e4);
-    tstart=ti; tend=5e5; tinc=(tend-tstart)/npts;
+    exit_status=0; npts=round(1e5);
+    tstart=ti; tend=3e5; tinc=(tend-tstart)/npts;
     INIT_FAIL(fail);
     n = 6;
     liwsav = 130;
@@ -239,8 +259,8 @@ int main(){
     
     std::list<double> tnag;
     std::list<double> xnag;
-    yinit[0] = 100.0*k;
-    yinit[1] = 0.0;
+    yinit[0] = 0.0;
+    yinit[1] = 10.0*k*k;
     yinit[2] = yend[0];
     yinit[3] = yend[1];
     yinit[4] = yend[2]; 
@@ -249,10 +269,14 @@ int main(){
     thresh[1] = 1.0e-7;
     thresh[2] = 1.0e-7;
     thresh[3] = 1.0e-7;
+    tnag.push_back(tstart);
+    xnag.push_back(yinit[0]);
+    std::cout << "y0: " << yinit[0] << " " << yinit[1] << " " << yinit[2] <<
+    " "<<  yinit[3] << " " << yinit[4] << " " << yinit[5] << std::endl;
     tol = 1.0e-6;
     nag_ode_ivp_rkts_setup(n, tstart, tend, yinit, tol, thresh, method, errass, 0.0, iwsav, rwsav, &fail);
     twant=tstart;
-    for(int i=0; i<npts; i++){
+    for(int i=1; i<(npts-1); i++){
         tnext = twant;
         twant+=tinc; 
         while(tnext < twant){
@@ -276,7 +300,7 @@ int main(){
     std::cout << "Time: " << t34.count() << " ms" << std::endl; 
     // Write results to file
     std::ofstream f;
-    f.open("test/ms/nag-ms-k5e-1.txt");
+    f.open("test/ms/nag-ms-kd1.txt");
     auto it_t = tnag.begin();
     auto it_x = xnag.begin();
     while(it_t != tnag.end() || it_x != xnag.end()){
