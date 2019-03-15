@@ -22,9 +22,8 @@ double mp=1;
 double alpha=0.005;
 double phi_s=22.50;
 double delta_phi=0.03;
-int N=round(1e6), npts1=3e3, npts=round(N-npts1-1);
-double tstart=1.0, tend1=3e3, tend=1e6, tinc1=(tend1-tstart)/npts1,
-tinc=(tend-tend1)/npts;
+int N=round(1e6), npts=round(N-1);
+double tstart=1.0, tend=1e6, tinc=(tend-tstart)/npts;
 Eigen::VectorXd logws, listgs;
 
 std::complex<double> hankel1_0(double x){
@@ -62,37 +61,21 @@ double kd(double t0, double ki, const double *ybg, const double *dybg, std::comp
 };
 
 double RKSolver::w(double t){
-    int i; double dt, t0;
-    if(t < tend1){
-        i=int((t-tstart)/tinc1);
-        dt=tinc1;
-        t0=tstart+tinc1*i;
-    }
-    else{
-        i=int(npts1+(t-tend1)/tinc);
-        dt=tinc;
-        t0=tend1+(i-npts1)*tinc;
-    }
+    int i;
+    i=int((t-tstart)/tinc);
+    
     double logw0 = logws(i);
     double logw1 = logws(i+1);
-    return k*std::exp(logw0+(logw1-logw0)*(t-t0)/dt);
+    return k*std::exp(logw0+(logw1-logw0)*(t-tstart-tinc*i)/tinc);
 };
 
 double RKSolver::g(double t){
-    int i; double dt, t0;
-    if(t < tend1){
-        i=int((t-tstart)/tinc1);
-        dt=tinc1;
-        t0=tstart+tinc1*i;
-    }
-    else{
-        i=int(npts1+(t-tend1)/tinc);
-        dt=tinc;
-        t0=tend1+(i-npts1)*tinc;
-    }
+    int i;
+    i=int((t-tstart)/tinc);
+    
     double g0 = listgs(i);
     double g1 = listgs(i+1);
-    return (g0+(g1-g0)*(t-t0)/dt);
+    return (g0+(g1-g0)*(t-tstart-tinc*i)/tinc);
 };
 
 double win(double){
@@ -201,10 +184,7 @@ int main(){
         tnext = twant;
         if(twant+tinc > ti and twant < ti)
             twant = ti;
-        else if(i < npts1)
-            twant+=tinc1;
-        else
-            twant+=tinc; 
+        twant+=tinc; 
         while(tnext < twant){
             nag_ode_ivp_rkts_range(f,4,twant,&tgot,ygot,ypgot,ymax,&comm,iwsav,rwsav,&fail);
             tnext = tgot; 
@@ -262,7 +242,7 @@ int main(){
     std::complex<double> x0, dx0;
     int order=3;
     bool full_output=false;
-    rtol=1e-5;
+    rtol=1e-4;
     atol=0.0;
     h0=1.0;
     
@@ -284,7 +264,7 @@ int main(){
         solution1.solve();
         rk1.push_back(solution1.sol.back());
         x0 = 0.0;
-        dx0 = 1000.0*k*k;
+        dx0 = 10.0*k*k;
         Solution solution2(system, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
         solution2.solve();
         t2 = MPI_Wtime();
