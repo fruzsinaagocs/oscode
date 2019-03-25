@@ -71,8 +71,8 @@ void Solution::solve(){
     int nrk, nwkb1, nwkb2;
     // Settings for MS
     nrk = 5;
-    nwkb1 = 2;//1;
-    nwkb2 = 4;//8;
+    nwkb1 = 1;//2;
+    nwkb2 = 8;//4;
     Eigen::Matrix<std::complex<double>,2,2> rkstep;
     Eigen::Matrix<std::complex<double>,3,2> wkbstep;
     Eigen::Matrix<std::complex<double>,1,2> rkx, wkbx;
@@ -205,7 +205,11 @@ void Solution::solve(){
         for(int i=0; i<=ssteps; i++){
             f << std::setprecision(20) << *it_t << " " <<
             std::setprecision(20) << *it_x << " " << std::setprecision(20) <<
-            *it_dx << " " << *it_w << "\n"; 
+            *it_dx << " " << *it_w << " " <<
+            std::complex<double>(boost::math::airy_ai(-*it_t),
+            boost::math::airy_bi(-*it_t))  << " " <<
+            std::complex<double>(boost::math::airy_ai_prime(-*it_t),
+            boost::math::airy_bi_prime(-*it_t)) << "\n"; 
             ++it_t;
             ++it_x;
             ++it_dx;

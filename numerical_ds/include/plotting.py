@@ -355,7 +355,7 @@ plt.show()
 
 # PPS with different (HD, RST, KD) initial conditions
 f1 = "test/ms/pps-kd_opt.txt"
-f2 = "test/ms/pps-hd_rst_opt.txt"
+f2 = "test/ms/pps-logt-1"#"test/ms/pps-hd_rst_opt.txt"
 data1 = np.loadtxt(f1,delimiter=", ",dtype=complex,converters={1:parse_pair, 2:parse_pair})
 data2 = np.loadtxt(f2,delimiter=", ",dtype=complex,converters={1:parse_pair, 2:parse_pair})
 k1 = data1[:,0]
@@ -371,9 +371,9 @@ plt.style.use("default")
 plt.xlabel("k")
 plt.ylabel("$P_{\mathcal{R}}(k)$")
 plt.loglog(k2, phd2, '-',label='hd')
-#plt.loglog(k2, prst2, '-',label='rst')
-#plt.loglog(k1, pkd1, label='kd')
-#plt.loglog(k2,pkd2,label='kd - logt')
+plt.loglog(k2, prst2, '-',label='rst')
+plt.loglog(k1, pkd1, label='kd')
+plt.loglog(k2,pkd2,label='kd - logt')
 plt.legend()
 plt.tight_layout()
 plt.show()
