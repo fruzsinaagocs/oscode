@@ -1,5 +1,5 @@
-## Ignore all
-#*
+# Ignore all
+*
 ## Unignore all with extensions
 #!*.*
 #!.gitignore
@@ -7,14 +7,13 @@
 #!test/*.*
 #!numerical_ds/
 #!numerical_ds/*.*
-#!numerical_ds/include/*.*
-#!numerical_ds/include/*.cpp
-#
-## But ignore these extensions/dirs
-#*.o
-#pyrkwkb/*
+!/home/fruzsina/oscode/numerical_ds/include/*.*
+
+# But ignore these extensions/dirs
+*.o
+/home/fruzsina/oscode/pyrkwkb/*
 ##plot.*
 #plots/*
-#*.ipynb
-#*.pyc
-#*.pdf
+*.ipynb
+*.pyc
+*.pdf
