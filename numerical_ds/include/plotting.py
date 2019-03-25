@@ -1,5 +1,5 @@
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.special as sp
@@ -11,8 +11,10 @@ def parse_pair(s):
     return complex(*map(float, pair.match(s).groups()))
 
 # Airy equation with w(t), g(t) given analytically
-f1 = 'test/airy/airycorr_o1.txt'
-data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair, 4:parse_pair, 5:parse_pair})
+
+f1 = "test/airy/airy-example.txt" #'test/airy/airycorr_o1.txt'
+data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair,
+4:parse_pair, 5:parse_pair})
 times = np.logspace(0,2,5000)
 analytic = np.array([sp.airy(-ti)[0] + 1j*sp.airy(-ti)[2] for ti in times ])
 danalytic = np.array([-sp.airy(-ti)[1] - 1j*sp.airy(-ti)[3] for ti in times ])
@@ -22,32 +24,40 @@ dx = data[:,2]
 wkb = data[:,3]
 sols = data[:,4]
 dsols = data[:,5]
-#sols = np.array([sp.airy(-ti)[0] + 1j*sp.airy(-ti)[2] for ti in t ])
 errs = np.abs(sols - x)/np.abs(sols)
 derrs = np.abs(dsols - dx)/np.abs(dsols)
-fig,axes=plt.subplots(1,2)
 
-axes[0].loglog(t, derrs, 'x', color='black')
+# Example solution
 
-axes[0].semilogx(times,analytic, color='black')
-axes[0].semilogx(t[wkb==1],x[wkb==1],'x',color='green')
-axes[0].semilogx(t[wkb==0],x[wkb==0],'x',color='red')
+plt.semilogx(times,analytic, color='black',label='true solution',lw=0.5)
+plt.semilogx(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
+plt.semilogx(t[wkb==0],x[wkb==0],'x',color='red', label='RK step')
+plt.xlim((0,40.0))
+plt.xlabel("t")
+plt.ylabel("$\Re\{x\}$")
+plt.legend()
+plt.savefig("plots/airy-example-x.pdf")
 
-axes[0].semilogx(times,danalytic)
-axes[0].semilogx(t[wkb==1],dx[wkb==1],'x',color='green')
-axes[0].semilogx(t[wkb==0],dx[wkb==0],'x',color='red')
+# Error progression to late times in the above example
 
-axes[0].set_title('Example solution x(t)')
-axes[1].loglog(t[wkb==1], errs[wkb==1],'x',color='green')
-axes[1].loglog(t[wkb==0], errs[wkb==0],'x',color='red')
-axes[1].set_title('Relative error')
-plt.show()
+plt.loglog(t, errs, '-', color='black')
+plt.loglog(t[wkb==1], errs[wkb==1],'x',color='black')
+plt.loglog(t[wkb==0], errs[wkb==0],'x',color='black')
+plt.ylim((1e-7,1e-3))
+plt.xlabel("t")
+plt.ylabel("relative error, $\\frac{|\Delta x|}{|x|}$")
+plt.axvline(x=3.79)
+plt.text(3.79/(7.0/3.79), 2e-4, 'RK', verticalalignment='center',
+horizontalalignment='right')
+plt.text(7.0, 2e-4, 'WKB', verticalalignment='center',
+horizontalalignment='left')
+plt.savefig('plots/airy-example-err.pdf')
 
 
 # Burst equation with w(t), g(t) given analytically
 # Single solution at low n 
-f1 = 'test/burst/d4w1less_n40.txt' #'plots/burstn40.txt'
-n = 40.0 
+f1 = 'test/burst/solcheck3-optn.txt'#d4w1less_n40.txt' #'plots/burstn40.txt'
+n = 1e8 
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair})
 times = np.linspace(-2*n,2*n,10000)
 analytic = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in times ])
@@ -286,7 +296,7 @@ plt.legend()
 #plt.show()
 plt.savefig("plots/example-pps.pdf")
 
-# Timing comparison with BINGO 
+# Timing comparison with BINGO - old and not like-to-like, not used in paper
 from cycler import cycler
 grays = cycler(color=['0.00','0.40', '0.60', '0.50', '0.60', '0.70'])
 
@@ -354,15 +364,16 @@ prst1 = data1[:,4]
 pkd1 = data1[:,5]
 k2 = data2[:,0]
 phd2 = data2[:,3]
-prst2 = data2[:,4]
-pkd2 = data2[:,5]
+#prst2 = data2[:,4]
+#pkd2 = data2[:,5]
 plt.figure()
 plt.style.use("default")
 plt.xlabel("k")
 plt.ylabel("$P_{\mathcal{R}}(k)$")
 plt.loglog(k2, phd2, '-',label='hd')
-plt.loglog(k2, prst2, '-',label='rst')
-plt.loglog(k1, pkd1, label='kd')
+#plt.loglog(k2, prst2, '-',label='rst')
+#plt.loglog(k1, pkd1, label='kd')
+#plt.loglog(k2,pkd2,label='kd - logt')
 plt.legend()
 plt.tight_layout()
 plt.show()
@@ -375,21 +386,21 @@ t = data[:,0]
 aH = data[:,1]
 phi = data[:,2]
 fig, ax = plt.subplots(1,1)
-#plt.axvline(x=1e4)
-#plt.loglog(t,aH**(-1)/100, label='BINGO start')
-#plt.loglog(t,aH**(-1), label='Hubble horizon')
+plt.axvline(x=1e4)
+plt.loglog(t,aH**(-1)/100, label='BINGO start')
+plt.loglog(t,aH**(-1), label='Hubble horizon')
 #ax.axhspan(1e-3, 1e3, alpha=0.5, color='green')
-#plt.xlabel('t')
-#plt.ylabel('lengthscales')
-#plt.legend()
-#plt.show()
+plt.xlabel('t')
+plt.ylabel('lengthscales')
+plt.legend()
+plt.show()
 
-plt.semilogx(t,phi,label='$\phi$')
+#plt.semilogx(t,phi,label='$\phi$')
 plt.show()
 
 # Testing grid fineness
 plt.style.use("default")
-f = "test/ms/pps-kd-diffgrid2-t10.txt"
+#f = "test/ms/pps-kd-diffgrid2-t10.txt"
 f2 = "test/ms/pps-testinggrid9-scaled.txt"
 data = np.genfromtxt(f,delimiter=', ',dtype=complex,converters={1:parse_pair, 2:parse_pair})
 data2 = np.genfromtxt(f2,delimiter=', ',dtype=complex,converters={1:parse_pair, 2:parse_pair})
@@ -404,15 +415,116 @@ kd2 = data2[:,5]
 fig, ax = plt.subplots(1,1)
 #plt.loglog(k,hd,label='hd')
 #plt.loglog(k,rst,label='rst')
-plt.loglog(k,kd,label='kd-'+f)
+#plt.loglog(k,kd,label='kd-'+f)
 plt.loglog(k2,kd2,label='kd-'+f2)
 plt.xlabel('k')
 plt.ylabel('$P_{\mathcal{R}}(k)$')
 plt.legend()
 plt.show()
 
+# BINGO PPS comparison 
+
+# RKWKB: pps-bingo-start1e2-highk-lowk.txt
+#        pps-bingo-start2e2-highk-lowk.txt
+# BINGO: test/ms/pps-bingo-comparison-ltl-moreac-abs0.txt
+#        test/ms/pps-bingo-comparison-start2e2.txt
+
+from cycler import cycler
+grays = cycler(color=['0.00','0.60', '0.40', '0.60', '0.80', '0.90'])
+#default = cycler(color=['#1f77b4','#ff7f0e', '#d62728', '#9467bd', '#8c564b',
+#'#e377c2'])
+
+fsolver = "test/ms/pps-bingo-start2e2-highk-lowk.txt"
+#"test/ms/pps-bingo-start1e2-highk-tol4.txt"
+fbingo1 = "test/ms/pps-bingo-comparison-start2e2.txt"
+fbingo2 = "test/ms/pps-bingo-comparison-ltl-moreacc-pt2.txt"
+fbingo3 = "test/ms/pps-bingo-comparison-ltl-moreacc-pt3.txt"
+fbingo4 = "test/ms/pps-bingo-comparison-ltl-moreacc-abs0.txt"
+
+dsolver = np.loadtxt(fsolver,delimiter=", ",dtype=complex,converters={1:parse_pair, 2:parse_pair})
+dbingo1 = np.genfromtxt(fbingo1)
+dbingo2 = np.genfromtxt(fbingo2)
+dbingo3 = np.genfromtxt(fbingo3)
+dbingo4 = np.genfromtxt(fbingo4)
+
+t = dsolver[:,0]
+x = dsolver[:,3]
+tbingo1 = dbingo1[:,0]
+xbingo1 = dbingo1[:,1]
+tbingo2 = dbingo2[:,0]
+xbingo2 = dbingo2[:,1]
+tbingo3 = dbingo3[:,0]
+xbingo3 = dbingo3[:,1]
+tbingo4 = dbingo4[:,0]
+xbingo4 = dbingo4[:,1]
+
+fig,ax=plt.subplots(1,1)
+plt.style.use('fyr')
+ax.set_prop_cycle(grays)
+plt.loglog(t,x,label='RKWKB ',lw=1.8)
+plt.loglog(tbingo1,xbingo1,'--',label='BINGO',lw=1.8)
+#plt.loglog(tbingo3[:4900],xbingo3[:4900],label='BINGO, rtol$=10^{-6}$',alpha=0.8,lw=1.3)
+#plt.loglog(tbingo2[:4500],xbingo2[:4500],label='BINGO, rtol$=10^{-5}$',alpha=0.8,lw=1.3)
+#plt.loglog(tbingo1[:4900],xbingo1[:4900],label='BINGO, rtol$=10^{-4}$',alpha=0.8,lw=1.3)
+
+plt.xlabel('k/Mpc${}^{-1}$')
+plt.ylabel('$P_{\mathcal{R}}(k)$')
+plt.legend()
+plt.ylim((6e-10,4e-9))
+plt.savefig("plots/rkwkb-v-bingo-pps-diffstart.pdf")
+plt.tight_layout()
+#plt.show()
+
+# Timing comparison with BINGO 2 - like-to-like
+from cycler import cycler
+grays = cycler(color=['0.00','0.40', '0.40', '0.60', '0.80', '0.90'])
+
+fsolver1 = "test/ms/pps-bingo-start1e2-highk-lowk.txt"
+fsolver2 = "test/ms/pps-bingo-start2e2-highk-lowk.txt"
+fbingo1 = "test/ms/pps-bingo-comparison-ltl-moreacc-abs0.txt"
+fbingo2 = "test/ms/pps-bingo-comparison-start2e2.txt"
+
+dsolver1 = np.genfromtxt(fsolver1,delimiter=",")
+dsolver2 = np.genfromtxt(fsolver2,delimiter=",")
+dbingo1 = np.genfromtxt(fbingo1)
+dbingo2 = np.genfromtxt(fbingo2)
 
 
+k1 = dsolver1[:,0]
+t1 = dsolver1[:,-1]
+k2 = dsolver2[:,0]
+t2 = dsolver2[:,-1]
+
+kbingo1 = dbingo1[:,0]
+tbingo1 = dbingo1[:,-1]
+kbingo2 = dbingo2[:,0]
+tbingo2 = dbingo2[:,-1]
+
+fig,ax=plt.subplots(1,1)
+plt.style.use('fyr')
+ax.set_prop_cycle(grays)
+# tbingo/trkwkb plot
+#plt.semilogx(k,tbingo1/t)
+
+# abs runtimes
+plt.semilogx(k1,t1,label='rkwkb, 100')
+plt.semilogx(k2,t2,label='rkwkb, 200')
+plt.semilogx(kbingo1, tbingo1,label='bingo 100')
+plt.semilogx(kbingo2, tbingo2, label='bingo 200')
+
+# relative runtime within trkwkb
+#tpivot = t[2502]
+#plt.loglog(k,t/tpivot)
+#plt.loglog([1e-5,k[2502]],[1,1], 'k:',lw=1.5)
+#plt.loglog([k[2502],k[2502]],[0,1],'k:',lw=1.5)
+
+plt.xlabel('k')
+plt.ylabel('relative runtime, $t_{\mathrm{BINGO}}/t_{\mathrm{RKWKB}}$')
+#plt.ylabel('relative runtime')
+plt.xlim((1e-5,1e8))
+#plt.show()
+plt.legend()
+plt.savefig("plots/rkwkb-v-bingo-diffstart.pdf")
 
 
 
