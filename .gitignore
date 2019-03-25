@@ -1,13 +1,13 @@
 # Ignore all
 *
 ## Unignore all with extensions
-#!*.*
-#!.gitignore
+!*.*
+!.gitignore
 #!test/
 #!test/*.*
 #!numerical_ds/
 #!numerical_ds/*.*
-!/home/fruzsina/oscode/numerical_ds/include/*.*
+#!/home/fruzsina/oscode/numerical_ds/include/*.*
 
 # But ignore these extensions/dirs
 *.o
