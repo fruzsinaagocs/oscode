@@ -8,6 +8,7 @@
 !numerical_ds/
 !numerical_ds/*.*
 !numerical_ds/include/*.*
+!numerical_ds/include/*.cpp
 
 # But ignore these extensions/dirs
 *.o
