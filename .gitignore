@@ -1,20 +1,20 @@
-# Ignore all
-*
-# Unignore all with extensions
-!*.*
-!.gitignore
-!test/
-!test/*.*
-!numerical_ds/
-!numerical_ds/*.*
-!numerical_ds/include/*.*
-!numerical_ds/include/*.cpp
-
-# But ignore these extensions/dirs
-*.o
-pyrkwkb/*
-#plot.*
-plots/*
-*.ipynb
-*.pyc
-*.pdf
+## Ignore all
+#*
+## Unignore all with extensions
+#!*.*
+#!.gitignore
+#!test/
+#!test/*.*
+#!numerical_ds/
+#!numerical_ds/*.*
+#!numerical_ds/include/*.*
+#!numerical_ds/include/*.cpp
+#
+## But ignore these extensions/dirs
+#*.o
+#pyrkwkb/*
+##plot.*
+#plots/*
+#*.ipynb
+#*.pyc
+#*.pdf
