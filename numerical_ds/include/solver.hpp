@@ -71,8 +71,8 @@ void Solution::solve(){
     int nrk, nwkb1, nwkb2;
     // Settings for MS
     nrk = 5;
-    nwkb1 = 1;//2;
-    nwkb2 = 8;//4;
+    nwkb1 = 2;//2;
+    nwkb2 = 4;//4;
     Eigen::Matrix<std::complex<double>,2,2> rkstep;
     Eigen::Matrix<std::complex<double>,3,2> wkbstep;
     Eigen::Matrix<std::complex<double>,1,2> rkx, wkbx;

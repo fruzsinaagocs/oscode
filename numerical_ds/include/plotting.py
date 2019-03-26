@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.special as sp
@@ -525,6 +525,54 @@ plt.xlim((1e-5,1e8))
 #plt.show()
 plt.legend()
 plt.savefig("plots/rkwkb-v-bingo-diffstart.pdf")
+
+# RK single-k solution of BINGO eqs with NAG
+f1 = "test/ms/bingo-singlek-k1e-5.txt"
+f1ref = "test/ms/bingo-singlek-k1e-5-ref.txt"
+f1wkb = "test/ms/rkwkb-single-k1e-5.txt"
+d1 = np.genfromtxt(f1)
+d1ref = np.genfromtxt(f1ref)
+d1wkb = np.genfromtxt(f1wkb,dtype=complex,converters={1:parse_pair, 2:parse_pair})
+n1 = d1[:,0]
+n1ref = d1ref[:,0]
+n1wkb = d1wkb[:,0]
+rk1 = d1[:,1]
+rk1ref = d1ref[:,1]
+rk1wkb = d1wkb[:,1]
+
+
+
+f2 = "test/ms/bingo-singlek-k1e8.txt"
+f2ref = "test/ms/bingo-singlek-k1e8-ref.txt"
+f2wkb = "test/ms/rkwkb-single-k1e8.txt"
+d2 = np.genfromtxt(f2)
+d2ref = np.genfromtxt(f2ref)
+d2wkb = np.genfromtxt(f2wkb,dtype=complex,converters={1:parse_pair, 2:parse_pair})
+n2 = d2[:,0]
+rk2 = d2[:,1]
+rk2 = rk2*rk1[0]/rk2[0]
+n2 = n2 - (n2[0] - n1[0]) 
+n2ref = d2ref[:,0]
+rk2ref = d2ref[:,1]
+rk2ref = rk2ref*rk1ref[0]/rk2ref[0]
+n2ref = n2ref - (n2ref[0] - n1ref[0])
+n2wkb = d2wkb[:,0]
+rk2wkb = d2wkb[:,1].real
+rk2wkb = rk2wkb*rk1wkb[0].real/rk2wkb[0].real
+n2wkb = n2wkb - (n2wkb[0] - n1wkb[0])
+
+
+plt.style.use('fyr')
+#plt.plot(n1ref,rk1ref,label='true solution')
+#plt.plot(n1,rk1,'x',label='RK',color='red')
+plt.plot(n1ref,rk1ref,label='true solution')
+#plt.plot(n2,rk2,'x',label='RK',color='red')
+plt.plot(n1,rk1,'.',label='RK',color='green')
+
+plt.xlabel('N')
+plt.ylabel('$\Re{\mathcal{R}_k}$')
+plt.legend()
+plt.show()
 
 
 
