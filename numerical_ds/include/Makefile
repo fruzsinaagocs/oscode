@@ -4,6 +4,9 @@ naginc = /home/fruzsina/NAG/cll6i261dl/include
 nagshare = /home/fruzsina/NAG/cll6i261dl/lib/libnagc_nag.so
 deps =  system.hpp rksolver.hpp wkbsolver.hpp interpolator.hpp solver.hpp
 
+kd-%: kd-%.o
+	$(CXX) $(CXXFLAGS) -lpthread -lm -o $@ $^ $(nagshare)
+
 bingo-%: bingo-%.o
 	$(CXX) $(CXXFLAGS) -lpthread -lm -o $@ $^ $(nagshare)
 

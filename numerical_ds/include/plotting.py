@@ -355,7 +355,7 @@ plt.show()
 
 # PPS with different (HD, RST, KD) initial conditions
 f1 = "test/ms/pps-kd_opt.txt"
-f2 = "test/ms/pps-logt-1"#"test/ms/pps-hd_rst_opt.txt"
+f2 = "test/ms/pps-hd_rst_opt.txt"#"test/ms/pps-logt-1"#"test/ms/pps-hd_rst_opt.txt"
 data1 = np.loadtxt(f1,delimiter=", ",dtype=complex,converters={1:parse_pair, 2:parse_pair})
 data2 = np.loadtxt(f2,delimiter=", ",dtype=complex,converters={1:parse_pair, 2:parse_pair})
 k1 = data1[:,0]
@@ -364,8 +364,8 @@ prst1 = data1[:,4]
 pkd1 = data1[:,5]
 k2 = data2[:,0]
 phd2 = data2[:,3]
-#prst2 = data2[:,4]
-#pkd2 = data2[:,5]
+prst2 = data2[:,4]
+pkd2 = data2[:,5]
 plt.figure()
 plt.style.use("default")
 plt.xlabel("k")
@@ -539,8 +539,7 @@ n1wkb = d1wkb[:,0]
 rk1 = d1[:,1]
 rk1ref = d1ref[:,1]
 rk1wkb = d1wkb[:,1]
-
-
+rk1steps = d1wkb[:,3]
 
 f2 = "test/ms/bingo-singlek-k1e8.txt"
 f2ref = "test/ms/bingo-singlek-k1e8-ref.txt"
@@ -561,21 +560,100 @@ rk2wkb = d2wkb[:,1].real
 rk2wkb = rk2wkb*rk1wkb[0].real/rk2wkb[0].real
 n2wkb = n2wkb - (n2wkb[0] - n1wkb[0])
 
+plt.style.use('default')
+#fig,ax=plt.subplots(2,1,sharex=True)
+plt.plot(n1ref,rk1ref,label="$k=10^{-5}$")
+plt.plot(n2ref,rk2ref,label="$k=10^{8}$")
+plt.legend()
+plt.xlabel('N')
+plt.ylabel('$\Re{\{ \mathcal{R}_k \}} $')
+plt.savefig('plots/modes-highk-lowk.pdf')
+#plt.show()
 
-plt.style.use('fyr')
 #plt.plot(n1ref,rk1ref,label='true solution')
 #plt.plot(n1,rk1,'x',label='RK',color='red')
-plt.plot(n1ref,rk1ref,label='true solution')
+#ax[0].plot(n1ref,rk1ref)
+#ax[0].plot(n1,rk1,'x',color='red',label='RK')
+#ax[0].legend()
+#ax[1].plot(n1ref,rk1ref)
+#ax[1].plot(n1wkb[rk1steps==0],rk1wkb[rk1steps==0],'x',color='red',label='RK')
+#ax[1].plot(n1wkb[rk1steps==1],rk1wkb[rk1steps==1],'x',color='green',label='WKB')
+#ax[1].legend()
+#fig.text(0.5,0.04,'N',ha='center',va='center')
+#fig.text(0.06,0.5,'$\Re{\{\mathcal{R}_k\}}$',ha='center',va='center',rotation='vertical')
+#ax[0].set_xlim((n1ref[0],n1ref[-1]))
+#ax[1].set_xlim((n1ref[0],n1ref[-1]))
 #plt.plot(n2,rk2,'x',label='RK',color='red')
-plt.plot(n1,rk1,'.',label='RK',color='green')
+#plt.plot(n2,rk2,'.',label='RK',color='green')
+#plt.plot(n2wkb,rk2wkb,'x',label='RKWKB',color='red')
 
-plt.xlabel('N')
-plt.ylabel('$\Re{\mathcal{R}_k}$')
-plt.legend()
+#plt.legend()
+#plt.savefig('plots/rkwkb-bingo-singlek.pdf')
+#plt.show()
+
+# Kinetically dominated PPS in terms of N
+# background check
+def V(phi):
+    m = 7.147378e-6
+    return 0.5*m**2*phi**2
+
+def dV(phi):
+   m = 7.147378e-6
+   return m**2*phi
+
+fbg = "test/ms/kd-bg.txt"
+dbg = np.genfromtxt(fbg,delimiter=", ")
+N = dbg[:,0]
+phi = dbg[:,1]
+dphi = dbg[:,2]
+ddphi = dbg[:,3]
+H = dbg[:,4]
+w = 1.0/(np.exp(N)*H)
+g = -0.25*dphi**2 -(3.0-(0.5*dphi*dphi)) - (6.0-(dphi*dphi))*dV(phi)/(2.0*V(phi)*dphi) + 1.5
+#plt.plot(N,phi)
+#plt.plot(N,g,'.')
+plt.semilogy(N,2e-4*w)
+plt.semilogy(N,2e4*w)
 plt.show()
 
+# PPS
+f = "test/ms/pps-N-kd-sparsebg2.txt"
+d = np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair})
+k = d[:,0]
+p1 = d[:,3] # Bunch-Davies
+p2 = d[:,4] # attempted kd
+#plt.loglog(k,p1)
+plt.style.use('fyr')
+plt.xlabel("k/Mpc${}^{-1}$")
+plt.ylabel("$P_{\mathcal{R}}(k)$")
+plt.xlim((1e-3,1e5))
+plt.ylim((6e-10,2e-9))
+plt.loglog(k,p2)
+plt.savefig("plots/example-pps-kd-N.pdf")
 
+# Single-k solutions
+fs1 = "test/ms/singlek-kd-bd-2a.txt"
+fs2 = "test/ms/singlek-kd-bd-2a.txt"
+fref = "test/ms/singlek-kd-bg-2a-ref.txt"
+d1 = np.genfromtxt(fs1,dtype=complex,converters={1:parse_pair,2:parse_pair,4:parse_pair})
+d2 = np.genfromtxt(fs2,dtype=complex,converters={1:parse_pair,2:parse_pair,4:parse_pair})
+dref = np.genfromtxt(fref)
+n1 = d1[:,0]
+n2 = d2[:,0]
+nref = dref[:,0]
+rk1 = d1[:,1]
+rk2 = d2[:,1]
+rkref = dref[:,1]
+wkb1 = d1[:,3]
+wkb2 = d2[:,3]
+plt.plot(n1[wkb1==1],(rk1[wkb1==1]),'x',color='green')
+plt.plot(n1[wkb1==0],(rk1[wkb1==0]),'x',color='red')
+plt.plot(nref,rkref,color='black')
+#plt.plot(n1[wkb1==1],rk1[wkb2==1],'x',color='green')
+#plt.plot(n1[wkb1==0],rk1[wkb2==0],'x',color='red')
+#plt.plot(nref,dref[:,1],color='black')
 
+plt.show()
 
 
 
