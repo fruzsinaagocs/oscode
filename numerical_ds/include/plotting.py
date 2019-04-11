@@ -13,51 +13,73 @@ def parse_pair(s):
 # Airy equation with w(t), g(t) given analytically
 
 f1 = "test/airy/airy-example.txt" #'test/airy/airycorr_o1.txt'
+frk = "test/airy/airy-example-rkonly.txt"
+datark = np.loadtxt(frk,dtype=complex,converters={1:parse_pair, 2:parse_pair,
+4:parse_pair, 5:parse_pair})
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair,
 4:parse_pair, 5:parse_pair})
 times = np.logspace(0,2,5000)
 analytic = np.array([sp.airy(-ti)[0] + 1j*sp.airy(-ti)[2] for ti in times ])
 danalytic = np.array([-sp.airy(-ti)[1] - 1j*sp.airy(-ti)[3] for ti in times ])
 t = data[:,0]
+trk = datark[:,0]
 x = data[:,1]
+xrk = datark[:,1]
 dx = data[:,2]
 wkb = data[:,3]
+wkbrk = datark[:,3]
 sols = data[:,4]
+solsrk = datark[:,4]
 dsols = data[:,5]
+dsolsrk = datark[:,5]
 errs = np.abs(sols - x)/np.abs(sols)
 derrs = np.abs(dsols - dx)/np.abs(dsols)
+errsrk = np.abs(solsrk - xrk)/np.abs(solsrk)
+derrsrk = np.abs(dsolsrk - dxrk)/np.abs(dsolsrk)
 
 # Example solution
+# FIGURE 1 
 
+plt.style.use('paper')
 plt.semilogx(times,analytic, color='black',label='true solution',lw=0.5)
 plt.semilogx(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
 plt.semilogx(t[wkb==0],x[wkb==0],'x',color='red', label='RK step')
 plt.xlim((0,40.0))
-plt.xlabel("t")
+plt.ylim((-0.5, 0.7))
+plt.xlabel("$t$")
 plt.ylabel("$\Re\{x\}$")
 plt.legend()
-plt.savefig("plots/airy-example-x.pdf")
+plt.show()
+plt.savefig("plots/airy-example-x-paperstyle.pdf")
 
 # Error progression to late times in the above example
+# FIGURE 2
 
+plt.style.use('paper')
 plt.loglog(t, errs, '-', color='black')
-plt.loglog(t[wkb==1], errs[wkb==1],'x',color='black')
-plt.loglog(t[wkb==0], errs[wkb==0],'x',color='black')
-plt.ylim((1e-7,1e-3))
-plt.xlabel("t")
+plt.loglog(t[wkb==1], errs[wkb==1],'x',color='green',label='WKB step')
+plt.loglog(t[wkb==0], errs[wkb==0],'x',color='red',label='RK step')
+plt.loglog(trk[wkbrk==0], errsrk[wkbrk==0],'x',color='red')
+plt.loglog(trk, errsrk, '-', color='black')
+plt.ylim((1e-6,1e-2))
+plt.xlabel("$t$")
 plt.ylabel("relative error, $\\frac{|\Delta x|}{|x|}$")
-plt.axvline(x=3.79)
-plt.text(3.79/(7.0/3.79), 2e-4, 'RK', verticalalignment='center',
-horizontalalignment='right')
-plt.text(7.0, 2e-4, 'WKB', verticalalignment='center',
-horizontalalignment='left')
-plt.savefig('plots/airy-example-err.pdf')
+#plt.axvline(x=3.79)
+#plt.text(3.79/(7.0/3.79), 2e-4, 'RK', verticalalignment='center',
+#horizontalalignment='right')
+#plt.text(7.0, 2e-4, 'WKB', verticalalignment='center',
+#horizontalalignment='left')
+plt.legend()
+#plt.show()
+plt.savefig('plots/airy-example-err-paperstyle.pdf')
 
 
 # Burst equation with w(t), g(t) given analytically
 # Single solution at low n 
-f1 = 'test/burst/solcheck3-optn.txt'#d4w1less_n40.txt' #'plots/burstn40.txt'
-n = 1e8 
+# FIGURE 3 
+
+f1 = 'plots/burstn40.txt'#'test/burst/solcheck3-optn.txt'#d4w1less_n40.txt' #'plots/burstn40.txt'
+n = 40 
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair})
 times = np.linspace(-2*n,2*n,10000)
 analytic = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in times ])
@@ -68,29 +90,37 @@ wkb = data[:,3]
 sols = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in t])
 
 plt.figure()
-plt.style.use('fyr')
+plt.style.use('paper')
 plt.plot(times,analytic, color='black',label='true solution')
 plt.plot(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
 plt.plot(t[wkb==0],x[wkb==0],'x',color='red',label='RK step')
-#plt.xlim((-40,40))
-#plt.ylim((-60,60))
-plt.xlabel('t')
+plt.xlim((-40,40))
+plt.ylim((-60,60))
+plt.xlabel('$t$')
 plt.ylabel('$\Re{\{x(t)\}}$')
 plt.legend()
-#plt.savefig("plots/burstn40_x_fyrstyle.pdf")
-plt.show()
+plt.savefig("plots/burstn40_x_paperstyle.pdf")
+#plt.show()
 
 # Error progression in this example
+# FIGURE 4
 errs = np.abs(sols - x)/np.abs(sols)
 plt.figure()
-plt.style.use('fyr')
-plt.semilogy(t,errs,'x-',color='black')
+plt.style.use('paper')
+plt.semilogy(t,errs,color='black')
+plt.semilogy(t[wkb==1],errs[wkb==1],'x',color='green',label='WKB step')
+plt.semilogy(t[wkb==0],errs[wkb==0],'x',color='red',label='RK step')
+
 plt.ylabel('relative error, $\\frac{|\Delta x|}{|x|}$')
-plt.xlabel('t')
-#plt.savefig("plots/burstn40_err_fyrstyle.pdf")
-plt.show()
+plt.xlabel('$t$')
+plt.ylim(1e-7,1e-1)
+plt.xlim(-60,60)
+plt.legend()
+plt.savefig("plots/burstn40_err_paperstyle.pdf")
+#plt.show()
 
 # Large n example: number of oscillations traversed
+# FIGURE 5
 f = "plots/burstn1e5_tol-4.txt"
 n = 1e5
 data = np.loadtxt(f,dtype=complex,converters={1:parse_pair, 2:parse_pair})
@@ -105,18 +135,20 @@ for i,t in enumerate(ts):
         oscs[i] = None
 
 plt.figure();
-plt.style.use("fyr")
+plt.style.use("paper")
 plt.semilogy(ts,oscs,color='black')
 plt.semilogy(ts[wkbs==1],oscs[wkbs==1],'.',label='WKB step',color='green')
 plt.semilogy(ts[wkbs==0],oscs[wkbs==0],'.',label='RK step',color='red')
 plt.xlim((-n,n))
-plt.xlabel('t')
+plt.xlabel('$t$')
 plt.ylim((1e-2,1e4))
 plt.ylabel('oscillations traversed')
 plt.legend()
+#plt.show()
 plt.savefig('plots/burstn1e5_oscs.pdf')
 
 # Changing rtol at n=1e5, effect on relative error progression 
+# FIGURE 6
 f1 = 'plots/burstn1e5_tol-4.txt'
 f2 = 'plots/burstn1e5_tol-5.txt'
 f3 = 'plots/burstn1e5_tol-6.txt'
@@ -143,45 +175,52 @@ sols3 = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.co
 errs3 = np.abs(sols3 - x3)/np.abs(sols3)
 #
 plt.figure()
-plt.style.use('fyr')
+plt.style.use('paper')
 plt.semilogy(t1,errs1,'-',color='black',label='rtol=$10^{-4}$')
 plt.semilogy(t2,errs2,'-.',color='black',label='rtol=$10^{-5}$')
 plt.semilogy(t3,errs3,'--',color='black',label='rtol=$10^{-6}$')
 plt.ylabel('relative error, $\\frac{|\Delta x|}{|x|}$')
-plt.xlabel('t')
+plt.xlabel('$t$')
+plt.xlim((-2*n,2*n))
+plt.ylim((1e-9, 1e-1))
 plt.legend()
+#plt.show()
 plt.savefig("plots/burstn1e5_rtols.pdf")
 
 # Effect of changing rtol and n on runtime
+# FIGURE 7
 f1 = 'plots/bursttimingtol-4.txt'
 f2 = 'plots/bursttimingtol-5.txt'
 f3 = 'plots/bursttimingtol-6.txt'
 data1 = np.loadtxt(f1, delimiter=',')
 data2 = np.loadtxt(f2, delimiter=',')
 data3 = np.loadtxt(f3, delimiter=',')
-ns = data1[:,0]
-t1 = data1[:,-1]
-t2 = data2[:,-1]
-t3 = data3[:,-1]
-pivot = t1[249]
+ns = data1[::3,0]
+t1 = data1[::3,-1]
+t2 = data2[::3,-1]
+t3 = data3[::3,-1]
+pivot = t1[84]
+pivotno = 84 
 t1 = t1/pivot
 t2 = t2/pivot
 t3 = t3/pivot
 plt.figure()
-plt.style.use('fyr')
+plt.style.use('paper')
 plt.loglog(10**ns,t1,'-',color='black',label='rtol=$10^{-4}$')
 plt.loglog(10**ns,t2,'-.',color='black',label='rtol=$10^{-5}$')
 plt.loglog(10**ns,t3,'--',color='black',label='rtol=$10^{-6}$')
-plt.loglog([10**ns[249],10**ns[249]],[0.3,1.0],'k:')
-plt.loglog([4.0,10**ns[249]],[1.0, 1.0], 'k:')
+plt.loglog([10**ns[pivotno],10**ns[pivotno]],[0.3,1.0],'k:')
+plt.loglog([4.0,10**ns[pivotno]],[1.0, 1.0], 'k:')
 plt.ylabel('relative runtime')
-plt.xlabel('n')
-plt.xlim((4.0,2.5*10**(10)))
+plt.xlabel('$n$')
+plt.xlim((1e1,10**(10)))
 plt.ylim((0.3,4.5))
 plt.legend()
+#plt.show()
 plt.savefig("plots/bursttiming.pdf")
 
 # Effect of changing n, rtol on number of steps
+# FIGURE 9
 f1 = 'plots/bursttimingtol-4_stepscorr.txt'
 f2 = 'plots/bursttimingtol-5_stepscorr.txt'
 f3 = 'plots/bursttimingtol-6_stepscorr.txt'
@@ -199,7 +238,7 @@ wkbs1 = data1[:,3]
 #wkbs2 = data2[:,3]
 #wkbs3 = data3[:,3]
 plt.figure()
-plt.style.use('fyr')
+plt.style.use('paper')
 plt.loglog(10**ns,ts1,':',color='black',label='total steps')
 plt.loglog(10**ns,ss1,'-',color='black',label='accepted steps')
 plt.loglog(10**ns,wkbs1,'-',color='green',label='WKB steps')
@@ -207,12 +246,16 @@ plt.loglog(10**ns,ss1-wkbs1,'-',color='red',label='RK steps')
 #plt.loglog(10**ns,t2,'-.',color='black',label='rtol=$10^{-5}$')
 #plt.loglog(10**ns,t3,'--',color='black',label='rtol=$10^{-6}$')
 #plt.loglog([10**ns[249],10**ns[249]],[0.3,1.0],'k:')
+plt.xlim((1e1,1e10))
+plt.ylim((2e1, 1e3))
 plt.ylabel('number of steps')
-plt.xlabel('n')
+plt.xlabel('$n$')
 plt.legend()
+#plt.show()
 plt.savefig("plots/burststeps.pdf")
 
 # Version 2 of the above plot - vary rtol rather than n
+# FIGURE 8
 from cycler import cycler
 grays = cycler(color=['0.00','0.20', '0.40', '0.50', '0.60', '0.70'])
 f1 = 'plots/bursttimingn1e1.txt'
@@ -237,7 +280,7 @@ t6 = data6[:,1]
 pivot_t = t1[199]
 pivot_rtol = rtols[199]
 fig, ax = plt.subplots(1,1)
-plt.style.use('fyr')
+plt.style.use('paper')
 ax.set_prop_cycle(grays)
 plt.loglog(10**rtols,t1/pivot_t,label='n=$10^{1}$')
 plt.loglog(10**rtols,t2/pivot_t,label='n=$10^{2}$')
@@ -249,9 +292,11 @@ plt.loglog([10**pivot_rtol, 10**pivot_rtol],[1e-1,1.0],':',color='black')
 plt.loglog([1e-7, 10**pivot_rtol],[1.0,1.0],':',color='black')
 plt.ylabel('relative runtime')
 plt.xlabel("relative tolerance `rtol'")
+plt.xlim((1e-7, 1e-3))
+plt.ylim((2e-1,1e2))
 plt.legend()
-plt.show()
-#plt.savefig('plots/bursttiming_rtol.pdf')
+#plt.show()
+plt.savefig('plots/bursttiming_rtol.pdf')
 
 # Mukhanov--Sasaki equation
 # NAG files: ms1 has k=0.1, ms2 k=10.0, ms3 k=0.03
@@ -429,12 +474,13 @@ plt.show()
 # BINGO: test/ms/pps-bingo-comparison-ltl-moreac-abs0.txt
 #        test/ms/pps-bingo-comparison-start2e2.txt
 
+# FIGURE 10
 from cycler import cycler
 grays = cycler(color=['0.00','0.60', '0.40', '0.60', '0.80', '0.90'])
 #default = cycler(color=['#1f77b4','#ff7f0e', '#d62728', '#9467bd', '#8c564b',
 #'#e377c2'])
 
-fsolver = "test/ms/pps-bingo-start2e2-highk-lowk.txt"
+fsolver = "test/ms/pps-bingo-start1e2-highk-lowk.txt"
 #"test/ms/pps-bingo-start1e2-highk-tol4.txt"
 fbingo1 = "test/ms/pps-bingo-comparison-start2e2.txt"
 fbingo2 = "test/ms/pps-bingo-comparison-ltl-moreacc-pt2.txt"
@@ -459,23 +505,24 @@ tbingo4 = dbingo4[:,0]
 xbingo4 = dbingo4[:,1]
 
 fig,ax=plt.subplots(1,1)
-plt.style.use('fyr')
+plt.style.use('paper')
 ax.set_prop_cycle(grays)
-plt.loglog(t,x,label='RKWKB ',lw=1.8)
-plt.loglog(tbingo1,xbingo1,'--',label='BINGO',lw=1.8)
+plt.loglog(t,x,lw=1.0,label='$\mathrm{RKWKB}$')
+plt.loglog(tbingo1,xbingo1,'--',lw=1.0,label='$\mathrm{BINGO}$')
 #plt.loglog(tbingo3[:4900],xbingo3[:4900],label='BINGO, rtol$=10^{-6}$',alpha=0.8,lw=1.3)
 #plt.loglog(tbingo2[:4500],xbingo2[:4500],label='BINGO, rtol$=10^{-5}$',alpha=0.8,lw=1.3)
 #plt.loglog(tbingo1[:4900],xbingo1[:4900],label='BINGO, rtol$=10^{-4}$',alpha=0.8,lw=1.3)
 
-plt.xlabel('k/Mpc${}^{-1}$')
+plt.xlabel('$k$/Mpc${}^{-1}$')
 plt.ylabel('$P_{\mathcal{R}}(k)$')
-plt.legend()
+plt.xlim((1e-5,1e8))
 plt.ylim((6e-10,4e-9))
-plt.savefig("plots/rkwkb-v-bingo-pps-diffstart.pdf")
-plt.tight_layout()
+plt.legend()
+plt.savefig("plots/rkwkb-v-bingo-pps.pdf")
 #plt.show()
 
 # Timing comparison with BINGO 2 - like-to-like
+# FIGURES 11 - 12
 from cycler import cycler
 grays = cycler(color=['0.00','0.40', '0.40', '0.60', '0.80', '0.90'])
 
@@ -500,11 +547,18 @@ tbingo1 = dbingo1[:,-1]
 kbingo2 = dbingo2[:,0]
 tbingo2 = dbingo2[:,-1]
 
-fig,ax=plt.subplots(1,1)
-plt.style.use('fyr')
-ax.set_prop_cycle(grays)
+# FIGURE 11
 # tbingo/trkwkb plot
-#plt.semilogx(k,tbingo1/t)
+fig,ax=plt.subplots(1,1)
+plt.style.use('paper')
+ax.set_prop_cycle(grays)
+plt.semilogx(k1,tbingo1/t1)
+plt.xlabel('$k$')
+plt.ylabel('relative runtime, $t_{\mathrm{BINGO}}/t_{\mathrm{RKWKB}}$')
+plt.xlim((1e-5,1e8))
+#plt.show()
+plt.savefig("plots/rkwkb-v-bingo-reltimes-semilog.pdf")
+
 
 # abs runtimes
 plt.semilogx(k1,t1,label='rkwkb, 100')
@@ -513,18 +567,17 @@ plt.semilogx(kbingo1, tbingo1,label='bingo 100')
 plt.semilogx(kbingo2, tbingo2, label='bingo 200')
 
 # relative runtime within trkwkb
-#tpivot = t[2502]
-#plt.loglog(k,t/tpivot)
-#plt.loglog([1e-5,k[2502]],[1,1], 'k:',lw=1.5)
-#plt.loglog([k[2502],k[2502]],[0,1],'k:',lw=1.5)
-
-plt.xlabel('k')
-plt.ylabel('relative runtime, $t_{\mathrm{BINGO}}/t_{\mathrm{RKWKB}}$')
-#plt.ylabel('relative runtime')
+# FIGURE 12
+tpivot = t1[2502]
+plt.style.use('paper')
+plt.loglog(k1,t1/tpivot)
+plt.loglog([1e-5,k1[2502]],[1,1], 'k:')
+plt.loglog([k1[2502],k1[2502]],[0,1],'k:')
+plt.xlabel('$k$')
+plt.ylabel('relative runtime')
 plt.xlim((1e-5,1e8))
 #plt.show()
-plt.legend()
-plt.savefig("plots/rkwkb-v-bingo-diffstart.pdf")
+plt.savefig("plots/rkwkb-reltimes.pdf")
 
 # RK single-k solution of BINGO eqs with NAG
 f1 = "test/ms/bingo-singlek-k1e-5.txt"
@@ -570,25 +623,21 @@ plt.ylabel('$\Re{\{ \mathcal{R}_k \}} $')
 plt.savefig('plots/modes-highk-lowk.pdf')
 #plt.show()
 
-#plt.plot(n1ref,rk1ref,label='true solution')
-#plt.plot(n1,rk1,'x',label='RK',color='red')
-#ax[0].plot(n1ref,rk1ref)
-#ax[0].plot(n1,rk1,'x',color='red',label='RK')
-#ax[0].legend()
-#ax[1].plot(n1ref,rk1ref)
-#ax[1].plot(n1wkb[rk1steps==0],rk1wkb[rk1steps==0],'x',color='red',label='RK')
-#ax[1].plot(n1wkb[rk1steps==1],rk1wkb[rk1steps==1],'x',color='green',label='WKB')
-#ax[1].legend()
-#fig.text(0.5,0.04,'N',ha='center',va='center')
-#fig.text(0.06,0.5,'$\Re{\{\mathcal{R}_k\}}$',ha='center',va='center',rotation='vertical')
-#ax[0].set_xlim((n1ref[0],n1ref[-1]))
-#ax[1].set_xlim((n1ref[0],n1ref[-1]))
-#plt.plot(n2,rk2,'x',label='RK',color='red')
-#plt.plot(n2,rk2,'.',label='RK',color='green')
-#plt.plot(n2wkb,rk2wkb,'x',label='RKWKB',color='red')
-
-#plt.legend()
-#plt.savefig('plots/rkwkb-bingo-singlek.pdf')
+# FIGURE 13
+plt.style.use('paper')
+fig,ax = plt.subplots(2,1,sharex=True)
+ax[0].plot(n1ref,rk1ref)
+ax[0].plot(n1,rk1,'x',color='red',label='RK step')
+ax[0].legend()
+ax[1].plot(n1ref,rk1ref)
+ax[1].plot(n1wkb[rk1steps==0],rk1wkb[rk1steps==0],'x',color='red',label='RK step')
+ax[1].plot(n1wkb[rk1steps==1],rk1wkb[rk1steps==1],'x',color='green',label='WKB step')
+ax[1].legend(loc='upper right')
+fig.text(0.5,0.02,'$N$',ha='center',va='center')
+fig.text(0.06,0.5,'$\Re{\{\mathcal{R}_k\}}$',ha='center',va='center',rotation='vertical')
+ax[0].set_xlim((n1ref[0],n1ref[-1]))
+ax[1].set_xlim((n1ref[0],n1ref[-1]))
+plt.savefig('plots/rkwkb-bingo-singlek.pdf')
 #plt.show()
 
 # Kinetically dominated PPS in terms of N
@@ -611,24 +660,29 @@ H = dbg[:,4]
 w = 1.0/(np.exp(N)*H)
 g = -0.25*dphi**2 -(3.0-(0.5*dphi*dphi)) - (6.0-(dphi*dphi))*dV(phi)/(2.0*V(phi)*dphi) + 1.5
 #plt.plot(N,phi)
+plt.semilogy(N,w)
 #plt.plot(N,g,'.')
-plt.semilogy(N,2e-4*w)
-plt.semilogy(N,2e4*w)
+#plt.semilogy(N,2e-4*w)
+#plt.semilogy(N,2e4*w)
 plt.show()
 
 # PPS
+# FIGURE 14
+plt.figure(figsize=(2.60,2.375))
 f = "test/ms/pps-N-kd-sparsebg2.txt"
 d = np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair})
 k = d[:,0]
 p1 = d[:,3] # Bunch-Davies
 p2 = d[:,4] # attempted kd
 #plt.loglog(k,p1)
-plt.style.use('fyr')
-plt.xlabel("k/Mpc${}^{-1}$")
+plt.style.use('paper')
+plt.xlabel("$k$/Mpc${}^{-1}$")
 plt.ylabel("$P_{\mathcal{R}}(k)$")
 plt.xlim((1e-3,1e5))
 plt.ylim((6e-10,2e-9))
 plt.loglog(k,p2)
+#fig.text(0.5,0.02,'$N$',ha='center',va='center')
+#plt.show()
 plt.savefig("plots/example-pps-kd-N.pdf")
 
 # Single-k solutions
@@ -652,8 +706,24 @@ plt.plot(nref,rkref,color='black')
 #plt.plot(n1[wkb1==1],rk1[wkb2==1],'x',color='green')
 #plt.plot(n1[wkb1==0],rk1[wkb2==0],'x',color='red')
 #plt.plot(nref,dref[:,1],color='black')
-
 plt.show()
 
-
+# Kinetically dominated closed universe
+# background check: horizon
+f = "test/ms/kd-closed-bg-tip.txt"
+f2 = "test/ms/kd-closed-bg-2.txt"
+data = np.genfromtxt(f,delimiter=', ')
+data2 = np.genfromtxt(f2,delimiter=', ')
+N = data[:,0]
+phi = data[:,1]
+logo_k = data[:,3]
+plt.style.use('paper')
+plt.plot(N, logo_k,color='red',label='$K=+1$, closed')
+#plt.plot(data2[:,0], data2[:,3],color='blue',label='$K=+1$, closed')
+plt.legend()
+plt.xlabel('$N$')
+plt.ylabel('$-2 \log{(aH)}$')
+#plt.plot(N, phi, '.')
+#plt.savefig('plots/closed-bg.pdf')
+plt.show()
 
