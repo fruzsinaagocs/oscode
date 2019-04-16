@@ -205,11 +205,11 @@ void Solution::solve(){
         for(int i=0; i<=ssteps; i++){
             f << std::setprecision(20) << *it_t << " " <<
             std::setprecision(20) << *it_x << " " << std::setprecision(20) <<
-            *it_dx << " " << *it_w << " " <<
-            std::complex<double>(boost::math::airy_ai(-*it_t),
-            boost::math::airy_bi(-*it_t))  << " " <<
-            std::complex<double>(boost::math::airy_ai_prime(-*it_t),
-            boost::math::airy_bi_prime(-*it_t)) << "\n"; 
+            *it_dx << " " << *it_w << "\n";//" " <<
+            //std::complex<double>(boost::math::airy_ai(-*it_t),
+            //boost::math::airy_bi(-*it_t))  << " " <<
+            //std::complex<double>(boost::math::airy_ai_prime(-*it_t),
+            //boost::math::airy_bi_prime(-*it_t)) << "\n"; 
             ++it_t;
             ++it_x;
             ++it_dx;

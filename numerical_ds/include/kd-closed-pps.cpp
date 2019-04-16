@@ -23,12 +23,16 @@ double K=1; // curvature
 double mp=1;
 double kpivot=0.05;
 double Npivot=54.0;
-int Nbg=round(5e3), npts=round(Nbg-1);
+int Nbg=round(5e5), npts=round(Nbg-1);
 double Nstart=-5.0, Nend=75.0, Ninc=(Nend-Nstart)/npts;
 Eigen::VectorXd logws, listgs;
 double Ak=0.0, Bk=1.0;
 // Initial conditions at horizon turnover
-double Ni = 10.16; double o_ki = 9e0;
+double Ni = 10.16;
+double o_ki = 9e0;
+// For constructing w,g
+Eigen::VectorXd dE_E=Eigen::VectorXd::Zero(Nbg),
+E=Eigen::VectorXd::Zero(Nbg), o_ks=Eigen::VectorXd::Zero(Nbg);
 
 
 // For setting Kinetically Dominated initial conditions for the perturbation
@@ -82,18 +86,18 @@ std::complex<double> dx02, std::complex<double> x0, std::complex<double> dx0){
 double RKSolver::w(double N){
     int i;
     i=int((N-Nstart)/Ninc);
-    
-    double logw0 = logws(i);
-    double logw1 = logws(i+1);
-    return k*std::exp(logw0+(logw1-logw0)*(N-Nstart-Ninc*i)/Ninc);
+    double k2 = k*(k+2.0)-3.0*K;
+    double logw0 = 0.5*std::log(o_ks(i)*(k2 - K -2.0*K*k2*dE_E(i)/(E(i)*K+k2)));
+    double logw1 = 0.5*std::log(o_ks(i+1)*(k2 - K -2.0*K*k2*dE_E(i+1)/(E(i+1)*K+k2)));
+    return std::exp(logw0+(logw1-logw0)*(N-Nstart-Ninc*i)/Ninc);
 };
 
 double RKSolver::g(double N){
     int i;
     i=int((N-Nstart)/Ninc);
-    
-    double g0 = listgs(i);
-    double g1 = listgs(i+1);
+    double k2 = k*(k+2.0)-3.0*K; 
+    double g0 = 0.5*(K*o_ks(i) + 3.0 - E(i) + dE_E(i)*k2/(E(i)*K+k2));
+    double g1 = 0.5*(K*o_ks(i+1) + 3.0 - E(i+1) + dE_E(i+1)*k2/(E(i+1)*K+k2));
     return (g0+(g1-g0)*(N-Nstart-Ninc*i)/Ninc);
 };
 
@@ -123,8 +127,8 @@ Nag_Comm *comm){
 int main(){
 
     // Range of wavenumbers
-    int nk=1;
-    Eigen::VectorXd ks=Eigen::VectorXd::LinSpaced(nk,5,5);
+    int nk=100;
+    Eigen::VectorXd ks=Eigen::VectorXd::LinSpaced(nk,-3,-2);
     for(int i=0; i<nk; i++)
         ks(i) = std::pow(10,ks(i));
     Eigen::VectorXd exits=Eigen::VectorXd::Zero(nk);
@@ -180,9 +184,10 @@ int main(){
     // Set middle values for background vectors: N, phi, dphi, ddphi, H
     Ns(mid) = Ni;
     phis(mid) = phi_i;
-    dphis(mid) = 0.0;
+    dphis(mid) = -std::sqrt(6.0 + o_ki*(6.0*K -
+    2.0*std::exp(2.0*Ni)*V(phi_i*mp)/(mp*mp)));
     logo_ks(mid) = std::log(o_ki);
-    dlogo_ks(mid) = 0.0;
+    dlogo_ks(mid) = 4.0 + o_ki*(4.0*K - 2.0*std::exp(2.0*Ni)*V(phi_i*mp)/(mp*mp));
     // Solver settings 
     thresh[0] = 1.0e-14;
     thresh[1] = 1.0e-14;
@@ -221,6 +226,7 @@ int main(){
     NAG_FREE(iwsav);
     
     // 2. Integrate backwards towards KD
+    
     thresh = NAG_ALLOC(n, double);
     ygot = NAG_ALLOC(n, double);
     yinit = NAG_ALLOC(n, double);
@@ -254,30 +260,38 @@ int main(){
         logo_ks(i) = ygot[0];
         dlogo_ks(i) = ypgot[0];
     };
-
     
-//    // Find the scale factor (for rescaling)
-//    double Nexit = Nendinfl-Npivot, Hexit;
-//    for(int i=0; i<npts; i++){
-//        if(Ns(i)>Nexit){
-//            Hexit = Hs(i);
-//            break;
-//        };
-//    };
-//
-//    // switching from k in Mpc^(-1) to k in Planck units
-//    kpivot = Hexit*std::exp(Nexit);
-//    std::cout << "kpivot: " << kpivot << std::endl;
-//    for(int i=0; i<nk; i++)
-//        ks(i) = ks(i)*kpivot/0.05;
-//    //std::cout << "new scales: " << ks(0) << ".." << ks(nk-1) << std::endl;
- 
+    NAG_FREE(thresh);
+    NAG_FREE(yinit);
+    NAG_FREE(ygot);
+    NAG_FREE(ypgot);
+    NAG_FREE(ymax);
+    NAG_FREE(rwsav);
+    NAG_FREE(iwsav);
 
-    // Write horizon to file:
+    // Construct variables used in logws, gs
+    for(int i=0; i<Nbg; i++){
+       dE_E(i) =
+       dlogo_ks(i)-4.0-2.0*dV(phis(i)*mp)*std::exp(logo_ks(i))*std::exp(2.0*Ns(i))/dphis(i)/mp;
+       E(i) = 0.5*dphis(i)*dphis(i)*mp*mp;
+       o_ks(i) = std::exp(logo_ks(i));
+    };
+
+    // Switch from k in Mpc^(-1) to k in Planck units
+    double atoday = 4.3e4; 
+    for(int i=0; i<nk; i++)
+        ks(i) = int(ks(i)*atoday);
+    std::cout << "new scales: " << ks(0) << ".." << ks(nk-1) << std::endl;
+ 
+    // Write background to file
     std::ofstream fbg;
     fbg.open("test/ms/kd-closed-bg-tip.txt");
+    double k2 = 4*(4+2.0)-3*K;
     for(int i=0; i<Nbg; i++){
-        fbg << Ns(i) << ", " << phis(i) << ", " << dphis(i) << ", " << logo_ks(i) << ", " << dlogo_ks(i) << std::endl;
+        fbg << Ns(i) << ", " << phis(i) << ", " << dphis(i) << ", " <<
+        logo_ks(i) << ", " << dlogo_ks(i) << ", " << std::sqrt(o_ks(i)*(k2 - K
+        -2.0*K*k2*dE_E(i)/(E(i)*K+k2))) << ", " << 0.5*(K*o_ks(i) + 3.0 - E(i) +
+        dE_E(i)*k2/(E(i)*K+k2)) << std::endl;
     };
     fbg.close();
     std::cout << "Done solving background" << std::endl;
@@ -287,135 +301,129 @@ int main(){
     std::cout << "Press anything to continue" << std::endl;
     std::cin >> breakmsg; 
 
-//    // Finding beginning and end of integration for each mode
-//    for(int i=0; i<nk; i++){
-//        for(int j=0; j<Nbg; j++){
-//            if(Ns(j) > 1.1){
-//               starts(i) = Ns(j);
-//               startindices(i) = j;
-//               break;
-//            };
-//        };
-//    };
-//
-//    double epsilon1;
-//    for(int i=0; i<nk; i++){
-//        for(int j=startindices(i); j<Nbg; j++){
-//            epsilon1 = ks(i)/(1e-2*std::exp(Ns(j))) - Hs(j);
-//            if(epsilon1 <= 0.0){
-//               exits(i) = Ns(j);
-//               break;
-//            };
-//        };
-//    };
+    // Finding beginning and end of integration for each mode
+    for(int i=0; i<nk; i++){
+        for(int j=0; j<Nbg; j++){
+            if(Ns(j) > 4.0){
+               starts(i) = Ns(j);
+               startindices(i) = j;
+               break;
+            };
+        };
+    };
+
+    double epsilon1;
+    for(int i=0; i<nk; i++){
+        for(int j=startindices(i); j<Nbg; j++){
+            epsilon1 = 1e2*ks(i)*std::sqrt(o_ks(j)) - 1.0;
+            if(epsilon1 <= 0.0){
+               exits(i) = Ns(j);
+               break;
+            };
+        };
+    };
     
-    //std::cout << "starts: " << starts(0) << ", " << starts(nk-1) << std::endl;
-    //std::cout << "start indices: " << startindices(0) << ", " << startindices(nk-1) << std::endl;
-    //std::cout << "exits: " << exits(0) << ", " << exits(nk-1) << std::endl;
+    std::cout << "starts: " << starts(0) << ", " << starts(nk-1) << std::endl;
+    std::cout << "start indices: " << startindices(0) << ", " <<
+    startindices(nk-1) << std::endl;
+    std::cout << "exits: " << exits(0) << ", " << exits(nk-1) << std::endl;
 
-//    // Construct list of logws, gs
-//    for(int i=0; i<Nbg; i++){
-//        logws(i) = -std::log(Hs(i)) - Ns(i);
-//        listgs(i) = -0.25*dphis(i)*dphis(i) + -(3.0-(0.5*dphis(i)*dphis(i))) - (6.0-(dphis(i)*dphis(i)))*dV(phis(i))/(2.0*V(phis(i))*dphis(i)) + 1.5;
-//    };
+    // Construct system to solve
+    de_system system(&win,&win);
+    
+    // Solve the evolution of each perturbation
+    double ti, tf, rtol, atol, h0;
+    std::complex<double> x0, dx0;
+    int order=3;
+    bool full_output=false;//true;
+    rtol=1e-4;
+    atol=0.0;
+    h0=1.0;
+    
+    std::list<std::complex<double>> rk1, rk2;
+    std::list<double> times;
+    double t1,t2,timing0,timing1,startsi;   
+    double phi,dphi,ddphi,N,z,dz_z,a0;
+    Eigen::Vector2cd ic;
+    Eigen::VectorXcd x01s(nk), x02s(nk), dx01s(nk), dx02s(nk), x0s(nk), dx0s(nk);
+    
+    timing0 = MPI_Wtime();
+    CALLGRIND_START_INSTRUMENTATION;
+    CALLGRIND_TOGGLE_COLLECT;
+    for(int i=0; i<nk; i++){
+        k = ks(i);
+        startsi = startindices(i);
+        ti = starts(i);
+        tf = exits(i); 
+        phi = phis(startsi)*mp;
+        dphi = dphis(startsi)*mp;
+        ddphi = 0.5*dE_E(startsi)*dphi*mp;
+        N = Ns(startsi);
+        ic = kd(k,phi,dphi,ddphi,N);
+        x0s(i) = ic(0);
+        dx0s(i) = ic(1);
+        a0 = std::exp(N);
+        z = a0*dphi;
+        dz_z = ddphi/dphi + 1.0;
+        x0 = 1.0;//1.0/(std::sqrt(2.0*k))/z;
+        dx0 = 0.0;
+        //std::complex<double>(std::real(-x0*dz_z),-std::sqrt(k/2.0)*std::sqrt(o_ks(startsi))/z);
+        //std::cout << "ic: " << x0 << "\\n" << dx0 << std::endl;
+        x01s(i) = 1.0/(std::sqrt(2.0*k))/z;
+        dx01s(i) = std::complex<double>(std::real(-x01s(i)*dz_z),-std::sqrt(k/2.0)*std::sqrt(o_ks(startsi))/z);
+        Solution solution1(system, x0, dx0, ti, tf, order, rtol, atol, h0,
+        full_output);
+        t1 = MPI_Wtime();
+        solution1.solve();
+        rk1.push_back(solution1.sol.back());
+        
+        x0 = 0.0;//1.0/(std::sqrt(2.0*k))/z;
+        dx0 = 1.0;
+        //-std::complex<double>(std::real(-x0*dz_z),-std::sqrt(k/2.0)*std::sqrt(o_ks(startsi))/z);
+        x02s(i) = 1.0/(std::sqrt(2.0*k))/z;
+        dx02s(i) = -std::complex<double>(std::real(-x02s(i)*dz_z),-std::sqrt(k/2.0)*std::sqrt(o_ks(startsi))/z);
+        Solution solution2(system, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
+        solution2.solve();
+        t2 = MPI_Wtime();
+        rk2.push_back(solution2.sol.back());
+        times.push_back(t2-t1);
+        std::cout << "done k=" << k << " in " << t2-t1 << " s." << std::endl;
+        
+    };
+    CALLGRIND_TOGGLE_COLLECT;
+    CALLGRIND_STOP_INSTRUMENTATION;
+    timing1 = MPI_Wtime();
+    std::cout << "total time: " << timing1-timing0 << " s." << std::endl;
+    
+    auto it_1 = rk1.begin();
+    auto it_2 = rk2.begin();
+    auto it_3 = times.begin();
+    while(it_1!=rk1.end() && it_2!=rk2.end() && it_3!=times.end()){
+        //std::cout << "rk1: " << *it_1 << ", rk2: " << *it_2 << std::endl;
+        ++it_1;
+        ++it_2;
+        ++it_3;
+    };
 
-
-//    // Construct system to solve
-//    de_system system(&win,&win);
-//    
-//    // Solve the evolution of each perturbation
-//    double ti, tf, rtol, atol, h0;
-//    std::complex<double> x0, dx0;
-//    int order=3;
-//    bool full_output=false;
-//    rtol=1e-4;
-//    atol=0.0;
-//    h0=1.0;
-//    
-//    std::list<std::complex<double>> rk1, rk2;
-//    std::list<double> times;
-//    double t1,t2,timing0,timing1,startsi;   
-//    double phi,dphi,ddphi,N,z,dz_z,a0;
-//    Eigen::Vector2cd ic;
-//    Eigen::VectorXcd x01s(nk), x02s(nk), dx01s(nk), dx02s(nk), x0s(nk), dx0s(nk);
-//    
-//    timing0 = MPI_Wtime();
-//    CALLGRIND_START_INSTRUMENTATION;
-//    CALLGRIND_TOGGLE_COLLECT;
-//    for(int i=0; i<nk; i++){
-//        k = ks(i);
-//        startsi = startindices(i);
-//        ti = starts(i);
-//        tf = exits(i); 
-//        phi = phis(startsi);
-//        dphi = dphis(startsi);
-//        ddphi = ddphis(startsi);
-//        N = Ns(startsi);
-//        ic = kd(k,phi,dphi,ddphi,N);
-//        x0s(i) = ic(0);
-//        dx0s(i) = ic(1);
-//        a0 = std::exp(N);
-//        z = a0*dphi;
-//        dz_z = ddphi/dphi + 1.0;
-//        x0 = 1.0/(std::sqrt(2.0*k))/z;
-//        dx0 =
-//        std::complex<double>(std::real(-x0*dz_z),-std::sqrt(k/2.0)/(a0*z*Hs(startsi)));
-//        //std::cout << "ic: " << x0 << "\\n" << dx0 << std::endl;
-//        x01s(i) = x0;
-//        dx01s(i) = dx0;
-//        Solution solution1(system, x0, dx0, ti, tf, order, rtol, atol, h0,
-//        full_output);
-//        t1 = MPI_Wtime();
-//        solution1.solve();
-//        rk1.push_back(solution1.sol.back());
-//        
-//        x0 = 1.0/(std::sqrt(2.0*k))/z;
-//        dx0 =
-//        -std::complex<double>(std::real(-x0*dz_z),-std::sqrt(k/2.0)/(a0*z*Hs(startsi)));
-//        x02s(i) = x0;
-//        dx02s(i) = dx0;
-//        Solution solution2(system, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
-//        solution2.solve();
-//        t2 = MPI_Wtime();
-//        rk2.push_back(solution2.sol.back());
-//        times.push_back(t2-t1);
-//        //std::cout << "done k=" << k << " in " << t2-t1 << " s." << std::endl;
-//        
-//    };
-//    CALLGRIND_TOGGLE_COLLECT;
-//    CALLGRIND_STOP_INSTRUMENTATION;
-//    timing1 = MPI_Wtime();
-//    std::cout << "total time: " << timing1-timing0 << " s." << std::endl;
-//    
-//    auto it_1 = rk1.begin();
-//    auto it_2 = rk2.begin();
-//    auto it_3 = times.begin();
-//    while(it_1!=rk1.end() && it_2!=rk2.end() && it_3!=times.end()){
-//        //std::cout << "rk1: " << *it_1 << ", rk2: " << *it_2 << std::endl;
-//        ++it_1;
-//        ++it_2;
-//        ++it_3;
-//    };
-//
-//    // Write PPS to file
-//    std::ofstream f;
-//    f.open("test/ms/pps-testN.txt");
-//    it_1 = rk1.begin();
-//    it_2 = rk2.begin();
-//    it_3 = times.begin();
-//    double starti;
-//    for(int u=0; u<nk; u++){
-//        starti = startindices(u);
-//        f << ks(u)*0.05/kpivot << ", "  << *it_1 << ", " << *it_2 << ", " <<
-//        pps(ks(u),*it_1,*it_2,x01s(u),dx01s(u),x02s(u),dx02s(u),x01s(u),dx02s(u))
-//        << ", " <<
-//        pps(ks(u),*it_1,*it_2,x01s(u),dx01s(u),x02s(u),dx02s(u),x0s(u),dx0s(u))
-//        << ", " << *it_3 << std::endl;
-//        ++it_1;
-//        ++it_2;
-//        ++it_3;
-//    };
-//    f.close();
+    // Write PPS to file
+    std::ofstream f;
+    f.open("test/ms/pps-kd-closed-test.txt");
+    it_1 = rk1.begin();
+    it_2 = rk2.begin();
+    it_3 = times.begin();
+    double starti;
+    for(int u=0; u<nk; u++){
+        starti = startindices(u);
+        f << ks(u)/atoday << ", "  << *it_1 << ", " << *it_2 << ", " <<
+        pps(ks(u),*it_1,*it_2,x01s(u),dx01s(u),x02s(u),dx02s(u),x01s(u),dx02s(u))
+        << ", " <<
+        pps(ks(u),*it_1,*it_2,x01s(u),dx01s(u),x02s(u),dx02s(u),x0s(u),dx0s(u))
+        << ", " << *it_3 << std::endl;
+        ++it_1;
+        ++it_2;
+        ++it_3;
+    };
+    f.close();
 
     return 0;
 }
