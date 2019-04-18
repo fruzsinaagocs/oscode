@@ -17,19 +17,20 @@
 #include "mpi.h"
 
 int nv=2;
-double m=5e-6;
+double m=1e2;
+//double m=5e-6;
 double k; // wavevector of perturbation
 double K=1; // curvature
 double mp=1;
 double kpivot=0.05;
 double Npivot=54.0;
-int Nbg=round(2e6), npts=round(Nbg-1);
-double Nstart=0.0, Nend=75.0, Ninc=(Nend-Nstart)/npts;
+int Nbg=round(5e3), npts=round(Nbg-1);
+double Nstart=-4.0, Nend=85.0, Ninc=(Nend-Nstart)/npts;
 Eigen::VectorXd logws, listgs;
 double Ak=0.0, Bk=1.0;
 // Initial conditions at horizon turnover
-double Ni = 10.16;
-double o_ki = 1e2;
+double Ni = -3.0;//10.16;
+double o_ki = 5e2; 
 // For constructing w,g
 Eigen::VectorXd dE_E=Eigen::VectorXd::Zero(Nbg),
 E=Eigen::VectorXd::Zero(Nbg), o_ks=Eigen::VectorXd::Zero(Nbg),
@@ -56,7 +57,7 @@ std::complex<double> H2_0_prime(double x){
 };
 
 Eigen::Vector2cd kd(double ki, double phi, double dphi, double ddphi, double N){
-    // Initial conditions for the perturbations in Kinetic Dominance at t0
+    // Initial conditions for the perturbations in Kinetic Dominance
     Eigen::Vector2cd result;
     double z = std::exp(N)*dphi;
     double dz_z = ddphi/dphi + 1.0;
@@ -66,6 +67,19 @@ Eigen::Vector2cd kd(double ki, double phi, double dphi, double ddphi, double N){
     std::complex<double> dR = (-dz_z+1.0)*R +
     3.0*ki/(2.0*z)*std::sqrt(1.5*M_PI)*std::exp(3.0*N)*(Ak*H1_0_prime(1.5*ki*std::exp(2.0*N))
     + Bk*H2_0_prime(1.5*ki*std::exp(2.0*N)));
+    result << R, dR; 
+    return result;
+};
+
+Eigen::Vector2cd bd(double ki, double phi, double dphi, double ddphi, double N){
+    // Initial conditions for the perturbations using Bunch--Davies vacuum
+    Eigen::Vector2cd result;
+    double dz_z = ddphi/dphi + 1.0;
+    double a0 = std::exp(N);
+    double z = a0*dphi;
+    std::complex<double> R = 1.0/(std::sqrt(2.0*ki))/z;
+    std::complex<double> dR =
+    -std::complex<double>(-std::real(R*dz_z),-std::sqrt(ki/2.0*o_ki)/z);
     result << R, dR; 
     return result;
 };
@@ -81,24 +95,30 @@ std::complex<double> dx02, std::complex<double> x0, std::complex<double> dx0){
     std::complex<double> b = (x0*dx01 - dx0*x01)/(x02*dx01 - dx02*x01);
     double power = std::pow(std::abs(a*rk1 + b*rk2),2)*std::pow(ki,3)/(2.0*M_PI*M_PI);
     return power;
-
 };
 
-//std::sqrt(o_ks(i)*(ksq - K -2.0*K*ksq*dE_E(i)/(E(i)*K+ksq)))
 
 double RKSolver::w(double N){
     int i;
     i=int((N-Nstart)/Ninc);
-    double k2 = k*(k+2.0)-3.0*K;
-    double logw0 = 0.5*(logo_ks(i) +  std::log(k2 - K -2.0*K*k2*dE_E(i)/(E(i)*K+k2)));
-    double logw1 = 0.5*(logo_ks(i) + std::log(k2 - K -2.0*K*k2*dE_E(i+1)/(E(i+1)*K+k2)));
+    double k2;
+    if(K>0)
+        k2 = k*(k+2.0)-3.0*K;
+    else
+        k2 = k*k-3.0*K;
+    double logw0 = 0.5*(std::log(o_ks(i)) + std::log(k2 - K -2.0*K*k2*dE_E(i)/(E(i)*K+k2)));
+    double logw1 = 0.5*(std::log(o_ks(i+1)) + std::log(k2 - K -2.0*K*k2*dE_E(i+1)/(E(i+1)*K+k2)));
     return std::exp(logw0+(logw1-logw0)*(N-Nstart-Ninc*i)/Ninc);
 };
 
 double RKSolver::g(double N){
     int i;
     i=int((N-Nstart)/Ninc);
-    double k2 = k*(k+2.0)-3.0*K; 
+    double k2;
+    if(K>0)
+        k2 = k*(k+2.0)-3.0*K;
+    else
+        k2 = k*k-3.0*K;
     double g0 = 0.5*(K*o_ks(i) + 3.0 - E(i) + dE_E(i)*k2/(E(i)*K+k2));
     double g1 = 0.5*(K*o_ks(i+1) + 3.0 - E(i+1) + dE_E(i+1)*k2/(E(i+1)*K+k2));
     return (g0+(g1-g0)*(N-Nstart-Ninc*i)/Ninc);
@@ -122,7 +142,6 @@ static void NAG_CALL f(double t, Integer n, const double *y, double *yp,
 Nag_Comm *comm){
     // equation giving dy with y = [logomega_k, phi/mp], 
     // dy = [ dlogomega_k, dphi/mp]
-    //std::cout << "N: " << t << ", dlogok: " << yp[0] << std::endl;
     yp[0] = 4.0 + std::exp(y[0])*(4.0*K - 2.0*std::exp(2.0*t)*V(y[1]*mp)/(mp*mp));
     yp[1] = -std::sqrt(6.0 + std::exp(y[0])*(6.0*K -
     2.0*std::exp(2.0*t)*V(y[1]*mp)/(mp*mp)));
@@ -131,8 +150,8 @@ Nag_Comm *comm){
 int main(){
 
     // Range of wavenumbers
-    int nk=1000;
-    Eigen::VectorXd ks=Eigen::VectorXd::LinSpaced(nk,-4,1);
+    int nk=2000;
+    Eigen::VectorXd ks=Eigen::VectorXd::LinSpaced(nk,-4,3);
     for(int i=0; i<nk; i++)
         ks(i) = std::pow(10,ks(i));
     Eigen::VectorXd exits=Eigen::VectorXd::Zero(nk);
@@ -195,16 +214,19 @@ int main(){
     logo_ks(mid) = std::log(o_ki);
     dlogo_ks(mid) = 4.0 + o_ki*(4.0*K - 2.0*std::exp(2.0*Ni)*V(phi_i*mp)/(mp*mp));
     // Solver settings 
-    thresh[0] = 1.0e-14;
-    thresh[1] = 1.0e-14;
-    tol = 1.0e-14;
+    thresh[0] = 1.0e-10;
+    thresh[1] = 1.0e-10;
+    tol = 1.0e-8;
     nag_ode_ivp_rkts_setup(n, Ni, Nend, yinit, tol, thresh, method, errass, 0.0, iwsav, rwsav, &fail);
     twant=Ni;
     
     for(int i=mid+1; i<=(npts); i++){
         tnext = twant;
         twant+=Ninc;
-        //std::cout << tnext << std::endl;
+        f(tnext, n, yinit,yinit,&comm);
+        std::cout <<"here goes: " <<  yinit[0] << "," << yinit[1] << std::endl;
+        break;
+        std::cout << twant << "," << ygot[0] <<"," << ygot[1] <<"," <<ypgot[0] <<"," << ypgot[1] << std::endl;
         while(tnext < twant){
             nag_ode_ivp_rkts_range(f,2,twant,&tgot,ygot,ypgot,ymax,&comm,iwsav,rwsav,&fail);
             //if(fail.code != NE_NOERROR){
@@ -246,9 +268,9 @@ int main(){
     yinit[0] = std::log(o_ki);
     yinit[1] = phi_i;
     // Solver settings 
-    thresh[0] = 1.0e-14;
-    thresh[1] = 1.0e-14;
-    tol = 1.0e-14;
+    thresh[0] = 1.0e-10;
+    thresh[1] = 1.0e-10;
+    tol = 1.0e-8;
 
     std::cout << "starting backwards integration" << std::endl;
     nag_ode_ivp_rkts_setup(n, Ni, Nstart, yinit, tol, thresh, method, errass, 0.0, iwsav, rwsav, &fail);
@@ -259,7 +281,6 @@ int main(){
         twant-=Ninc;
         if(twant < Nstart)
             twant = Nstart;
-        //std::cout << twant << std::endl;
         while(tnext > twant){
             nag_ode_ivp_rkts_range(f,2,twant,&tgot,ygot,ypgot,ymax,&comm,iwsav,rwsav,&fail);
             tnext = tgot; 
@@ -295,19 +316,23 @@ int main(){
     // Write background to file
     std::ofstream fbg;
     fbg.open("test/ms/kd-closed-bg-tip.txt");
-    double ksq = 4000*(4000+2.0)-3*K;
+    double ksq,kexample;
+    kexample=ks(0);
+    if(K>0)
+        ksq = kexample*(kexample+2.0)-3*K;
+    else
+        ksq = kexample*kexample-3*K;
     for(int i=0; i<Nbg; i++){
         fbg << Ns(i) << ", " << phis(i) << ", " << dphis(i) << ", " <<
-        logo_ks(i) << ", " << dlogo_ks(i) << ", " << std::sqrt(o_ks(i)*(ksq - K
-        -2.0*K*ksq*dE_E(i)/(E(i)*K+ksq))) << ", " << 0.5*(K*o_ks(i) + 3.0 - E(i) +
+        logo_ks(i) << ", " << dlogo_ks(i) << ", " << (ksq - K
+        -2.0*K*ksq*dE_E(i)/(E(i)*K+ksq)) << ", " << 0.5*(K*o_ks(i) + 3.0 - E(i) +
         dE_E(i)*ksq/(E(i)*K+ksq)) << ", " << dE_E(i) << std::endl;
     };
     fbg.close();
     std::cout << "Done solving background" << std::endl;
-
-    std::string break_msg;
-    std::cout << "press anything to continue" << std::endl;
-    std::cin >> break_msg;
+    std::string brkmsg;
+    std::cout << "press anything" << std::endl;
+    std::cin >> brkmsg;
 
     // Finding beginning and end of integration for each mode
     for(int i=0; i<nk; i++){
@@ -332,8 +357,6 @@ int main(){
     };
     
     std::cout << "starts: " << starts(0) << ", " << starts(nk-1) << std::endl;
-    std::cout << "start indices: " << startindices(0) << ", " <<
-    startindices(nk-1) << std::endl;
     std::cout << "exits: " << exits(0) << ", " << exits(nk-1) << std::endl;
 
     // Construct system to solve
@@ -367,28 +390,26 @@ int main(){
         dphi = dphis(startsi)*mp;
         ddphi = 0.5*dE_E(startsi)*dphi*mp;
         N = Ns(startsi);
-        ic = kd(k,phi,dphi,ddphi,N);
+        ic = bd(k,phi,dphi,ddphi,N);
         x0s(i) = ic(0);
         dx0s(i) = ic(1);
         a0 = std::exp(N);
         z = a0*dphi;
         dz_z = ddphi/dphi + 1.0;
-        //std::cout << "starting vars. phi: " << phi << ", dphi: " << dphi << ", ddphi: " << ddphi << ", N: " << N << ", ic: " << ic << ", z: " << z << ", dz_z: " << dz_z << std::endl;
-        //std::cout << "dz_z: " << dz_z << ", ddphi: " << ddphi << ", dphi: " << dphi << std::endl;
-        x0 = 1.0/(std::sqrt(2.0*k))/z;
-        dx0 = std::complex<double>(std::real(-x0*dz_z),-std::sqrt(k/2.0)*std::sqrt(o_ks(startsi))/z);
-        x01s(i) = x0;//1.0/(std::sqrt(2.0*k))/z;
-        dx01s(i) = dx0;//std::complex<double>(std::real(-x01s(i)*dz_z),-std::sqrt(k/2.0)*std::sqrt(o_ks(startsi))/z);
+        x0 = ic(0);
+        dx0 = ic(1);
+        x01s(i) = x0;
+        dx01s(i) = dx0;
         Solution solution1(system, x0, dx0, ti, tf, order, rtol, atol, h0,
         full_output);
         t1 = MPI_Wtime();
         solution1.solve();
         rk1.push_back(solution1.sol.back());
         
-        x0 = 1.0/(std::sqrt(2.0*k))/z;
-        dx0 = -std::complex<double>(std::real(-x0*dz_z),-std::sqrt(k/2.0)*std::sqrt(o_ks(startsi))/z);
-        x02s(i) = x0;//1.0/(std::sqrt(2.0*k))/z;
-        dx02s(i) = dx0;//-std::complex<double>(std::real(-x02s(i)*dz_z),-std::sqrt(k/2.0)*std::sqrt(o_ks(startsi))/z);
+        x0 = 0.0; 
+        dx0 = k; 
+        x02s(i) = x0;
+        dx02s(i) = dx0;
         Solution solution2(system, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
         solution2.solve();
         t2 = MPI_Wtime();
@@ -414,7 +435,7 @@ int main(){
 
     // Write PPS to file
     std::ofstream f;
-    f.open("test/ms/pps-kd-closed-test7.txt");
+    f.open("test/ms/pps-kd-closed-7int.txt");
     it_1 = rk1.begin();
     it_2 = rk2.begin();
     it_3 = times.begin();
@@ -422,8 +443,6 @@ int main(){
     for(int u=0; u<nk; u++){
         starti = startindices(u);
         f << ks(u)/atoday << ", "  << *it_1 << ", " << *it_2 << ", " <<
-        pps(ks(u),*it_1,*it_2,x01s(u),dx01s(u),x02s(u),dx02s(u),x01s(u),dx02s(u))
-        << ", " <<
         pps(ks(u),*it_1,*it_2,x01s(u),dx01s(u),x02s(u),dx02s(u),x0s(u),dx0s(u))
         << ", " << *it_3 << std::endl;
         ++it_1;

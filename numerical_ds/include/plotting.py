@@ -338,8 +338,8 @@ plt.ylabel("$P_{\mathcal{R}}(k)$")
 plt.loglog(k, phd, '-',label='HD',color='gray')
 plt.loglog(k, prst, '-',label='RST')
 plt.legend()
-#plt.show()
-plt.savefig("plots/example-pps.pdf")
+plt.show()
+#plt.savefig("plots/example-pps.pdf")
 
 # Timing comparison with BINGO - old and not like-to-like, not used in paper
 from cycler import cycler
@@ -660,8 +660,10 @@ H = dbg[:,4]
 w = 1.0/(np.exp(N)*H)
 g = -0.25*dphi**2 -(3.0-(0.5*dphi*dphi)) - (6.0-(dphi*dphi))*dV(phi)/(2.0*V(phi)*dphi) + 1.5
 #plt.plot(N,phi)
-plt.semilogy(N,w)
-#plt.plot(N,g,'.')
+#plt.semilogy(N,w)
+plt.plot(N,2*ddphi/dphi)
+plt.plot(N,2*(-(3.0-(0.5*dphi*dphi)) -
+(6.0-(dphi*dphi))*dV(phi)/(2.0*V(phi)*dphi)),color='red')
 #plt.semilogy(N,2e-4*w)
 #plt.semilogy(N,2e4*w)
 plt.show()
@@ -669,7 +671,7 @@ plt.show()
 # PPS
 # FIGURE 14
 plt.figure(figsize=(2.60,2.375))
-f = "test/ms/pps-N-kd-sparsebg2.txt"
+f = "test/ms/pps-N-kd-sparsebg2.txt" #sparsebg2.txt
 d = np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair})
 k = d[:,0]
 p1 = d[:,3] # Bunch-Davies
@@ -712,18 +714,121 @@ plt.show()
 # background check: horizon
 f = "test/ms/kd-closed-bg-tip.txt"
 f2 = "test/ms/kd-closed-bg-2.txt"
-data = np.genfromtxt(f,delimiter=', ')
+data = np.genfromtxt(f,delimiter=', ',comments='0, 0, 0')
 data2 = np.genfromtxt(f2,delimiter=', ')
 N = data[:,0]
 phi = data[:,1]
+dphi = data[:,2]
 logo_k = data[:,3]
+dlogo_k = data[:,4]
+dE_E = data[:,7]
 plt.style.use('paper')
-plt.plot(N, logo_k,color='red',label='$K=+1$, closed')
+#plt.plot(N,dlogo_k,label='dlogok')
+#plt.plot(N,dE_E,label='ddphi')
+#plt.plot(N,phi)
+plt.plot(N,np.exp(0.5*(logo_k + np.log(data[:,5]))),color='red' ,label='$1/(aH)^2 $,mimic flat')
+#plt.plot(N, data[:,-2],color='red',label='$\gamma$,mimic flat')
+#plt.semilogy(N,np.exp(-0.5*logo_k-N))
+plt.plot(N,data[:,5],label='$\omega$')
+#plt.plot(N, logo_k,color='red',label='$K=+1$, closed')
 #plt.plot(data2[:,0], data2[:,3],color='blue',label='$K=+1$, closed')
 plt.legend()
 plt.xlabel('$N$')
-plt.ylabel('$-2 \log{(aH)}$')
+#plt.ylabel('$-2 \log{(aH)}$')
 #plt.plot(N, phi, '.')
 #plt.savefig('plots/closed-bg.pdf')
 plt.show()
+
+# For sake of debugging closed universe code
+# Kinetically dominated PPS in terms of N
+# background check
+def V(phi):
+    m = 5e-6#7.147378e-6
+    return 0.5*m**2*phi**2
+
+def dV(phi):
+   m = 5e-6#7.147378e-6
+   return m**2*phi
+
+#k=0.0248
+fbg = "test/ms/kd-bg.txt"
+dbg = np.genfromtxt(fbg,delimiter=", ")
+N = dbg[:,0]
+phi = dbg[:,1]
+dphi = dbg[:,2]
+ddphi = dbg[:,3]
+H = dbg[:,4]
+w = 1.0/(np.exp(N)*H)
+g = -0.25*dphi**2 -(3.0-(0.5*dphi*dphi)) - (6.0-(dphi*dphi))*dV(phi)/(2.0*V(phi)*dphi) + 1.5
+#plt.plot(N,4.0-2.0*V(phi)/H**2,color='red',label='dlogok flat2')
+#plt.plot(N,2/3.0*(dphi**2 - V(phi)/H**2),color='red',label='dlogok flat')
+plt.plot(N,np.log(1.0/(H*np.exp(N))**2),label='$1/(aH)^2$ flat')
+#plt.plot(N,(-(3.0-(0.5*dphi*dphi))*dphi -
+#(6.0-(dphi*dphi))*dV(phi)/(2.0*V(phi))),color='red',label='ddphi flat')
+#plt.plot(N,phi)
+plt.plot(N,g,label='$\gamma$,flat')
+#plt.plot(N,np.log(w/k),color='red')
+#plt.plot(N,2*ddphi/dphi,label='2$\ddot{\phi}/{\phi}$ explicit')
+#plt.plot(N,2*(-(3.0-(0.5*dphi*dphi)) -
+#(6.0-(dphi*dphi))*dV(phi)/(2.0*V(phi)*dphi)),color='red',label='2$\ddot{\phi}/{\phi}$ implicit')
+#plt.semilogy(N,2e-4*w)
+#plt.semilogy(N,2e4*w)
+plt.legend()
+plt.show()
+
+# PPS
+f = "test/ms/pps-kd-closed-highk12.txt"
+d = np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair})
+k = d[:,0]
+p1 = d[:,3] # BD 
+p2 = d[:,4] # KD
+#plt.loglog(k,p1)
+plt.style.use('paper')
+plt.xlabel("$k$/Mpc${}^{-1}$")
+plt.ylabel("$P_{\mathcal{R}}(k)$")
+#plt.xlim((1e-5,1e1))
+#plt.ylim((6e-10,2e-9))
+plt.loglog(k,p1)
+#fig.text(0.5,0.02,'$N$',ha='center',va='center')
+plt.show()
+#plt.savefig("plots/example-pps-kd-N.pdf")
+
+# single-k solution
+f = "test/ms/kd-mimicflat2.txt"
+d = np.genfromtxt(f,dtype=complex,converters={1:parse_pair,2:parse_pair})
+k = d[:,0]
+rk = d[:,1]
+wkb = d[:,3]
+plt.style.use('default')
+plt.plot(k[wkb==1],rk[wkb==1],'x',color='green',label='wkb step')
+plt.plot(k[wkb==0],rk[wkb==0],'x',color='red',label='rk step')
+#plt.plot(k,rk)
+
+plt.legend()
+plt.show()
+
+# Effect of decreasing curvature on a curved universe
+# PPS
+nospectra=6
+fs = ["test/ms/pps-kd-closed-{}int.txt".format(i) for i in range(1,nospectra+1)]
+okis = np.logspace(-3,-3+nospectra-1,nospectra) 
+ds = [np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair}) for f in fs]
+ks = [d[:,0] for f in ds]
+ps = [d[:,3] for d in ds]  # BD 
+plt.style.use('default')
+plt.xlabel("$k$/Mpc${}^{-1}$")
+plt.ylabel("$P_{\mathcal{R}}(k)/m^2$")
+#plt.xlim((1e-5,1e1))
+#plt.ylim((6e-10,2e-9))
+pivotamp = ps[0][-1]
+for i in range(nospectra):
+    plt.loglog(ks[i],ps[i]*pivotamp/ps[i][-1],label='$\Omega_k^i={}$'.format(okis[i]))
+#fig.text(0.5,0.02,'$N$',ha='center',va='center')
+plt.legend()
+plt.show()
+plt.savefig("plots/closed-spectra-log.pdf")
+
+# Schrodinger equation
+
+
 
