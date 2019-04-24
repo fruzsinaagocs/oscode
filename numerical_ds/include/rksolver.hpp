@@ -16,18 +16,18 @@ class RKSolver
     Eigen::Matrix<double,4,1> butcher_b4, butcher_c4;
 
     // Current values of w, g
-    double wi, gi;
+    std::complex<double> wi, gi;
    
     public:
-    double w(double);
-    double g(double);
+    std::complex<double> w(double);
+    std::complex<double> g(double);
     
     // constructors
     RKSolver();
     RKSolver(de_system &de_sys);
     // grid of ws, gs
-    Eigen::Matrix<double,6,1> ws, gs;
-    Eigen::Matrix<double,5,1> ws5, gs5;
+    Eigen::Matrix<std::complex<double>,6,1> ws, gs;
+    Eigen::Matrix<std::complex<double>,5,1> ws5, gs5;
 
     // single step function 
     Eigen::Matrix<std::complex<double>,2,2> step(std::complex<double>, std::complex<double>, double, double);
