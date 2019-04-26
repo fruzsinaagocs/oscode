@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.special as sp
 import re
+import math
 
 # To parse complex numbers of the form (a,b) from file
 pair = re.compile(r'\(([^,\)]+),([^,\)]+)\)')
@@ -671,7 +672,7 @@ plt.show()
 # PPS
 # FIGURE 14
 plt.figure(figsize=(2.60,2.375))
-f = "test/ms/pps-N-kd-sparsebg2.txt" #sparsebg2.txt
+f = "test/ms/pps-testcomplex.txt" #pps-N-kd-sparsebg2.txt" #sparsebg2.txt
 d = np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair})
 k = d[:,0]
 p1 = d[:,3] # Bunch-Davies
@@ -680,12 +681,12 @@ p2 = d[:,4] # attempted kd
 plt.style.use('paper')
 plt.xlabel("$k$/Mpc${}^{-1}$")
 plt.ylabel("$P_{\mathcal{R}}(k)$")
-plt.xlim((1e-3,1e5))
+#plt.xlim((1e-3,1e5))
 plt.ylim((6e-10,2e-9))
 plt.loglog(k,p2)
 #fig.text(0.5,0.02,'$N$',ha='center',va='center')
-#plt.show()
-plt.savefig("plots/example-pps-kd-N.pdf")
+plt.show()
+#plt.savefig("plots/example-pps-kd-N.pdf")
 
 # Single-k solutions
 fs1 = "test/ms/singlek-kd-bd-2a.txt"
@@ -809,26 +810,83 @@ plt.show()
 
 # Effect of decreasing curvature on a curved universe
 # PPS
+# FIGURE 15
+from cycler import cycler
+grays = cycler(color=['0.80','0.50', '0.30', '0.80', '0.50', '0.30'])
 nospectra=6
-fs = ["test/ms/pps-kd-closed-{}int.txt".format(i) for i in range(1,nospectra+1)]
+atoday = 4.3e4
+fs = ["test/ms/pps-kd-closed-{}intcorr.txt".format(i) for i in range(1,nospectra+1)]
 okis = np.logspace(-3,-3+nospectra-1,nospectra) 
 ds = [np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair}) for f in fs]
-ks = [d[:,0] for f in ds]
+ks = [d[:,0]*atoday for d in ds]
 ps = [d[:,3] for d in ds]  # BD 
-plt.style.use('default')
-plt.xlabel("$k$/Mpc${}^{-1}$")
-plt.ylabel("$P_{\mathcal{R}}(k)/m^2$")
+plt.style.use('paper')
+fig,ax=plt.subplots(1,1)
+ax.set_prop_cycle(grays)
+ax2=ax.twiny()
 #plt.xlim((1e-5,1e1))
 #plt.ylim((6e-10,2e-9))
 pivotamp = ps[0][-1]
 for i in range(nospectra):
-    plt.loglog(ks[i],ps[i]*pivotamp/ps[i][-1],label='$\Omega_k^i={}$'.format(okis[i]))
-#fig.text(0.5,0.02,'$N$',ha='center',va='center')
-plt.legend()
-plt.show()
-plt.savefig("plots/closed-spectra-log.pdf")
+    if(i<nospectra/2):
+        ax.loglog(ks[i],ps[i]*pivotamp/ps[i][-1],label='$\Omega_k^i={}$'.format(okis[i]),lw=1.0)
+    else:
+        ax.loglog(ks[i],ps[i]*pivotamp/ps[i][-1],'--',label='$\Omega_k^i={}$'.format(okis[i]),lw=1.0)
+axxs=np.logspace(0,8,9)
+#print(axxs)
+ax2xs=axxs/atoday
+#print(ax2xs)
+ax2.set_xticks(axxs)
+ax2.set_xticklabels(ax2xs)
+ax2.set_xlabel("$k\\big/\\big(\\big(\\frac{h}{\mathrm{0.7}}\\big) \\big(\\frac{\Omega_{k,\mathrm{0}}}{\mathrm{0.01}}\\big)$ Mpc${}^{-1}$\\big)$ $")
+ax.set_ylabel("$P_{\mathcal{R}}(k)/m^2$")
+ax.set_xlabel("comoving $k$")
+ax2.loglog(ax2xs,np.ones_like(ax2xs),alpha=0) 
+ax.legend()
+#plt.show()
+plt.savefig("plots/closed-spectra-log-paper.pdf")
 
 # Schrodinger equation
+# FIGURE 16
+import scipy.special as sp
+K=2
+ns=[2,20,40,60,80,100]
+m=1
+Es=[np.sqrt(K/m)*(n-0.5) for n in ns]
+gam = np.sqrt(m*K)
+fs = ["test/schrodinger/schrodinger-test{}.txt".format(n) for n in ns]
+ds = [np.genfromtxt(f,dtype=complex,converters={1:parse_pair,2:parse_pair}) for f in fs]
+ts = [np.linspace(np.real(d[0,0]),np.real(d[-1,0]),1000) for d in ds]
+As = [(gam/np.pi)**(1/4.0)*1.0/np.sqrt(2.0**(n-1)*math.factorial(n-1)) for n in ns]
+scale = 10
+analytics = [scale*A*sp.eval_hermite(n-1,np.sqrt(gam)*t)*np.exp(-0.5*gam*t**2) for A,t,n in zip(As,ts,ns)]
+v = 0.5*K*ts[-1]**2 
+plt.style.use('paper')
+plt.plot(ts[-1],v,'--',label='$V(x)$')
+for i in range(len(ns)):
+    d = ds[i]
+    x = d[:,0]
+    rk = d[:,1]
+    wkb = d[:,3]
+    E = Es[i]
+    if(i<len(ns)-1):
+        plt.plot(x[wkb==1],E + scale*((rk[wkb==1])),'x',color='green')
+        plt.plot(x[wkb==0],E + scale*((rk[wkb==0])),'x',color='red')
+        plt.plot(ts[i],E + (analytics[i]))
+    else:
+        plt.plot(x[wkb==0],E + scale*((rk[wkb==0])),'x',color='red',label='RK step')
+        plt.plot(x[wkb==1],E + scale*((rk[wkb==1])),'x',color='green',label='WKB step')
+        plt.plot(ts[i],E + (analytics[i]))#,label='true solution')
+    plt.text(x[-1]+1.0, E, 'n='+str(ns[i]))
+plt.xlabel('$x$')
+plt.ylabel('$E_n + 10\Psi_n(x)$')
+plt.legend(loc='lower left')
+#plt.plot(ts,E*np.ones(len(ts)))
+plt.xlim((-25,21))
+#plt.ylim((E-1,E+1))
+plt.savefig('plots/schrodinger.pdf')
+#plt.show()
+
 
 
 
