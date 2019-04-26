@@ -3,22 +3,23 @@
 //#include <vector>
 #include <cmath>
 #include <chrono>
-#include <boost/math/special_functions/airy.hpp>
+#include <boost/math/special_functions/hermite.hpp>
 #include <fstream>
 #include <string>
 #include <stdlib.h>
 
-double m=1, E=1e2, K=1;
+int n=2;
+double m=1, K=2, E=std::sqrt(K/m)*(n-0.5);
 
-double RKSolver::g(double t){
+std::complex<double> RKSolver::g(double t){
     return 0.0;
 };
 
-double gdummy(double t){
+std::complex<double> gdummy(double t){
     return t;
 };
 
-double wdummy(double t){
+std::complex<double> wdummy(double t){
     return t;
 };
 
@@ -27,8 +28,18 @@ double V(double t){
     return 0.5*K*t*t;
 };
 
-double RKSolver::w(double t){
-    return std::sqrt(2*m*(E-V(t)));
+std::complex<double> RKSolver::w(double t){
+    std::complex<double> result = std::sqrt(std::complex<double>(2*m*(E-V(t))));
+    return result;
+};
+
+Eigen::Vector2cd ic(double t){
+
+    double gam = std::sqrt(m*K);
+    Eigen::Vector2cd result;
+    double A = std::pow(gam/M_PI,1/4.0)*1.0/std::sqrt(std::pow(2.0,n-1)*tgamma(n));
+    result << boost::math::hermite(n-1,std::sqrt(gam)*t)*std::exp(-0.5*gam*t*t), -gam*t*boost::math::hermite(n-1,std::sqrt(gam)*t)*std::exp(-0.5*gam*t*t) + 2*(n-1)*boost::math::hermite(n-2,std::sqrt(gam)*t)*std::sqrt(gam)*std::exp(-0.5*gam*t*t);
+    return A*result;
 };
 
 int main(){
@@ -36,7 +47,6 @@ int main(){
     // Example with w(t), g(t) analytically given
     std::ofstream f;
     int no = 1;
-    Eigen::VectorXd ns = Eigen::VectorXd::LinSpaced(no,8.0,8.0);
     std::vector<int> steps,totsteps,wkbsteps;
     std::vector<double> runtimes;
     std::complex<double> x0, dx0;
@@ -44,13 +54,12 @@ int main(){
     bool full_output = true;
     int order = 3;   
     for(int i=0; i<no; i++){
-        //n = round(std::pow(10,ns(i)));
-        //std::cout << "n: " << n << std::endl;
         de_system sys(&wdummy, &gdummy);
-        ti = -10.0;
-        tf = 10.0;
-        x0 = 0.0; 
-        dx0 = 1.0; 
+        ti = (-std::sqrt((n-0.5)*2/std::sqrt(K*m))-0.5);
+        tf = -ti;
+        Eigen::Vector2cd ics=ic(ti);
+        x0 = ics(0);
+        dx0 = ics(1); 
         rtol = 1e-4;
         atol = 0.0;
         h0 = 1.0;
@@ -74,16 +83,6 @@ int main(){
         std::cout << "steps: " << solution.totsteps << std::endl;
     };
     
-    //f.open("plots/bursttimingtol-6_stepscorr.txt");
-    //f << "# Testing how tolerance affects runtime in the burst equation\n" <<
-    //"# tolerance rtol = " << rtol << "\n" << 
-    //"# log10(n), total steps, successful steps, wkb steps" << std::endl;
-    //for(int i=0; i<no; i++){
-    //    f << std::setprecision(20) << ns(i) << ", " << totsteps[i] << ", " << steps[i] << ", " << wkbsteps[i] << std::endl;  
-    //};
-    //f.close();
-    
-
 };
 
 
