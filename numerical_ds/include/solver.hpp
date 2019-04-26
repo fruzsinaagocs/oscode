@@ -72,14 +72,14 @@ void Solution::solve(){
     // Settings for MS
     nrk = 5;
     nwkb1 = 2;//2;
-    nwkb2 = 4;//4;
+    nwkb2 = 5;//4;
     Eigen::Matrix<std::complex<double>,2,2> rkstep;
     Eigen::Matrix<std::complex<double>,3,2> wkbstep;
     Eigen::Matrix<std::complex<double>,1,2> rkx, wkbx;
     Eigen::Matrix<std::complex<double>,1,2> rkerr, wkberr, truncerr;
     Eigen::Matrix<double,1,2> rkdeltas; 
     Eigen::Matrix<double,1,4> wkbdeltas;
-    double tnext, hnext, h, hrk, hwkb;
+    double fend, fnext, tnext, hnext, h, hrk, hwkb;
     double wkbdelta, rkdelta;
     std::complex<double> xnext, dxnext;
     bool wkb = false;
@@ -93,13 +93,29 @@ void Solution::solve(){
     ssteps = 0;
     totsteps = 0;
     wkbsteps = 0;
-    
-    while(t < tf){
+    // Determine direction of integration, fend>0 and integration ends when
+    // it crosses zero
+    if((t>tf) and h<0){
+        // backwards
+        fend = t-tf;
+        fnext = fend;
+    }
+    else if((t<tf) and h>0){
+        // forward
+        fend = tf-t;
+        fnext = fend;
+    }
+    else{
+        std::cout << "Direction of integration couldn't be determined, terminating." << std::endl;
+        return;
+    }
+
+    while(fend > 0){
         // Check if we are reaching the end of integration
-        if(tnext>tf){
+        if(fnext < 0){
             h = tf - t;
             tnext = tf;
-        }
+        };
 
         // Keep updating stepsize until step is accepted
         while(true){
@@ -131,7 +147,7 @@ void Solution::solve(){
             else
                 hwkb = h*std::pow(rtol/wkbdelta,1.0/nwkb2);
             // choose step with larger predicted stepsize
-            if(hwkb >= hrk)
+            if(std::abs(hwkb) >= std::abs(hrk))
                 wkb = true;
             else
                 wkb = false;
@@ -150,8 +166,7 @@ void Solution::solve(){
             };
             totsteps += 1;
             // check if chosen step was successful
-            if(hnext>=h){
-                //std::cout << "wkb: " << wkb << ", t: "<< tnext << ", x: " << xnext << ", dx: " << dxnext << std::endl;
+            if(std::abs(hnext)>=std::abs(h)){
                 sol.push_back(xnext);
                 dsol.push_back(dxnext);
                 times.push_back(tnext);
@@ -160,6 +175,14 @@ void Solution::solve(){
                 dx = dxnext;
                 t += h;
                 h = hnext;
+                if(h>0){
+                    fend=tf-t;
+                    fnext=tf-tnext;
+                }
+                else{
+                    fend=t-tf;
+                    fnext=tnext-tf;
+                };
                 ssteps +=1;
                 if(wkb){
                     wkbsteps +=1;
@@ -184,6 +207,12 @@ void Solution::solve(){
                     hnext = h*std::pow(rtol/rkdelta,1.0/(nrk-1));
                 h = hnext;
                 tnext = t + hnext;
+                if(h>0){
+                    fnext=tf-tnext;
+                }
+                else{
+                    fnext=tnext-tf;
+                };
             };
         };
     };
