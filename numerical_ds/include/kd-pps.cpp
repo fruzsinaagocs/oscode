@@ -23,7 +23,7 @@ double phi_p=23.1;
 double mp=1;
 double kpivot=0.05;
 double Npivot=54.0;
-int Nbg=round(1e6), npts=round(Nbg-1);
+int Nbg=round(2e6), npts=round(Nbg-1);
 double Nstart=0.0, Nend=68.0, Ninc=(Nend-Nstart)/npts;
 Eigen::VectorXd logws, listgs;
 double Ak=0.0, Bk=1.0;
@@ -78,7 +78,7 @@ std::complex<double> dx02, std::complex<double> x0, std::complex<double> dx0){
 
 };
 
-double RKSolver::w(double N){
+std::complex<double> RKSolver::w(double N){
     int i;
     i=int((N-Nstart)/Ninc);
     
@@ -87,7 +87,7 @@ double RKSolver::w(double N){
     return k*std::exp(logw0+(logw1-logw0)*(N-Nstart-Ninc*i)/Ninc);
 };
 
-double RKSolver::g(double N){
+std::complex<double> RKSolver::g(double N){
     int i;
     i=int((N-Nstart)/Ninc);
     
@@ -98,7 +98,7 @@ double RKSolver::g(double N){
 
 // Dummy frequency after having moved away from std::function, TODO:remove and
 // move back to std::function
-double win(double){
+std::complex<double> win(double){
     return 0.0;
 };
 
@@ -119,8 +119,8 @@ Nag_Comm *comm){
 int main(){
 
     // Range of wavenumbers
-    int nk=1;
-    Eigen::VectorXd ks=Eigen::VectorXd::LinSpaced(nk,5,5);
+    int nk=2000;
+    Eigen::VectorXd ks=Eigen::VectorXd::LinSpaced(nk,-5,1);
     for(int i=0; i<nk; i++)
         ks(i) = std::pow(10,ks(i));
     Eigen::VectorXd exits=Eigen::VectorXd::Zero(nk);
@@ -278,7 +278,7 @@ int main(){
     double ti, tf, rtol, atol, h0;
     std::complex<double> x0, dx0;
     int order=3;
-    bool full_output=true;
+    bool full_output=false;
     rtol=1e-4;
     atol=0.0;
     h0=1.0;
@@ -330,7 +330,7 @@ int main(){
         t2 = MPI_Wtime();
         rk2.push_back(solution2.sol.back());
         times.push_back(t2-t1);
-        //std::cout << "done k=" << k << " in " << t2-t1 << " s." << std::endl;
+        std::cout << "done k=" << k << " in " << t2-t1 << " s." << std::endl;
         
     };
     CALLGRIND_TOGGLE_COLLECT;
@@ -350,7 +350,7 @@ int main(){
 
     // Write PPS to file
     std::ofstream f;
-    f.open("test/ms/pps-testN.txt");
+    f.open("test/ms/pps-testcomplex.txt");
     it_1 = rk1.begin();
     it_2 = rk2.begin();
     it_3 = times.begin();
