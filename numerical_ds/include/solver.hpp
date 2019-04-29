@@ -95,12 +95,12 @@ void Solution::solve(){
     wkbsteps = 0;
     // Determine direction of integration, fend>0 and integration ends when
     // it crosses zero
-    if((t>tf) and h<0){
+    if((t>=tf) and h<0){
         // backwards
         fend = t-tf;
         fnext = fend;
     }
-    else if((t<tf) and h>0){
+    else if((t<=tf) and h>0){
         // forward
         fend = tf-t;
         fnext = fend;
