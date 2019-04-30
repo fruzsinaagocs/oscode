@@ -3,11 +3,17 @@
 #include <cmath>
 
 template<typename X, typename Y>
-struct LinearInterpolator
-{
-    std::map<X,Y> points;
+struct LinearInterpolator{
 
-    LinearInterpolator() : points{} {}
+    double x0, dx
+    X x_;
+    Y y_;
+
+    LinearInterpolator(X x, Y y){
+        // Constructor of struct, initializes empty map
+        x_ = x;
+        y_ = y;
+    }
 
     void insert(X x, Y y){
        auto it = points.end();
@@ -35,8 +41,5 @@ struct LinearInterpolator
         return ( y0 * (x1-x) + y1 * (x-x0) ) / (x1-x0);
     }
      
-    Y fun(X x){
-         return (*this)(x);
-    }
 };
 
