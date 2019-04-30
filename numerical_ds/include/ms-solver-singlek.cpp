@@ -26,11 +26,11 @@ double g(double t){
     return ginterp(t); 
 };
 
-double RKSolver::w(double t){
+std::complex<double> w(double t){
     return k*std::exp(winterp(t));
 };
 
-double RKSolver::g(double t){
+std::complex<double> g(double t){
     return ginterp(t); 
 };
 

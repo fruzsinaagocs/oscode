@@ -60,7 +60,7 @@ double kd(double t0, double ki, const double *ybg, const double *dybg, std::comp
     return std::pow(std::abs(a*rk1 + b*rk2),2)*std::pow(ki,3)/(2.0*M_PI*M_PI);
 };
 
-double RKSolver::w(double t){
+std::complex<double> w(double t){
     int i;
     i=int((t-tstart)/tinc);
     
@@ -69,17 +69,13 @@ double RKSolver::w(double t){
     return k*std::exp(logw0+(logw1-logw0)*(t-tstart-tinc*i)/tinc);
 };
 
-double RKSolver::g(double t){
+std::complex<double> g(double t){
     int i;
     i=int((t-tstart)/tinc);
     
     double g0 = listgs(i);
     double g1 = listgs(i+1);
     return (g0+(g1-g0)*(t-tstart-tinc*i)/tinc);
-};
-
-double win(double){
-    return 0.0;
 };
 
 Eigen::Matrix<double,1,4> background(double t){
@@ -235,7 +231,7 @@ int main(){
     std::cout << "Done solving background" << std::endl;
     
     // Construct system to solve
-    de_system system(&win,&win);
+    de_system system(&w,&g);
     
     // Solve the evolution of each perturbation
     double tf, rtol, atol, h0;

@@ -96,12 +96,6 @@ std::complex<double> g(double N){
     return (g0+(g1-g0)*(N-Nstart-Ninc*i)/Ninc);
 };
 
-// Dummy frequency after having moved away from std::function, TODO:remove and
-// move back to std::function
-std::complex<double> win(double){
-    return 0.0;
-};
-
 double V(double phi){
     return 0.5*std::pow(m,2)*std::pow(phi,nv);
 };

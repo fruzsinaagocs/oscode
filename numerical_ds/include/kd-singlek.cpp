@@ -59,7 +59,7 @@ Eigen::Vector2cd kd(double ki, double phi, double dphi, double ddphi, double N, 
     return result;
 };
 
-double RKSolver::w(double N){
+std::complex<double> w(double N){
     int i;
     i=int((N-Nstart)/Ninc);
     
@@ -68,19 +68,13 @@ double RKSolver::w(double N){
     return k*std::exp(logw0+(logw1-logw0)*(N-Nstart-Ninc*i)/Ninc);
 };
 
-double RKSolver::g(double N){
+std::complex<double> g(double N){
     int i;
     i=int((N-Nstart)/Ninc);
     
     double g0 = listgs(i);
     double g1 = listgs(i+1);
     return (g0+(g1-g0)*(N-Nstart-Ninc*i)/Ninc);
-};
-
-// Dummy frequency after having moved away from std::function, TODO:remove and
-// move back to std::function
-double win(double){
-    return 0.0;
 };
 
 double V(double phi){

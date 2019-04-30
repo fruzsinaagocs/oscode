@@ -11,16 +11,8 @@
 int n=20;
 double m=1, K=2, E=std::sqrt(K/m)*(n-0.5)*(1.0-1e-4);
 
-std::complex<double> RKSolver::g(double t){
+std::complex<double> g(double t){
     return 0.0;
-};
-
-std::complex<double> gdummy(double t){
-    return t;
-};
-
-std::complex<double> wdummy(double t){
-    return t;
 };
 
 double V(double t){
@@ -28,7 +20,7 @@ double V(double t){
     return 0.5*K*t*t;
 };
 
-std::complex<double> RKSolver::w(double t){
+std::complex<double> w(double t){
     std::complex<double> result = std::sqrt(std::complex<double>(2*m*(E-V(t))));
     return result;
 };
@@ -50,7 +42,7 @@ int main(){
     double ti, tf, rtol, atol, h0;
     bool full_output = false;//true;
     int order = 3;   
-    de_system sys(&wdummy, &gdummy);
+    de_system sys(&w, &g);
     ti = (-std::sqrt((n-0.5)*2/std::sqrt(K*m))-2.0);
     tf = 0.5;
     Eigen::Vector2cd bcL=ic(ti), bcR=ic(-ti);

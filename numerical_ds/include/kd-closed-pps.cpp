@@ -98,7 +98,7 @@ std::complex<double> dx02, std::complex<double> x0, std::complex<double> dx0){
 };
 
 
-std::complex<double> RKSolver::w(double N){
+std::complex<double> w(double N){
     int i;
     i=int((N-Nstart)/Ninc);
     double k2;
@@ -111,7 +111,7 @@ std::complex<double> RKSolver::w(double N){
     return std::exp(logw0+(logw1-logw0)*(N-Nstart-Ninc*i)/Ninc);
 };
 
-std::complex<double> RKSolver::g(double N){
+std::complex<double> g(double N){
     int i;
     i=int((N-Nstart)/Ninc);
     double k2;
@@ -122,12 +122,6 @@ std::complex<double> RKSolver::g(double N){
     double g0 = 0.5*(K*o_ks(i) + 3.0 - E(i) + dE_E(i)*k2/(E(i)*K+k2));
     double g1 = 0.5*(K*o_ks(i+1) + 3.0 - E(i+1) + dE_E(i+1)*k2/(E(i+1)*K+k2));
     return (g0+(g1-g0)*(N-Nstart-Ninc*i)/Ninc);
-};
-
-// Dummy frequency after having moved away from std::function, TODO:remove and
-// move back to std::function
-std::complex<double> win(double){
-    return 0.0;
 };
 
 double V(double phi){
@@ -356,7 +350,7 @@ int main(){
     std::cout << "exits: " << exits(0) << ", " << exits(nk-1) << std::endl;
 
     // Construct system to solve
-    de_system system(&win,&win);
+    de_system system(&w,&g);
     
     // Solve the evolution of each perturbation
     double ti, tf, rtol, atol, h0;
