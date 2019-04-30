@@ -8,8 +8,8 @@
 #include <string>
 #include <stdlib.h>
 
-int n=2;
-double m=1, K=2, E=std::sqrt(K/m)*(n-0.5);
+int n=20;
+double m=1, K=2, E=std::sqrt(K/m)*(n-0.5)*(1.0-1e-4);
 
 std::complex<double> RKSolver::g(double t){
     return 0.0;
@@ -46,42 +46,35 @@ int main(){
      
     // Example with w(t), g(t) analytically given
     std::ofstream f;
-    int no = 1;
-    std::vector<int> steps,totsteps,wkbsteps;
-    std::vector<double> runtimes;
     std::complex<double> x0, dx0;
-    double ti, tf, rtol, atol, h0, runtime;
-    bool full_output = true;
+    double ti, tf, rtol, atol, h0;
+    bool full_output = false;//true;
     int order = 3;   
-    for(int i=0; i<no; i++){
-        de_system sys(&wdummy, &gdummy);
-        ti = (-std::sqrt((n-0.5)*2/std::sqrt(K*m))-0.5);
-        tf = -ti;
-        Eigen::Vector2cd ics=ic(ti);
-        x0 = ics(0);
-        dx0 = ics(1); 
-        rtol = 1e-4;
-        atol = 0.0;
-        h0 = 1.0;
-        runtime = 0.0;
-        for(int j=0; j<1; j++){
-            Solution solution(sys, x0, dx0, ti, tf, order, rtol, atol, h0, full_output); 
-            auto t1 = std::chrono::high_resolution_clock::now();
-            solution.solve();
-            auto t2 = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double,std::milli> t12 = t2-t1;
-            runtime += t12.count();
-        };
-        std::cout << "time: " << runtime/100.0 << " ms." << std::endl;
-        
-        Solution solution(sys, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
-        solution.solve();
-        steps.emplace_back(solution.ssteps);
-        wkbsteps.emplace_back(solution.wkbsteps);
-        totsteps.emplace_back(solution.totsteps);
-        runtimes.emplace_back(runtime/100.0);
-        std::cout << "steps: " << solution.totsteps << std::endl;
-    };
+    de_system sys(&wdummy, &gdummy);
+    ti = (-std::sqrt((n-0.5)*2/std::sqrt(K*m))-2.0);
+    tf = 0.5;
+    Eigen::Vector2cd bcL=ic(ti), bcR=ic(-ti);
+    rtol = 1e-4;
+    atol = 0.0;
+    h0 = 1.0;
+    x0 = 0.0;
+    dx0 = 1.0;
+    // Left
+    Solution solutionL(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output); 
+    solutionL.solve();
+    // Right
+    Solution solutionR(sys,x0,-dx0/5000.0,-ti,tf,order,rtol,atol,-h0,full_output); 
+    solutionR.solve();
+
+    std::complex<double> xL,xR,dxL,dxR;
+    xL = solutionL.sol.back();
+    dxL = solutionL.dsol.back();
+    xR = solutionR.sol.back();
+    dxR = solutionR.dsol.back();
+    std::cout << std::setprecision(7) << "xL, dxL, xR, dxR: " << xL << ", " << dxL << ", " << xR << ", " << dxR << std::endl;
+    std::cout << "Difference at the middle is: " << dxL/xL - dxR/xR << std::endl;
+//    a = (bcf(0)*x2b - bcb(0)*x2f)/(x1f*x2b - x1b*x2f);
+//    b = (bcf(0)*x1b - bcb(0)*x1f)/(x2f*x1b - x2b*x1f);
     
 };
 
