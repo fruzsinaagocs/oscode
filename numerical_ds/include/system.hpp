@@ -26,8 +26,8 @@ de_system::de_system(std::complex<double> (*W)(double), std::complex<double> (*G
         // default constructor for a system of differential equations
     
         interp = false;
-        //w = W;
-        //g = G;
+        w = W;
+        g = G;
     };
 
 de_system::de_system(const Eigen::VectorXd &ts, const Eigen::VectorXcd &ws, const Eigen::VectorXcd &gs, bool islogw, bool islogg){

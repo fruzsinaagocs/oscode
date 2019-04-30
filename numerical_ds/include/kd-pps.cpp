@@ -78,7 +78,7 @@ std::complex<double> dx02, std::complex<double> x0, std::complex<double> dx0){
 
 };
 
-std::complex<double> RKSolver::w(double N){
+std::complex<double> w(double N){
     int i;
     i=int((N-Nstart)/Ninc);
     
@@ -87,7 +87,7 @@ std::complex<double> RKSolver::w(double N){
     return k*std::exp(logw0+(logw1-logw0)*(N-Nstart-Ninc*i)/Ninc);
 };
 
-std::complex<double> RKSolver::g(double N){
+std::complex<double> g(double N){
     int i;
     i=int((N-Nstart)/Ninc);
     
@@ -272,7 +272,7 @@ int main(){
     };
 
     // Construct system to solve
-    de_system system(&win,&win);
+    de_system system(&w,&g);
     
     // Solve the evolution of each perturbation
     double ti, tf, rtol, atol, h0;
@@ -350,7 +350,7 @@ int main(){
 
     // Write PPS to file
     std::ofstream f;
-    f.open("test/ms/pps-testcomplex.txt");
+    f.open("test/ms/pps-testcomplexfn.txt");
     it_1 = rk1.begin();
     it_2 = rk2.begin();
     it_3 = times.begin();

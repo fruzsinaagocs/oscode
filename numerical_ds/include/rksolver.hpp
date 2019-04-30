@@ -5,8 +5,8 @@ class RKSolver
 {
     private: 
     // Frequency and friction term
-//    std::function<double(double)> w;
-//    std::function<double(double)> g;
+    std::function<std::complex<double>(double)> w;
+    std::function<std::complex<double>(double)> g;
     
 
     // Butcher tablaus
@@ -19,8 +19,8 @@ class RKSolver
     std::complex<double> wi, gi;
    
     public:
-    std::complex<double> w(double);
-    std::complex<double> g(double);
+//    std::complex<double> w(double);
+//    std::complex<double> g(double);
     
     // constructors
     RKSolver();
@@ -42,8 +42,8 @@ RKSolver::RKSolver(){
 RKSolver::RKSolver(de_system &de_sys){
     
     // Set frequency and friction terms
-    //w = de_sys.w;
-    //g = de_sys.g;
+    w = de_sys.w;
+    g = de_sys.g;
 
     // Set Butcher tableaus
     RKSolver::butcher_a5 << 0.1174723380352676535740,0,0,0,0,
