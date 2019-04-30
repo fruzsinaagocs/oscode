@@ -90,6 +90,7 @@ void Solution::solve(){
     sol.push_back(x);
     dsol.push_back(dx);
     times.push_back(t);
+    wkbs.push_back(false);
     ssteps = 0;
     totsteps = 0;
     wkbsteps = 0;
