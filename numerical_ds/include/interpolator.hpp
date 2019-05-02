@@ -1,12 +1,13 @@
 #pragma once
-#include <map>
+#include <iterator>
 #include <cmath>
 
+// TODO: size checking
 template<typename X, typename Y>
 struct LinearInterpolator{
 
     double x0, dx;
-    int Nx, Ny;
+//    int Nx, Ny;
     X x_; // array of indep. variable
     Y y_; // array of dep. variable
 
@@ -16,15 +17,16 @@ struct LinearInterpolator{
         y_ = y;
         x0 = x[0];
         dx = x[1]-x[0];
-        Nx = x_.size();
-        Ny = y_.size();
-        if(Nx==0 or Ny==0){
-            std::cout << "One or more of the supplied arrays has size 0" <<
-            std::endl;
-        }
-        if(Nx!=Ny){
-            std::cout << "Sizes of supplied arrays do not match" << std::endl;
-        }
+//        Nx = x_.size();
+//        Ny = y_.size();
+//        if(Nx==0 or Ny==0){
+//            std::cout << "One or more of the supplied arrays has size 0" <<
+//            std::endl;
+//        }
+//        if(Nx!=Ny){
+//            std::cout << "Sizes of supplied arrays do not match" << std::endl;
+//        }
+//        std::cout << "size: " << Nx << ", " << Ny << std::endl;
     }
     
     std::complex<double> operator() (double x) const {
