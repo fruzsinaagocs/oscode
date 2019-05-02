@@ -5,41 +5,43 @@
 template<typename X, typename Y>
 struct LinearInterpolator{
 
-    double x0, dx
-    X x_;
-    Y y_;
+    double x0, dx;
+    int Nx, Ny;
+    X x_; // array of indep. variable
+    Y y_; // array of dep. variable
 
-    LinearInterpolator(X x, Y y){
-        // Constructor of struct, initializes empty map
+    LinearInterpolator(const X &x, const Y &y){
+        // Constructor of struct, sets struct members
         x_ = x;
         y_ = y;
+        x0 = x[0];
+        dx = x[1]-x[0];
+        Nx = x_.size();
+        Ny = y_.size();
+        if(Nx==0 or Ny==0){
+            std::cout << "One or more of the supplied arrays has size 0" <<
+            std::endl;
+        }
+        if(Nx!=Ny){
+            std::cout << "Sizes of supplied arrays do not match" << std::endl;
+        }
     }
-
-    void insert(X x, Y y){
-       auto it = points.end();
-       points.emplace_hint(it,std::pair<X,Y>(x,y));
-       //points.emplace(x,y);
-    }
-
-    X xmax() const { return points.rbegin()->first;}
-    X xmin() const { return points.begin()->first;}
     
-    Y operator() (X x) const
-    {          if (points.size()==0) return std::nan("");
-
-        typename std::map<X,Y>::const_iterator search;
-        if (x>=xmax())         search = --points.end();
-        else if (x<=xmin())    search = ++points.begin();
-        else                   search = points.lower_bound(x);
-      
-        auto x1 = search->first;
-        auto y1 = search->second;
-        --search;
-        auto x0 = search->first;
-        auto y0 = search->second;
-
-        return ( y0 * (x1-x) + y1 * (x-x0) ) / (x1-x0);
+    std::complex<double> operator() (double x) const {
+        // Does linear interpolation 
+        int i=int((x-x0)/dx);
+        std::complex<double> y0=y_[i];
+        std::complex<double> y1=y_[i+1];
+        return (y0+(y1-y0)*(x-x0-dx*i)/dx);
     }
-     
+
+    std::complex<double> expit (double x) const {
+        // Does linear interpolation when the input is ln()-d
+        int i=int((x-x0)/dx);
+        std::complex<double> y0=y_[i];
+        std::complex<double> y1=y_[i+1];
+        return std::exp(y0+(y1-y0)*(x-x0-dx*i)/dx);
+    }
+   
 };
 

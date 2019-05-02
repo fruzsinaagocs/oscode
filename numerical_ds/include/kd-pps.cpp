@@ -23,7 +23,7 @@ double phi_p=23.1;
 double mp=1;
 double kpivot=0.05;
 double Npivot=54.0;
-int Nbg=round(2e6), npts=round(Nbg-1);
+int Nbg=round(5e4), npts=round(Nbg-1);
 double Nstart=0.0, Nend=68.0, Ninc=(Nend-Nstart)/npts;
 Eigen::VectorXd logws, listgs;
 double Ak=0.0, Bk=1.0;
@@ -91,7 +91,7 @@ std::complex<double> g(double N){
     int i;
     i=int((N-Nstart)/Ninc);
     
-    double g0 = listgs(i);
+    double g0 = listgs[i];
     double g1 = listgs(i+1);
     return (g0+(g1-g0)*(N-Nstart-Ninc*i)/Ninc);
 };
@@ -125,6 +125,7 @@ int main(){
     Eigen::VectorXd Ns=Eigen::VectorXd::Zero(Nbg);
     logws=Eigen::VectorXd::Zero(Nbg);
     listgs=Eigen::VectorXd::Zero(Nbg);
+    Eigen::VectorXd logks=Eigen::VectorXd::Ones(Nbg);
     // To log background evolution
     Eigen::VectorXd Hs=Eigen::VectorXd::Zero(Nbg), phis=Eigen::VectorXd::Zero(Nbg),
     dphis=Eigen::VectorXd::Zero(Nbg), ddphis=Eigen::VectorXd::Zero(Nbg);
@@ -265,9 +266,6 @@ int main(){
         listgs(i) = -0.25*dphis(i)*dphis(i) + -(3.0-(0.5*dphis(i)*dphis(i))) - (6.0-(dphis(i)*dphis(i)))*dV(phis(i))/(2.0*V(phis(i))*dphis(i)) + 1.5;
     };
 
-    // Construct system to solve
-    de_system system(&w,&g);
-    
     // Solve the evolution of each perturbation
     double ti, tf, rtol, atol, h0;
     std::complex<double> x0, dx0;
@@ -302,21 +300,25 @@ int main(){
         a0 = ai*std::exp(N);
         z = a0*dphi;
         dz_z = ddphi/dphi + 1.0;
-        x0 = 1.0/(std::sqrt(2.0*k))/z;
-        dx0 =
-        std::complex<double>(std::real(-x0*dz_z),-std::sqrt(k/2.0)/(a0*z*Hs(startsi)));
+        x0 = 1.0;//1.0/(std::sqrt(2.0*k))/z;
+        dx0 = 0.0;
+        //std::complex<double>(std::real(-x0*dz_z),-std::sqrt(k/2.0)/(a0*z*Hs(startsi)));
         //std::cout << "ic: " << x0 << "\\n" << dx0 << std::endl;
         x01s(i) = x0;
         dx01s(i) = dx0;
+        
+        // Construct system to solve
+        de_system system(Ns,logws,listgs,true,false);
         Solution solution1(system, x0, dx0, ti, tf, order, rtol, atol, h0,
+        
         full_output);
         t1 = MPI_Wtime();
         solution1.solve();
         rk1.push_back(solution1.sol.back());
         
-        x0 = 1.0/(std::sqrt(2.0*k))/z;
-        dx0 =
-        -std::complex<double>(std::real(-x0*dz_z),-std::sqrt(k/2.0)/(a0*z*Hs(startsi)));
+        x0 =0.0;// 1.0/(std::sqrt(2.0*k))/z;
+        dx0 = 1.0;
+        //-std::complex<double>(std::real(-x0*dz_z),-std::sqrt(k/2.0)/(a0*z*Hs(startsi)));
         x02s(i) = x0;
         dx02s(i) = dx0;
         Solution solution2(system, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
