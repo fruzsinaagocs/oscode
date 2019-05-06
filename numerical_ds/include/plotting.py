@@ -51,7 +51,7 @@ plt.xlabel("$t$")
 plt.ylabel("$\Re\{x\}$")
 plt.legend()
 plt.show()
-plt.savefig("plots/airy-example-x-paperstyle.pdf")
+#plt.savefig("plots/airy-example-x-paperstyle.pdf")
 
 # Error progression to late times in the above example
 # FIGURE 2
@@ -671,8 +671,8 @@ plt.show()
 
 # PPS
 # FIGURE 14
-plt.figure(figsize=(2.60,2.375))
-f = "test/ms/pps-testcomplex.txt" #pps-N-kd-sparsebg2.txt" #sparsebg2.txt
+#plt.figure(figsize=(2.60,2.375))
+f = "test/ms/pps-testcomplexfn.txt" #pps-N-kd-sparsebg2.txt" #sparsebg2.txt
 d = np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair})
 k = d[:,0]
 p1 = d[:,3] # Bunch-Davies
@@ -682,8 +682,8 @@ plt.style.use('paper')
 plt.xlabel("$k$/Mpc${}^{-1}$")
 plt.ylabel("$P_{\mathcal{R}}(k)$")
 #plt.xlim((1e-3,1e5))
-plt.ylim((6e-10,2e-9))
-plt.loglog(k,p2)
+#plt.ylim((6e-10,2e-9))
+plt.loglog(k,p1)
 #fig.text(0.5,0.02,'$N$',ha='center',va='center')
 plt.show()
 #plt.savefig("plots/example-pps-kd-N.pdf")
@@ -870,12 +870,12 @@ for i in range(len(ns)):
     wkb = d[:,3]
     E = Es[i]
     if(i<len(ns)-1):
-        plt.plot(x[wkb==1],E + scale*((rk[wkb==1])),'x',color='green')
-        plt.plot(x[wkb==0],E + scale*((rk[wkb==0])),'x',color='red')
+        plt.plot(x[wkb==1],E + scale*((rk[wkb==1])),'.',color='green')
+        plt.plot(x[wkb==0],E + scale*((rk[wkb==0])),'.',color='red')
         plt.plot(ts[i],E + (analytics[i]))
     else:
-        plt.plot(x[wkb==0],E + scale*((rk[wkb==0])),'x',color='red',label='RK step')
-        plt.plot(x[wkb==1],E + scale*((rk[wkb==1])),'x',color='green',label='WKB step')
+        plt.plot(x[wkb==0],E + scale*((rk[wkb==0])),'.',color='red',label='RK step')
+        plt.plot(x[wkb==1],E + scale*((rk[wkb==1])),'.',color='green',label='WKB step')
         plt.plot(ts[i],E + (analytics[i]))#,label='true solution')
     plt.text(x[-1]+1.0, E, 'n='+str(ns[i]))
 plt.xlabel('$x$')
@@ -884,9 +884,48 @@ plt.legend(loc='lower left')
 #plt.plot(ts,E*np.ones(len(ts)))
 plt.xlim((-25,21))
 #plt.ylim((E-1,E+1))
-plt.savefig('plots/schrodinger.pdf')
+#plt.savefig('plots/schrodinger.pdf')
+plt.show()
+
+# Schrodinger equation with outside-of-potential tails
+K=2
+n=20
+m=1
+E=np.sqrt(K/m)*(n-0.5)
+gam = np.sqrt(m*K)
+nofs=2
+boundary=np.sqrt((n-0.5)*2/gam)+5.0
+fs = ["test/schrodinger/schrodinger-{}.txt".format(f) for f in ['left','right']]
+ds = [np.genfromtxt(f,dtype=complex,converters={1:parse_pair,2:parse_pair}) for f in fs]
+ts = np.linspace(-boundary,boundary,1000)
+A = (gam/np.pi)**(1/4.0)*1.0/np.sqrt(2.0**(n-1)*math.factorial(n-1))
+analytic = [A*sp.eval_hermite(n-1,np.sqrt(gam)*t)*np.exp(-0.5*gam*t**2) for t in ts]
+v = 0.5*K*ts**2 
+plt.style.use('paper')
+#plt.plot(ts,v,'--',label='$V(x)$')
+for i in range(nofs):
+    d = ds[i]
+    x = d[:,0]
+    rk = d[:,1]
+    wkb = d[:,3]
+    plt.plot(x[wkb==1],rk[wkb==1],'.',color='green')
+    plt.plot(x[wkb==0],rk[wkb==0],'.',color='red')
+#plt.ylim((-2,2))
+plt.plot(ts, analytic)
+plt.xlim(-boundary,boundary)
+plt.savefig("plots/schrodingershooting.pdf")
 #plt.show()
 
 
-
+# Determining Ni
+from scipy.interpolate import interp1d as interp 
+x = np.array([1e-3,1e-2,1e-1,1e0,1e1,1e2])
+y = np.array([1.39, 0.25, -0.89, -1.76,-2.10,-2.215])
+xnew = np.linspace(-3,2,300)
+spl=interp(np.log10(x),y,kind=2)
+ysmooth=spl(xnew)
+print(ysmooth)
+plt.plot(np.log10(x),y,'.')
+plt.plot(xnew,ysmooth)
+plt.show() 
 
