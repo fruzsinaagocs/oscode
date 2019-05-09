@@ -8,27 +8,19 @@
 #include <string>
 #include <stdlib.h>
 
-double n = 400.0;
+double n = 40.0;
 
-double RKSolver::g(double t){
+std::complex<double> g(double t){
     return 0.0;
 };
 
-double gdummy(double t){
-    return t;
-};
-
-double wdummy(double t){
-    return t;
-};
-
-double RKSolver::w(double t){
-    return std::pow(t, 0.5);
-};
-
-//double RKSolver::w(double t){
-//    return std::pow(n*n - 1.0,0.5)/(1.0 + t*t);
+//std::complex<double> w(double t){
+//    return std::pow(t, 0.5);
 //};
+
+std::complex<double> w(double t){
+    return std::pow(n*n - 1.0,0.5)/(1.0 + t*t);
+};
 
 std::complex<double> xburst(double t){
     return 100*std::pow(1.0 + t*t,
@@ -118,7 +110,7 @@ int main(){
     // Example with w(t), g(t) analytically given
     std::ofstream f;
     int no = 1;
-    Eigen::VectorXd ns = Eigen::VectorXd::LinSpaced(no,8.0,8.0);
+//    Eigen::VectorXd ns = Eigen::VectorXd::LinSpaced(no,8.0,8.0);
     std::vector<int> steps,totsteps,wkbsteps;
     std::vector<double> runtimes;
     std::complex<double> x0, dx0;
@@ -126,14 +118,14 @@ int main(){
     bool full_output = true;
     int order = 3;   
     for(int i=0; i<no; i++){
-        n = round(std::pow(10,ns(i)));
+//        n = 40;
         std::cout << "n: " << n << std::endl;
-        de_system sys(&wdummy, &gdummy);
-        ti = 1.0;//-2*n;
-        tf = 1e8;//2*n;
-        x0 = xairy(ti); 
-        dx0 = dxairy(ti); 
-        rtol = 1e-4;
+        de_system sys(&w, &g);
+        ti = -2*n;
+        tf = 2*n;
+        x0 = xburst(ti); 
+        dx0 = dxburst(ti); 
+        rtol = 1e-3;
         atol = 0.0;
         h0 = 1.0;
         runtime = 0.0;
@@ -147,7 +139,7 @@ int main(){
         };
         std::cout << "time: " << runtime/100.0 << " ms." << std::endl;
         
-        Solution solution(sys, x0, dx0, ti, tf, order, rtol, atol, h0, full_output);
+        Solution solution(sys, x0, dx0, ti, tf, order, rtol, atol, h0, false);
         solution.solve();
         steps.emplace_back(solution.ssteps);
         wkbsteps.emplace_back(solution.wkbsteps);
