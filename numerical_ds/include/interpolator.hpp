@@ -1,6 +1,7 @@
 #pragma once
 #include <iterator>
 #include <cmath>
+#include <complex>
 
 // TODO: size checking
 template<typename X, typename Y>
