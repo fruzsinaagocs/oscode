@@ -1,0 +1,7 @@
+build
+*.so
+__pycache__
+*.pyc
+.eggs
+pyoscode.egg-info/
+.ipynb_checkpoints
