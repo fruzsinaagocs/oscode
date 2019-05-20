@@ -12,7 +12,7 @@ def parse_pair(s):
     return complex(*map(float, pair.match(s).groups()))
 
 # Airy equation with w(t), g(t) given analytically
-
+# FIGURE 1
 f1 = "test/airy/airy-example.txt" #'test/airy/airycorr_o1.txt'
 frk = "test/airy/airy-example-rkonly.txt"
 datark = np.loadtxt(frk,dtype=complex,converters={1:parse_pair, 2:parse_pair,
@@ -32,93 +32,88 @@ wkbrk = datark[:,3]
 sols = data[:,4]
 solsrk = datark[:,4]
 dsols = data[:,5]
-dsolsrk = datark[:,5]
 errs = np.abs(sols - x)/np.abs(sols)
 derrs = np.abs(dsols - dx)/np.abs(dsols)
 errsrk = np.abs(solsrk - xrk)/np.abs(solsrk)
-derrsrk = np.abs(dsolsrk - dxrk)/np.abs(dsolsrk)
-
 # Example solution
-# FIGURE 1 
-
 plt.style.use('paper')
-plt.semilogx(times,analytic, color='black',label='true solution',lw=0.5)
-plt.semilogx(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
-plt.semilogx(t[wkb==0],x[wkb==0],'x',color='red', label='RK step')
-plt.xlim((0,40.0))
-plt.ylim((-0.5, 0.7))
-plt.xlabel("$t$")
-plt.ylabel("$\Re\{x\}$")
-plt.legend()
-plt.show()
-#plt.savefig("plots/airy-example-x-paperstyle.pdf")
-
-# Error progression to late times in the above example
-# FIGURE 2
-
-plt.style.use('paper')
-plt.loglog(t, errs, '-', color='black')
-plt.loglog(t[wkb==1], errs[wkb==1],'x',color='green',label='WKB step')
-plt.loglog(t[wkb==0], errs[wkb==0],'x',color='red',label='RK step')
-plt.loglog(trk[wkbrk==0], errsrk[wkbrk==0],'x',color='red')
-plt.loglog(trk, errsrk, '-', color='black')
-plt.ylim((1e-6,1e-2))
-plt.xlabel("$t$")
-plt.ylabel("relative error, $\\frac{|\Delta x|}{|x|}$")
+fig,ax=plt.subplots(1,2,figsize=(5.95,2.375))
+ax[0].semilogx(times,analytic, color='black',label='true solution',lw=0.5)
+ax[0].semilogx(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
+ax[0].semilogx(t[wkb==0],x[wkb==0],'x',color='red', label='RK step')
+ax[0].set_xlim((0,40.0))
+ax[0].set_ylim((-0.5, 0.7))
+ax[0].set_xlabel("$t$")
+ax[0].set_ylabel("$\Re\{x\}$")
+ax[0].legend()
+# Error progression
+ax[1].loglog(t, errs, '-', color='black')
+ax[1].loglog(t[wkb==1], errs[wkb==1],'x',color='green',label='WKB step')
+ax[1].loglog(t[wkb==0], errs[wkb==0],'x',color='red',label='RK step')
+ax[1].loglog(trk[wkbrk==0], errsrk[wkbrk==0],'x',color='red')
+ax[1].loglog(trk, errsrk, '-', color='black')
+ax[1].set_ylim((1e-6,1e-2))
+ax[1].set_xlabel("$t$")
+ax[1].set_ylabel("relative error, $\\frac{|\Delta x|}{|x|}$")
 #plt.axvline(x=3.79)
 #plt.text(3.79/(7.0/3.79), 2e-4, 'RK', verticalalignment='center',
 #horizontalalignment='right')
 #plt.text(7.0, 2e-4, 'WKB', verticalalignment='center',
 #horizontalalignment='left')
-plt.legend()
+ax[1].legend()
 #plt.show()
-plt.savefig('plots/airy-example-err-paperstyle.pdf')
-
+plt.tight_layout()
+plt.savefig("plots/airy-merged.pdf")
 
 # Burst equation with w(t), g(t) given analytically
-# Single solution at low n 
-# FIGURE 3 
-
-f1 = 'plots/burstn40.txt'#'test/burst/solcheck3-optn.txt'#d4w1less_n40.txt' #'plots/burstn40.txt'
+# Single solution at n=40 and its error progression on one plot
+# FIGURE 2  
+f1 = 'plots/burstn40.txt'
+f2 = 'plots/burst40_rkonly.txt' # Pure RK 
 n = 40 
 data= np.loadtxt(f1,dtype=complex,converters={1:parse_pair, 2:parse_pair})
+data2 = np.loadtxt(f2,dtype=complex,converters={1:parse_pair, 2:parse_pair})
 times = np.linspace(-2*n,2*n,10000)
 analytic = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in times ])
+# RKWKB
 t = data[:,0]
 x = data[:,1]
 dx = data[:,2]
 wkb = data[:,3]
 sols = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in t])
-
-plt.figure()
-plt.style.use('paper')
-plt.plot(times,analytic, color='black',label='true solution')
-plt.plot(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
-plt.plot(t[wkb==0],x[wkb==0],'x',color='red',label='RK step')
-plt.xlim((-40,40))
-plt.ylim((-60,60))
-plt.xlabel('$t$')
-plt.ylabel('$\Re{\{x(t)\}}$')
-plt.legend()
-plt.savefig("plots/burstn40_x_paperstyle.pdf")
-#plt.show()
-
-# Error progression in this example
-# FIGURE 4
 errs = np.abs(sols - x)/np.abs(sols)
-plt.figure()
+# Pure RK
+t2 = data2[:,0]
+x2 = data2[:,1]
+dx2 = data2[:,2]
+wkb2 = data2[:,3]
+sols2 = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) +
+np.cos(n * np.arctan(ti))) for ti in t2])
+errs2 = np.abs(sols2 - x2)/np.abs(sols2)
+# Plotting
 plt.style.use('paper')
-plt.semilogy(t,errs,color='black')
-plt.semilogy(t[wkb==1],errs[wkb==1],'x',color='green',label='WKB step')
-plt.semilogy(t[wkb==0],errs[wkb==0],'x',color='red',label='RK step')
-
-plt.ylabel('relative error, $\\frac{|\Delta x|}{|x|}$')
-plt.xlabel('$t$')
-plt.ylim(1e-7,1e-1)
-plt.xlim(-60,60)
-plt.legend()
-plt.savefig("plots/burstn40_err_paperstyle.pdf")
+fig,ax = plt.subplots(1,2,figsize=(5.95,2.375))
+ax[0].plot(times,analytic, color='black',label='true solution')
+ax[0].plot(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
+ax[0].plot(t[wkb==0],x[wkb==0],'x',color='red',label='RK step')
+ax[0].set_xlim((-40,40))
+ax[0].set_ylim((-60,60))
+ax[0].set_xlabel('$t$')
+ax[0].set_ylabel('$\Re{\{x(t)\}}$')
+ax[0].legend()
+ax[1].semilogy(t2,errs2,color='black')
+ax[1].semilogy(t2,errs2,'x',color='red')
+ax[1].semilogy(t,errs,color='black')
+ax[1].semilogy(t[wkb==1],errs[wkb==1],'x',color='green',label='WKB step')
+ax[1].semilogy(t[wkb==0],errs[wkb==0],'x',color='red',label='RK step')
+ax[1].set_ylabel('relative error, $\\frac{|\Delta x|}{|x|}$')
+ax[1].set_xlabel('$t$')
+ax[1].set_ylim(1e-7,1e-1)
+ax[1].set_xlim(-60,60)
+ax[1].legend()
 #plt.show()
+plt.tight_layout()
+plt.savefig("plots/burst_n40merged.pdf")
 
 # Large n example: number of oscillations traversed
 # FIGURE 5
@@ -671,22 +666,28 @@ plt.show()
 
 # PPS
 # FIGURE 14
-#plt.figure(figsize=(2.60,2.375))
-f = "test/ms/pps-testcomplexfn.txt" #pps-N-kd-sparsebg2.txt" #sparsebg2.txt
+from matplotlib.ticker import FuncFormatter
+f = "test/ms/pps-N-kd-sparsebg2.txt" #"test/ms/pps-testcomplexfn.txt" 
 d = np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair})
 k = d[:,0]
 p1 = d[:,3] # Bunch-Davies
 p2 = d[:,4] # attempted kd
 #plt.loglog(k,p1)
 plt.style.use('paper')
-plt.xlabel("$k$/Mpc${}^{-1}$")
-plt.ylabel("$P_{\mathcal{R}}(k)$")
-#plt.xlim((1e-3,1e5))
-#plt.ylim((6e-10,2e-9))
-plt.loglog(k,p1)
-#fig.text(0.5,0.02,'$N$',ha='center',va='center')
-plt.show()
-#plt.savefig("plots/example-pps-kd-N.pdf")
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.set_xlabel("$k$/Mpc${}^{-1}$")
+ax.set_ylabel("$P_{\mathcal{R}}(k)$")
+ax.loglog(k[150:],p2[150:])
+ax.text(0.0,1.01,'$10^{-9}$',transform=plt.gca().transAxes)
+#ax.set_xlim((1e-3,1e1))
+#ax.set_ylim((6e-10,2e-9))
+ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos:('%.1f')%(x*1e9)))
+ax.yaxis.set_minor_formatter(FuncFormatter(lambda x, pos:('%.1f')%(x*1e9)))
+plt.tight_layout()
+#plt.show()
+plt.savefig("plots/example-pps-kd-N.pdf")
+
 
 # Single-k solutions
 fs1 = "test/ms/singlek-kd-bd-2a.txt"
@@ -726,11 +727,13 @@ dE_E = data[:,7]
 plt.style.use('paper')
 #plt.plot(N,dlogo_k,label='dlogok')
 #plt.plot(N,dE_E,label='ddphi')
-#plt.plot(N,phi)
+#plt.plot(N,logo_k)
 plt.plot(N,np.exp(0.5*(logo_k + np.log(data[:,5]))),color='red' ,label='$1/(aH)^2 $,mimic flat')
+#plt.plot(N,np.exp(logo_k)*data[:,5],color='red' ,label='$1/(aH)^2 $,mimic flat')
+
 #plt.plot(N, data[:,-2],color='red',label='$\gamma$,mimic flat')
 #plt.semilogy(N,np.exp(-0.5*logo_k-N))
-plt.plot(N,data[:,5],label='$\omega$')
+#plt.plot(N,data[:,5],label='$\omega$')
 #plt.plot(N, logo_k,color='red',label='$K=+1$, closed')
 #plt.plot(data2[:,0], data2[:,3],color='blue',label='$K=+1$, closed')
 plt.legend()
@@ -778,7 +781,7 @@ plt.legend()
 plt.show()
 
 # PPS
-f = "test/ms/pps-kd-closed-highk12.txt"
+f = "test/ms/pps-test.txt"
 d = np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair})
 k = d[:,0]
 p1 = d[:,3] # BD 
@@ -787,12 +790,12 @@ p2 = d[:,4] # KD
 plt.style.use('paper')
 plt.xlabel("$k$/Mpc${}^{-1}$")
 plt.ylabel("$P_{\mathcal{R}}(k)$")
-#plt.xlim((1e-5,1e1))
-#plt.ylim((6e-10,2e-9))
+#plt.xlim((8e-1,1e1))
+#plt.ylim((1e-3,1e2))
 plt.loglog(k,p1)
 #fig.text(0.5,0.02,'$N$',ha='center',va='center')
-plt.show()
-#plt.savefig("plots/example-pps-kd-N.pdf")
+#plt.show()
+plt.savefig("plots/lowk-exponential.pdf")
 
 # single-k solution
 f = "test/ms/kd-mimicflat2.txt"
@@ -812,7 +815,10 @@ plt.show()
 # PPS
 # FIGURE 15
 from cycler import cycler
-grays = cycler(color=['0.80','0.50', '0.30', '0.80', '0.50', '0.30'])
+#grays = cycler(color=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728','#9467bd',
+#'#8c564b', '#e377c2', '#7f7f7f','#bcbd22', '#17becf'])
+cmap = plt.cm.tab20
+grays = cycler('color',cmap(np.linspace(0,1,20)))
 nospectra=6
 atoday = 4.3e4
 fs = ["test/ms/pps-kd-closed-{}intcorr.txt".format(i) for i in range(1,nospectra+1)]
@@ -821,7 +827,7 @@ ds = [np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:pa
 ks = [d[:,0]*atoday for d in ds]
 ps = [d[:,3] for d in ds]  # BD 
 plt.style.use('paper')
-fig,ax=plt.subplots(1,1)
+fig,ax=plt.subplots(1,1,figsize=(5.95,4.0))
 ax.set_prop_cycle(grays)
 ax2=ax.twiny()
 #plt.xlim((1e-5,1e1))
@@ -831,20 +837,21 @@ for i in range(nospectra):
     if(i<nospectra/2):
         ax.loglog(ks[i],ps[i]*pivotamp/ps[i][-1],label='$\Omega_k^i={}$'.format(okis[i]),lw=1.0)
     else:
-        ax.loglog(ks[i],ps[i]*pivotamp/ps[i][-1],'--',label='$\Omega_k^i={}$'.format(okis[i]),lw=1.0)
+        ax.loglog(ks[i],ps[i]*pivotamp/ps[i][-1],label='$\Omega_k^i={}$'.format(okis[i]),lw=1.0)
 axxs=np.logspace(0,8,9)
 #print(axxs)
 ax2xs=axxs/atoday
 #print(ax2xs)
 ax2.set_xticks(axxs)
 ax2.set_xticklabels(ax2xs)
-ax2.set_xlabel("$k\\big/\\big(\\big(\\frac{h}{\mathrm{0.7}}\\big) \\big(\\frac{\Omega_{k,\mathrm{0}}}{\mathrm{0.01}}\\big)$ Mpc${}^{-1}$\\big)$ $")
+ax2.set_xlabel("$k\\big/\\big(\\big(\\frac{h}{\mathrm{0.7}}\\big) \\big(\\frac{\Omega_{k,\mathrm{0}}}{\mathrm{0.01}}\\big)$ Mpc${}^{-1}$\\big)\n ")
 ax.set_ylabel("$P_{\mathcal{R}}(k)/m^2$")
 ax.set_xlabel("comoving $k$")
 ax2.loglog(ax2xs,np.ones_like(ax2xs),alpha=0) 
 ax.legend()
+plt.tight_layout()
 #plt.show()
-plt.savefig("plots/closed-spectra-log-paper.pdf")
+plt.savefig("plots/closed-spectra-log-paper-colours.pdf")
 
 # Schrodinger equation
 # FIGURE 16
@@ -854,38 +861,61 @@ ns=[2,20,40,60,80,100]
 m=1
 Es=[np.sqrt(K/m)*(n-0.5) for n in ns]
 gam = np.sqrt(m*K)
-fs = ["test/schrodinger/schrodinger-test{}.txt".format(n) for n in ns]
-ds = [np.genfromtxt(f,dtype=complex,converters={1:parse_pair,2:parse_pair}) for f in fs]
-ts = [np.linspace(np.real(d[0,0]),np.real(d[-1,0]),1000) for d in ds]
+fls = ["test/schrodinger/schrodinger-plot-{}l.txt".format(n) for n in ns]
+frs = ["test/schrodinger/schrodinger-plot-{}r.txt".format(n) for n in ns]
+dls = [np.genfromtxt(f,dtype=complex,converters={1:parse_pair,2:parse_pair}) for
+f in fls]
+drs = [np.genfromtxt(f,dtype=complex,converters={1:parse_pair,2:parse_pair}) for
+f in frs]
+tls = [np.linspace(np.real(d[0,0]),np.real(d[-1,0]),1000) for d in dls]
+trs = [np.linspace(np.real(d[0,0]),np.real(d[-1,0]),1000) for d in drs]
 As = [(gam/np.pi)**(1/4.0)*1.0/np.sqrt(2.0**(n-1)*math.factorial(n-1)) for n in ns]
 scale = 10
-analytics = [scale*A*sp.eval_hermite(n-1,np.sqrt(gam)*t)*np.exp(-0.5*gam*t**2) for A,t,n in zip(As,ts,ns)]
-v = 0.5*K*ts[-1]**2 
+lanalytics = [scale*A*sp.eval_hermite(n-1,np.sqrt(gam)*t)*np.exp(-0.5*gam*t**2) for A,t,n in zip(As,tls,ns)]
+ranalytics = [scale*A*sp.eval_hermite(n-1,np.sqrt(gam)*t)*np.exp(-0.5*gam*t**2) for A,t,n in zip(As,trs,ns)]
+vl = 0.5*K*tls[-1]**2 
+vr = 0.5*K*trs[-1]**2 
 plt.style.use('paper')
-plt.plot(ts[-1],v,'--',label='$V(x)$')
+plt.figure(figsize=(5.95,4.0))
+plt.plot(tls[-1],vl,'--',label='$V(x)$')
+plt.plot(trs[-1],vr,'--')
+
 for i in range(len(ns)):
-    d = ds[i]
-    x = d[:,0]
-    rk = d[:,1]
-    wkb = d[:,3]
+    d = dls[i]
+    xl = d[:,0]
+    rkl = d[:,1]
+    wkbl = d[:,3]
     E = Es[i]
+    d = drs[i]
+    xr = d[:,0]
+    rkr = d[:,1]
+    wkbr = d[:,3]
+
     if(i<len(ns)-1):
-        plt.plot(x[wkb==1],E + scale*((rk[wkb==1])),'.',color='green')
-        plt.plot(x[wkb==0],E + scale*((rk[wkb==0])),'.',color='red')
-        plt.plot(ts[i],E + (analytics[i]))
+        plt.plot(xl[wkbl==1],E + scale*((rkl[wkbl==1])),'.',color='green')
+        plt.plot(xl[wkbl==0],E + scale*((rkl[wkbl==0])),'.',color='red')
+        plt.plot(tls[i],E + (lanalytics[i]))
+        plt.plot(xr[wkbr==1],E + scale*((rkr[wkbr==1])),'.',color='green')
+        plt.plot(xr[wkbr==0],E + scale*((rkr[wkbr==0])),'.',color='red')
+        plt.plot(trs[i],E + (ranalytics[i]))
+
     else:
-        plt.plot(x[wkb==0],E + scale*((rk[wkb==0])),'.',color='red',label='RK step')
-        plt.plot(x[wkb==1],E + scale*((rk[wkb==1])),'.',color='green',label='WKB step')
-        plt.plot(ts[i],E + (analytics[i]))#,label='true solution')
-    plt.text(x[-1]+1.0, E, 'n='+str(ns[i]))
+        plt.plot(xl[wkbl==1],E + scale*((rkl[wkbl==1])),'.',color='green')
+        plt.plot(xl[wkbl==0],E + scale*((rkl[wkbl==0])),'.',color='red')
+        plt.plot(tls[i],E + (lanalytics[i]))
+        plt.plot(xr[wkbr==0],E + scale*((rkr[wkbr==0])),'.',color='red',label='RK step')
+        plt.plot(xr[wkbr==1],E + scale*((rkr[wkbr==1])),'.',color='green',label='WKB step')
+        plt.plot(trs[i],E + (ranalytics[i]))#,label='true solution')
+    plt.text(xr[0]+1.0, E, 'n='+str(ns[i]))
 plt.xlabel('$x$')
 plt.ylabel('$E_n + 10\Psi_n(x)$')
 plt.legend(loc='lower left')
 #plt.plot(ts,E*np.ones(len(ts)))
-plt.xlim((-25,21))
-#plt.ylim((E-1,E+1))
-#plt.savefig('plots/schrodinger.pdf')
-plt.show()
+plt.xlim((-15,18))
+plt.ylim((-15,160))
+plt.tight_layout()
+plt.savefig('plots/schrodinger-shooting.pdf')
+#plt.show()
 
 # Schrodinger equation with outside-of-potential tails
 K=2
@@ -916,16 +946,68 @@ plt.xlim(-boundary,boundary)
 plt.savefig("plots/schrodingershooting.pdf")
 #plt.show()
 
-
-# Determining Ni
+# PLOT FOR WILL
+# Determining Ni as a function of O_ki to maintain a constant Ntot=60
 from scipy.interpolate import interp1d as interp 
-x = np.array([1e-3,1e-2,1e-1,1e0,1e1,1e2])
-y = np.array([1.39, 0.25, -0.89, -1.76,-2.10,-2.215])
-xnew = np.linspace(-3,2,300)
-spl=interp(np.log10(x),y,kind=2)
-ysmooth=spl(xnew)
-print(ysmooth)
-plt.plot(np.log10(x),y,'.')
-plt.plot(xnew,ysmooth)
+f = "test/ms/closed-bg-constn.txt"
+data = np.genfromtxt(f,dtype=complex,delimiter=', ')
+ok = data[:,0]
+ni = data[:,1]
+plt.style.use('paper')
+plt.ylabel('$N_i$')
+plt.xlabel('$\Omega_k^i$')
+plt.semilogx(ok,ni,label='$N_{\mathrm{tot}}=60$')
+plt.legend()
+#plt.savefig('plots/ni-v-oki.pdf')
 plt.show() 
+
+# FIGURE
+# Improved plot showing closed universe spectra with varying curvature
+atoday=4.3e4
+okis=np.logspace(-3,2.17,300)
+labels=np.linspace(0,300,300)
+plt.style.use('paper')
+fig,axes=plt.subplots(3,2,figsize=(5.95,7.7),sharex=True,sharey='row')
+fs = []
+fints = []
+for num in [0,58,116,174,231,290]:
+    print(okis[num])
+    fs.append("test/ms/pps-kd-closed-kcts-corr{}.txt".format(num))
+    fints.append("test/ms/pps-kd-closed-kint-corr{}.txt".format(num))
+
+ds = [np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair}) for f in fs]
+dints = [np.genfromtxt(fint,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair}) for fint in fints]
+
+fig.text(0.5,1.01,"$k\\big/\\big(\\big(\\frac{h}{\mathrm{0.7}}\\big) \\big(\\frac{\Omega_{k,\mathrm{0}}}{\mathrm{0.01}}\\big)$ Mpc${}^{-1}$\\big)$ $",ha='center',va='center')
+fig.text(0.0,0.5,"$P_{\mathcal{R}}(k)/m^2$",ha='center',va='center',rotation='vertical')
+fig.text(0.5,0.00,"comoving $k$",ha='center',va='center')
+
+okis = [1e-3,1e-2,1e-1,1e0,1e1,1e2]
+for i,ax,d,dint in zip(range(6),np.ravel(axes),ds,dints):
+    ax2=ax.twiny()
+    axxs=np.logspace(0,3,4)
+    ax2xs=axxs/atoday
+    ax2.set_xticks(axxs)
+    if(i==1 or i==0):
+        ax2.set_xticklabels(ax2xs)
+    else:
+        ax2.set_xticklabels(['']*len(ax2xs))
+    ax2.loglog(ax2xs,np.ones_like(ax2xs),alpha=0)
+    if(i!=0 and i!=1):
+        ax2.set_xticklabels(['']*len(ax2xs))
+    ax.loglog(d[:,0],d[:,3],color='red')
+    ax.loglog(dint[2:,0],dint[2:,3])
+    ax.loglog(dint[2:50,0],dint[2:50,3],'.',ms=2.5)
+    ax.set_xlim((5e-1,2e4))
+    if(i==0 or i==1):
+        ax.set_ylim((1e-2,1e3))
+    elif(i==4 or i==5):
+        ax.set_ylim((1e0,1e2))
+    else:
+        ax.set_ylim((1e0,1e3))
+    ax.text(0.70,0.1,'$\Omega_k^i=$'+str(okis[i]),transform=ax.transAxes)
+plt.subplots_adjust(wspace=0.1,hspace=0.1)
+plt.tight_layout()
+#plt.savefig("plots/closed-spectra-table.pdf")
+plt.show()
 

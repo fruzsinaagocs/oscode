@@ -6,6 +6,7 @@
 #include <string>
 #include <iomanip>
 #include <boost/math/special_functions/airy.hpp>
+#include <limits>
 #include "system.hpp"
 #include "rksolver.hpp"
 #include "wkbsolver.hpp"
@@ -129,6 +130,10 @@ void Solution::solve(){
             wkbx = wkbstep.row(0);
             wkberr = wkbstep.row(2);
             truncerr = wkbstep.row(1);
+            // Safety feature for when all wkb steps are 0 (truncer=0), but not
+            // necessarily in good WKB regime:
+            truncerr(0) = std::max(1e-10,abs(truncerr(0)));
+            truncerr(1) = std::max(1e-10,abs(truncerr(1)));
             // dominant error calculation
             wkbdeltas << std::abs(truncerr(0))/std::abs(wkbx(0)),
             std::abs(truncerr(1))/std::abs(wkbx(1)),
@@ -139,7 +144,7 @@ void Solution::solve(){
             if(isnan(wkbdeltas.maxCoeff())==false && isinf(std::real(wkbx(0)))==false && isinf(std::real(wkbx(1)))==false)
                 wkbdelta = std::max(1e-10, wkbdeltas.maxCoeff(&maxindex));
             else
-                wkbdelta = 1e3*rkdelta;
+                wkbdelta = std::numeric_limits<double>::infinity();
 
             // predict next stepsize 
             hrk = h*std::pow((rtol/rkdelta),1.0/nrk);
@@ -148,10 +153,12 @@ void Solution::solve(){
             else
                 hwkb = h*std::pow(rtol/wkbdelta,1.0/nwkb2);
             // choose step with larger predicted stepsize
-            if(std::abs(hwkb) >= std::abs(hrk))
+            if(std::abs(hwkb) >= std::abs(hrk)){
                 wkb = true;
-            else
+            }
+            else{
                 wkb = false;
+            }
             if(wkb){
                 xnext = wkbx(0);
                 dxnext = wkbx(1);
@@ -235,11 +242,7 @@ void Solution::solve(){
         for(int i=0; i<=ssteps; i++){
             f << std::setprecision(20) << *it_t << " " <<
             std::setprecision(20) << *it_x << " " << std::setprecision(20) <<
-            *it_dx << " " << *it_w << "\n";//" " <<
-            //std::complex<double>(boost::math::airy_ai(-*it_t),
-            //boost::math::airy_bi(-*it_t))  << " " <<
-            //std::complex<double>(boost::math::airy_ai_prime(-*it_t),
-            //boost::math::airy_bi_prime(-*it_t)) << "\n"; 
+            *it_dx << " " << *it_w << "\n"; 
             ++it_t;
             ++it_x;
             ++it_dx;

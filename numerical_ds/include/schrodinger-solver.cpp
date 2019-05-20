@@ -8,8 +8,8 @@
 #include <string>
 #include <stdlib.h>
 
-int n=20;
-double m=1, K=2, E=std::sqrt(K/m)*(n-0.5)*(1.0-1e-4);
+int n=1;
+double m=1, K=2, E=std::sqrt(K/m)*(n-0.5)*(1.0);
 
 std::complex<double> g(double t){
     return 0.0;
@@ -49,13 +49,15 @@ int main(){
     rtol = 1e-4;
     atol = 0.0;
     h0 = 1.0;
-    x0 = 0.0;
-    dx0 = 1.0;
+    x0 = ic(ti)(0);
+    dx0 = ic(ti)(1);
     // Left
     Solution solutionL(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output); 
     solutionL.solve();
     // Right
-    Solution solutionR(sys,x0,-dx0/5000.0,-ti,tf,order,rtol,atol,-h0,full_output); 
+    x0 = ic(-ti)(0);
+    dx0 = ic(-ti)(1);
+    Solution solutionR(sys,x0,dx0,-ti,tf,order,rtol,atol,-h0,full_output); 
     solutionR.solve();
 
     std::complex<double> xL,xR,dxL,dxR;
