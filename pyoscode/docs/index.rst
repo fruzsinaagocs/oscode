@@ -10,8 +10,11 @@ Welcome to oscode's documentation!
    :maxdepth: 1
    :caption: Contents:
 
-Introduction <intro>
-oscode <oscode>
+    Introduction <intro>
+    oscode <oscode>
+
+.. automodule:: pyoscode
+   :members:
 
 Indices and tables
 ==================
