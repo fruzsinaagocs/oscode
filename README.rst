@@ -87,13 +87,13 @@ Python
 ^^^^^^
 
 - Python 2.7 or 3.5+
-- `numpy <https://pypi.org/project/numpy/>`
-- `scipy <https://pypi.org/project/scipy/>`
+- `numpy <https://pypi.org/project/numpy/>`__
+- `scipy <https://pypi.org/project/scipy/>`__
 
 C++ 
 ^^^
 
-- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`
+- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__
 
 Quick start
 -----------
