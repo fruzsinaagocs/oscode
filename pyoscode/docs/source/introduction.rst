@@ -1,3 +1,5 @@
+.. title:: Introduction
+
 ========================================================================
 oscode: Oscillatory ordinary differential equation solver
 ========================================================================
@@ -12,15 +14,11 @@ oscode: Oscillatory ordinary differential equation solver
 **o**\rdinary **d**\ifferential **e**\quations efficiently. It is designed to
 deal with equations of the form
 
+.. math:: 
 
-.. image:: 
-	https://latex.codecogs.com/gif.download?%5Cddot%7Bx%7D%28t%29%20+%202%5Cgamma%28t%29%5Cdot%7Bx%7D%28t%29%20+%20%5Comega%5E2%28t%29x%28t%29%20%3D%200
+	\ddot{x}(t) + 2\gamma(t)\dot{x}(t) + \omega^2(t)x(t) = 0,
 
-where |gamma| and |omega| can be given as
-
-.. |gamma| image:: https://latex.codecogs.com/gif.download?%5Cgamma%28t%29
-
-.. |omega| image:: https://latex.codecogs.com/gif.download?%5Comega%28t%29
+where :math:`\gamma(t)` and :math:`\omega(t)` can be given as
 
 - *In C++*, explicit functions or sequence containers (`Eigen::Vector`\s, `array`\s,
   `std::vector`\s, `list`\s),

@@ -10,7 +10,7 @@ Welcome to oscode's documentation!
    :maxdepth: 1
    :caption: Contents:
 
-    Introduction <intro>
+    Introduction <introduction>
     oscode <oscode>
 
 .. automodule:: pyoscode
