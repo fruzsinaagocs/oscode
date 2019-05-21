@@ -1,17 +1,51 @@
-=========================================================
+========================================================================
 oscode: Oscillatory ordinary differential equation solver
-=========================================================
+========================================================================
 
 :oscode: oscillatory ordinary differential equation solver
 :Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
 :Version: 1.0
-:Homepage: https://github.com/agocsfruzsina/oscode
-:Documentation:
+:Homepage: https://github.com/fruzsinaagocs/oscode
+:Documentation: https://oscode.readthedocs.io
+
+``oscode`` is a C++ tool with a Python interface that solves **osc**\illatory
+**o**\rdinary **d**\ifferential **e**\quations efficiently. It is designed to
+deal with equations of the form
+
+.. math:: 
+    
+    \ddot{x}(t) + 2\gamma(t)\dot{x}(t) + \omega^2(t)x(t) = 0,
+   
+where :math:`\gamma(t)` and :math:`\omega(t)` can be given as
+
+- *In C++*, explicit functions or sequence containers (`Eigen::Vector`\s, `array`\s,
+  `std::vector`\s, `list`\s),
+- *In Python*, `numpy.array`\s.
+
+``oscode`` makes use of an analytic approximation of :math:`x(t)` embedded in a
+stepping procedure to skip over long regions of oscillations, giving a reduction
+in computing time. The approximation is valid when the frequency
+:math:`\omega(t)` changes slowly relative to the timescales of integration, it
+is therefore worth applying when this condition holds for at least some part of
+the integration range. 
+
+The numerical method used by ``oscode`` is described in detail in `this work.
+<https://>`__
+
 
 Installation
 ------------
 
-``oscode`` can be installed via the setup.py
+Python
+~~~~~~
+
+``oscode`` can be installed via pip
+
+.. code:: bash
+
+   pip install pyoscode
+
+or via the setup.py
 
 .. code:: bash
 
@@ -28,6 +62,18 @@ or
     python setup.py build_ext --inplace
 
 
+C++
+~~~
+
+``oscode`` is a header-only C++ package, it requires no installation.
+
+.. code:: bash
+
+   git clone https://github.com/fruzsinaagocs/oscode
+
+and then ``#include`` them in your C++ code. 
+
+
 Dependencies
 ~~~~~~~~~~~~
 
@@ -41,7 +87,10 @@ Basic requirements:
 Quick start
 -----------
 
-Try the following example:
+Try the following example(s):
+
+Python
+~~~~~~
 
 .. code:: python
 
@@ -77,6 +126,10 @@ Try the following example:
    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/airy-example.png
    :width: 800
 
+C++
+~~~
+
+
 
 Documentation
 -------------
@@ -91,4 +144,27 @@ To build your own local copy of the documentation you'll need to install `sphinx
 
 Citation
 --------
+
+
+If you use ``oscode`` to solve equations for a publication, please cite
+as: ::
+
+   Agocs et al., (2019). ...
+
+or using the BibTeX:
+
+.. code:: bibtex
+
+   @article{oscode,
+       doi = {},
+       url = {},
+       year  = {},
+       month = {},
+       publisher = {},
+       volume = {},
+       number = {},
+       author = {},
+       title = {},
+       journal = {}
+   }
 
