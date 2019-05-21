@@ -5,3 +5,6 @@ __pycache__
 .eggs
 pyoscode.egg-info/
 .ipynb_checkpoints
+pyoscode/docs/_build
+pyoscode/docs/source/_static
+pyoscode/docs/source/_templates
