@@ -48,13 +48,13 @@ rtol=1e-4, atol=0.0, h=1.0, full_output=False):
 
         sol: list [complex]
             A list containing the solution evaluated at timepoints listed under
-            the 'times' keyword.
+            the 't' keyword.
 
         dsol: list [complex]
             A list containint the first deriv ative of the solution evaluated at
-            timepoints listed under the 'times' keyword.
+            timepoints listed under the 't' keyword.
 
-        times: list [float]
+        t: list [float]
             Contains the values of the independent variable where the solver
             stepped, i.e. evaluated the solution at. This is not determined by
             the user, rather these are the internal steps the solver naturally
@@ -62,7 +62,7 @@ rtol=1e-4, atol=0.0, h=1.0, full_output=False):
 
         types: list [float]
             A list of True/False values corresponding to the step types the
-            solver chose at the timepoints listed under the keyword 'times'. If
+            solver chose at the timepoints listed under the keyword 't'. If
             True, the step was WKB, and RK otherwise.
      
     """
