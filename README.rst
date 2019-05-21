@@ -14,13 +14,13 @@ deal with equations of the form
 
 
 .. image:: 
-	https://latex.codecogs.com/gif.download?%5Cddot%7Bx%7D%28t%29%20+%202%5Cgamma%28t%29%5Cdot%7Bx%7D%28t%29%20+%20%5Comega%5E2%28t%29x%28t%29%20%3D%200
+    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/oscillator.png
 
 where |gamma| and |omega| can be given as
 
-.. |gamma| image:: https://latex.codecogs.com/gif.download?%5Cgamma%28t%29
+.. |gamma| image:: https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/gamma.png
 
-.. |omega| image:: https://latex.codecogs.com/gif.download?%5Comega%28t%29
+.. |omega| image:: https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/omega.png
 
 - *In C++*, explicit functions or sequence containers (`Eigen::Vector`\s, `array`\s,
   `std::vector`\s, `list`\s),
