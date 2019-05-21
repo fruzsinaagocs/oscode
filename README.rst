@@ -75,7 +75,7 @@ Try the following minimal working example:
 
 This produces
 
-.. image:: _static/airy-example.png
+.. image:: images/airy-example.png
    :width: 800
 
 
