@@ -15,7 +15,7 @@ Installation
 
 .. code:: bash
 
-   git clone https://github.com/agocsfruzsina/oscode
+   git clone https://github.com/fruzsinaagocs/oscode
    cd oscode
    python setup.py install --user
 
@@ -23,7 +23,7 @@ or
 
 .. code:: bash
 
-    git clone https://github.com/agocsfruzsina/oscode
+    git clone https://github.com/fruzsinaagocs/oscode
     cd oscode
     python setup.py build_ext --inplace
 
@@ -74,7 +74,7 @@ Try the following example:
     plt.show()
 
 .. image::
-   https://github.com/agocsfruzsina/oscode/raw/master/pyoscode/images/airy-example.png
+   https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/airy-example.png
    :width: 800
 
 
