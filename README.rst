@@ -212,8 +212,8 @@ To compile, save the above in a file ``burst.cpp``, then run
 
 .. code:: bash
 
-	g++ -g -Wall -std=c++11 -o burst burst.o
-	g++ -g -Wall -std=c++11 -c -o burst.o burst.cpp
+    g++ -g -Wall -std=c++11 -c -o burst.o burst.cpp
+    g++ -g -Wall -std=c++11 -o burst burst.o
 
 Plotting the results with Python yields
 
