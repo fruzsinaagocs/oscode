@@ -41,7 +41,7 @@ Basic requirements:
 Quick start
 -----------
 
-Try the following minimal working example:
+Try the following example:
 
 .. code:: python
 
@@ -72,8 +72,6 @@ Try the following minimal working example:
     plt.xlabel('t')
     plt.ylabel('Ai(-t)')
     plt.show()
-
-This produces
 
 .. image::
    https://github.com/agocsfruzsina/oscode/raw/master/pyoscode/images/airy-example.png
