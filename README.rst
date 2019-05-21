@@ -12,10 +12,9 @@ oscode: Oscillatory ordinary differential equation solver
 **o**\rdinary **d**\ifferential **e**\quations efficiently. It is designed to
 deal with equations of the form
 
-.. math:: 
-    
-    \ddot{x}(t) + 2\gamma(t)\dot{x}(t) + \omega^2(t)x(t) = 0,
-   
+.. image::
+    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/oscillator.gif
+    :width: 800 
 where :math:`\gamma(t)` and :math:`\omega(t)` can be given as
 
 - *In C++*, explicit functions or sequence containers (`Eigen::Vector`\s, `array`\s,
