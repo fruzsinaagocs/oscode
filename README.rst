@@ -83,10 +83,17 @@ Dependencies
 
 Basic requirements: 
 
+Python
+^^^^^^
+
 - Python 2.7 or 3.5+
-- `numpy`
-- `scipy`
-- `Eigen`
+- `numpy <https://pypi.org/project/numpy/>`
+- `scipy <https://pypi.org/project/scipy/>`
+
+C++ 
+^^^
+
+- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`
 
 Quick start
 -----------
