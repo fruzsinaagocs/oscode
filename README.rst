@@ -22,9 +22,9 @@ where |gamma| and |omega| can be given as
 
 .. |omega| image:: https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/omega.png
 
-- *In C++*, explicit functions or sequence containers (`Eigen::Vector`\s, `array`\s,
-  `std::vector`\s, `list`\s),
-- *In Python*, `numpy.array`\s.
+- *In C++*, explicit functions or sequence containers (Eigen::Vectors, arrays,
+  std::vectors, lists),
+- *In Python*, numpy.arrays.
 
 ``oscode`` makes use of an analytic approximation of :math:`x(t)` embedded in a
 stepping procedure to skip over long regions of oscillations, giving a reduction
