@@ -75,7 +75,7 @@ Try the following minimal working example:
 
 This produces
 
-.. image:: images/airy-example.png
+.. image:: ./pyoscode/images/airy-example.png
    :width: 800
 
 
