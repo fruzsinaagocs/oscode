@@ -245,11 +245,12 @@ To build your own local copy of the documentation you'll need to install `sphinx
 Citation
 --------
 
-
 If you use ``oscode`` to solve equations for a publication, please cite
 as: ::
 
-   Agocs et al., (2019). ...
+   Agocs, F., Handley, W., Lasenby, A., and Hobson, M., (2019). An efficient method for solving highly oscillatory
+   ordinary differential equations with applications to physical systems. (In
+   prep.)
 
 or using the BibTeX:
 
@@ -258,14 +259,15 @@ or using the BibTeX:
    @article{oscode,
        doi = {},
        url = {},
-       year  = {},
+       year  = {2019},
        month = {},
        publisher = {},
        volume = {},
        number = {},
-       author = {},
-       title = {},
-       journal = {}
+       author = {F. J. Agocs and W. J. Handley and A. N. Lasenby and M. P. Hobson},
+       title = {An efficient method for solving highly oscillatory ordinary
+       differential equations with applications to physical systems},
+       journal = {(in prep.)}
    }
 
 Contributing
