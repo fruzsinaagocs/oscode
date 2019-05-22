@@ -195,12 +195,12 @@ todo_include_todos = True
 
 # To mock out import of modules with C dependencies
 import sys
-from unittest.mock import MagicMock
+from mock import Mock as MagicMock
 
 class Mock(MagicMock):
     @classmethod
     def __getattr__(cls,name):
-        return Mock()
+        return MagicMock()
 
-MOCK_MODULES = ["_pyoscode", "pyoscode"]
+MOCK_MODULES = ["_pyoscode"]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
