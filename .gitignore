@@ -8,3 +8,6 @@ pyoscode.egg-info/
 pyoscode/docs/_build
 pyoscode/docs/source/_static
 pyoscode/docs/source/_templates
+examples/*
+!examples/*.cpp
+!examples/*.py
