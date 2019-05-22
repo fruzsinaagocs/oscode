@@ -248,6 +248,9 @@ To build your own local copy of the documentation you'll need to install `sphinx
 Citation
 --------
 
+If the works below are ** "in prep."** , please email the authors at <fa325@cam.ac.uk>
+for a copy.
+
 If you use ``oscode`` to solve equations for a publication, please cite
 as: ::
 

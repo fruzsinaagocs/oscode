@@ -35,8 +35,7 @@ array of points. It is only guaranteed to give the solution at the start and end
 of the integration range specified, and at intermediate points the solver
 chooses as its steps. Dense output may be available in a later version.
 
-The numerical method used by ``oscode`` is described in detail in `this work.
-<https://>`__
+For the details of the numerical method used by ``oscode``, see the Citations section.
 
 
 Installation
@@ -244,6 +243,9 @@ To build your own local copy of the documentation you'll need to install `sphinx
 
 Citation
 --------
+
+If the works below are ** "in prep."** , please email the authors at <fa325@cam.ac.uk>
+for a copy.
 
 If you use ``oscode`` to solve equations for a publication, please cite
 as: ::
