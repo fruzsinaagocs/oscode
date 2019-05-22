@@ -29,7 +29,11 @@ stepping procedure to skip over long regions of oscillations, giving a reduction
 in computing time. The approximation is valid when the frequency
 :math:`\omega(t)` changes slowly relative to the timescales of integration, it
 is therefore worth applying when this condition holds for at least some part of
-the integration range. 
+the integration range. **Please note** that unlike many solvers, ``oscode``
+produces no dense output, i.e. will not give the solution at a pre-specified
+array of points. It is only guaranteed to give the solution at the start and end
+of the integration range specified, and at intermediate points the solver
+chooses as its steps. Dense output may be available in a later version.
 
 The numerical method used by ``oscode`` is described in detail in `this work.
 <https://>`__
@@ -87,23 +91,22 @@ Python
 - Python 2.7 or 3.5+
 - `numpy <https://pypi.org/project/numpy/>`__
 - `scipy <https://pypi.org/project/scipy/>`__
-
-C++ 
-^^^
-
+- C++11 or later
 - `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__
 
 
 Quick start
 -----------
 
-Try the following example(s):
+Try the following quick examples. These and more are available in the `examples
+<https://github.com/fruzsinaagocs/oscode/pyoscode/examples/>`__.
 
 Python
 ~~~~~~
 
 .. code:: python
 
+    # "airy.py"
     import pyoscode
     import numpy
     from scipy.special import airy
@@ -132,6 +135,8 @@ Python
     plt.ylabel('Ai(-t)')
     plt.show()
 
+The above code, stored in ``airy.py``, produces the plot:
+
 .. image::
    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/airy-example.png
    :width: 800
@@ -139,8 +144,13 @@ Python
 C++
 ~~~
 
+Below is an example where the frequency and friction terms are explicit
+functions of time, and are defined as functions. The code is found in
+``burst.cpp``, the results are plotted with ``plot_burst.py``.
+
 .. code:: c
 
+    // "burst.cpp"
     #include "solver.hpp"
     #include <cmath>
     #include <fstream>
@@ -207,12 +217,13 @@ C++
         f.close();
     };
 
-To compile, save the above in a file ``burst.cpp``, then run
+To compile and run:
 
 .. code:: bash
     
     g++ -g -Wall -std=c++11 -c -o burst.o burst.cpp
     g++ -g -Wall -std=c++11 -o burst burst.o
+    ./burst
 
 Plotting the results with Python yields
 
@@ -223,6 +234,8 @@ Plotting the results with Python yields
 
 Documentation
 -------------
+
+Documentation is hosted at `readthedocs <https://oscode.readthedocs.io>`__.
 
 To build your own local copy of the documentation you'll need to install `sphinx
 <https://pypi.org/project/Sphinx/>`__. You can then run:
@@ -260,6 +273,12 @@ or using the BibTeX:
 
 Contributing
 ------------
+
+Any comments and improvements to this project are welcome. You can contribute
+by:
+
+- Opening and `issue <https://www.github.com/fruzsinaagocs/oscode/issues/>`__ to report bugs and propose new features.
+- Making a pull request.
 
 Changelog
 ---------
