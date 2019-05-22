@@ -20,9 +20,9 @@ deal with equations of the form
 
 where :math:`\gamma(t)` and :math:`\omega(t)` can be given as
 
-- *In C++*, explicit functions or sequence containers (`Eigen::Vector`\s, `array`\s,
-  `std::vector`\s, `list`\s),
-- *In Python*, `numpy.array`\s.
+- *In C++*, explicit functions or sequence containers (Eigen::Vectors, arrays,
+  std::vectors, lists),
+- *In Python*, numpy.arrays.
 
 ``oscode`` makes use of an analytic approximation of :math:`x(t)` embedded in a
 stepping procedure to skip over long regions of oscillations, giving a reduction
@@ -257,4 +257,10 @@ or using the BibTeX:
        title = {},
        journal = {}
    }
+
+Contributing
+------------
+
+Changelog
+---------
 

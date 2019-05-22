@@ -16,7 +16,7 @@ deal with equations of the form
 .. image:: 
     https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/oscillator.png
 
-where |gamma| and |omega| can be given as
+where |gamma| (friction term) and |omega| (frequency) can be given as
 
 .. |gamma| image:: https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/gamma.png
 
@@ -26,10 +26,9 @@ where |gamma| and |omega| can be given as
   std::vectors, lists),
 - *In Python*, numpy.arrays.
 
-``oscode`` makes use of an analytic approximation of :math:`x(t)` embedded in a
+``oscode`` makes use of an analytic approximation of x(t) embedded in a
 stepping procedure to skip over long regions of oscillations, giving a reduction
-in computing time. The approximation is valid when the frequency
-:math:`\omega(t)` changes slowly relative to the timescales of integration, it
+in computing time. The approximation is valid when the frequency changes slowly relative to the timescales of integration, it
 is therefore worth applying when this condition holds for at least some part of
 the integration range. 
 
@@ -83,22 +82,16 @@ Dependencies
 
 Basic requirements: 
 
-Python
-^^^^^^
-
 - Python 2.7 or 3.5+
 - `numpy <https://pypi.org/project/numpy/>`__
 - `scipy <https://pypi.org/project/scipy/>`__
-
-C++ 
-^^^
-
+- C++11 or later
 - `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__
 
 Quick start
 -----------
 
-Try the following example(s):
+Try the following quick examples.
 
 Python
 ~~~~~~
@@ -208,12 +201,13 @@ C++
         f.close();
     };
 
-To compile, save the above in a file ``burst.cpp``, then run
+To compile and run, save the above in a file ``burst.cpp``, then run
 
 .. code:: bash
 
     g++ -g -Wall -std=c++11 -c -o burst.o burst.cpp
     g++ -g -Wall -std=c++11 -o burst burst.o
+    ./burst
 
 Plotting the results with Python yields
 
@@ -259,3 +253,9 @@ or using the BibTeX:
        journal = {}
    }
 
+Contributing
+------------
+
+
+Changelog
+---------
