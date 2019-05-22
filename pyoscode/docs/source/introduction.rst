@@ -11,8 +11,8 @@ oscode: Oscillatory ordinary differential equation solver
 :Documentation: https://oscode.readthedocs.io
 
 .. image:: https://readthedocs.org/projects/oscode/badge/?version=latest
-:target: https://oscode.readthedocs.io/en/latest/?badge=latest
-:alt: Documentation Status
+    :target: https://oscode.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 ``oscode`` is a C++ tool with a Python interface that solves **osc**\illatory
 **o**\rdinary **d**\ifferential **e**\quations efficiently. It is designed to
