@@ -59,7 +59,42 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     double *ts = (double*)PyArray_DATA(tsarray_arr);
     std::complex<double> *ws = (std::complex<double>*)PyArray_DATA(wsarray_arr);
     std::complex<double> *gs = (std::complex<double>*)PyArray_DATA(gsarray_arr);
-   
+    
+    // Get array sizes
+    int tssize = (int)PyArray_SIZE(tsarray_arr);
+    int wssize = (int)PyArray_SIZE(wsarray_arr);
+    int gssize = (int)PyArray_SIZE(gsarray_arr);
+
+    try{
+        // Check 1: same size arrays, large enough arrays
+        if(tssize != wssize or wssize != gssize or tssize != gssize)
+            throw "The sizes of the input arrays (ts, ws, gs) do not match. Please supply arrays of the same size.";
+        else if(tssize < 2)
+            throw "The input arrays (ts, ws, gs) have to have at least size 2.";
+
+        // Check 2: ts must be strictly monotonous
+        double dir = ts[1] - ts[0];
+        double diff;
+        for(int i=1; i<tssize; i++){
+            if(dir > 0)
+                diff = ts[i] - ts[i-1]; 
+            else
+                diff = ts[i-1] - ts[i];
+            if(diff < 0)
+                throw "The time array (ts) must be strictly monotonous.";
+        }
+
+        // Check 3: integration limits ti, tf must lie inside ts
+        if(ti < ts[0] or ti > ts[tssize-1])
+            throw "The start of integration, ti, must lie inside the array ts.";
+        else if(tf < ts[0] or tf > ts[tssize-1])
+            throw "The end of integration, tf, must lie inside of the array ts.";
+    }
+    catch(const char* errormsg){
+        PyErr_SetString(PyExc_TypeError, errormsg);
+        return (PyObject *) NULL;
+    }
+
     // Call the C++ functions to construct system and solve
     de_system sys = de_system(ts,ws,gs,islogw,islogg);
     Solution solution(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output,interp);
