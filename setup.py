@@ -1,3 +1,4 @@
+#!/bin/env python
 from distutils.core import setup, Extension
 import os
 import numpy.distutils.misc_util

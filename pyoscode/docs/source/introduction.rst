@@ -33,23 +33,38 @@ stepping procedure to skip over long regions of oscillations, giving a reduction
 in computing time. The approximation is valid when the frequency
 :math:`\omega(t)` changes slowly relative to the timescales of integration, it
 is therefore worth applying when this condition holds for at least some part of
-the integration range. **Please note** that unlike many solvers, ``oscode``
-produces no dense output, i.e. will not give the solution at a pre-specified
-array of points. It is only guaranteed to give the solution at the start and end
-of the integration range specified, and at intermediate points the solver
-chooses as its steps. Dense output may be available in a later version.
+the integration range.
 
-The numerical method used by ``oscode`` is described in detail in `this work.
-<https://>`__
+For the details of the numerical method used by ``oscode``, see the Citations
+section.
 
 
 Installation
 ------------
 
+Dependencies
+~~~~~~~~~~~~
+
+Basic requirements for using the C++ interface:
+
+- C++11 or later
+- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__
+
+For using the Python interface, you will additionally need:
+
+- Python 2.7 or 3.5+
+- `numpy <https://pypi.org/project/numpy/>`__
+- `scipy <https://pypi.org/project/scipy/>`__
+
+for the examples, plotting requires
+
+- `matplotlib <https://pypi.org/project/matplotlib/>`__
+
+
 Python
 ~~~~~~
 
-``oscode`` can be installed via pip
+``pyoscode`` can be installed via pip (*not available yet*)
 
 .. code:: bash
 
@@ -63,14 +78,8 @@ or via the setup.py
    cd oscode
    python setup.py install --user
 
-or 
-
-.. code:: bash
-
-    git clone https://github.com/fruzsinaagocs/oscode
-    cd oscode
-    python setup.py build_ext --inplace
-
+You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
+you wish to install in a virtual environment. 
 
 C++
 ~~~
@@ -81,22 +90,12 @@ C++
 
    git clone https://github.com/fruzsinaagocs/oscode
 
-and then ``#include`` them in your C++ code. 
+and then include the relevant header files in your C++ code:
 
+.. code:: c
 
-Dependencies
-~~~~~~~~~~~~
-
-Basic requirements: 
-
-Python
-^^^^^^
-
-- Python 2.7 or 3.5+
-- `numpy <https://pypi.org/project/numpy/>`__
-- `scipy <https://pypi.org/project/scipy/>`__
-- C++11 or later
-- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__
+    #include "solver.hpp"
+    #include "system.hpp"
 
 
 Quick start
