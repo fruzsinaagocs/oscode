@@ -1,3 +1,4 @@
+from __future__ import absolute_import, with_statement, print_function, division
 from setuptools import setup, Extension, find_packages
 import os
 import numpy.distutils.misc_util
@@ -22,8 +23,8 @@ def get_version(short=False):
 
 pyoscode_module = Extension(
     name="_pyoscode",
-    sources=[os.path.join(os.getcwd(),"pyoscode/_pyoscode.cpp")],
-    include_dirs=[os.path.join(os.getcwd(),'include')]
+    sources=["pyoscode/_pyoscode.cpp"],
+    include_dirs=['include']
     )
 
 setup(
