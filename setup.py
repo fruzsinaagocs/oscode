@@ -24,7 +24,8 @@ def get_version(short=False):
 pyoscode_module = Extension(
     name="_pyoscode",
     sources=["pyoscode/_pyoscode.cpp"],
-    include_dirs=['include']
+    include_dirs=['include'],
+    extra_compile_args=['-std=c++11']
     )
 
 setup(
