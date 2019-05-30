@@ -80,7 +80,8 @@ or via the setup.py
    python setup.py install --user
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
-you wish to install in a virtual environment. 
+you wish to install globally or in a virtual environment. If you have any
+difficulties, check out the FAQs_ section below
 
 C++
 ~~~
@@ -118,12 +119,12 @@ Python
     from matplotlib import pyplot as plt
     
     # Define the frequency and friction term over the range of integration
-    ts = numpy.linspace(1,35,5000)
+    ts = numpy.linspace(1,1000,5000)
     ws = numpy.sqrt(ts)
     gs = numpy.zeros_like(ws)
     # Define the range of integration and the initial conditions
     ti = 1.0
-    tf = 35.0
+    tf = 1000.
     x0 = airy(-ti)[0] + 1j*airy(-ti)[2]
     dx0 = -airy(-ti)[1] - 1j*airy(-ti)[3]
     # Solve the system
@@ -289,6 +290,32 @@ by:
 
 - Opening and `issue <https://www.github.com/fruzsinaagocs/oscode/issues/>`__ to report bugs and propose new features.
 - Making a pull request.
+
+FAQs
+----
+
+Installation
+~~~~~~~~~~~~
+
+1. Eigen import errors:
+    .. code:: bash
+
+       pyoscode/_pyoscode.hpp:6:10: fatal error: Eigen/Dense: No such file or directory
+        #include <Eigen/Dense>
+                  ^~~~~~~~~~~~~
+
+    Try explicitly including the location of your Eigen library via the
+    ``CPLUS_INCLUDE_PATH`` environment variable, for example:
+
+    .. code:: bash
+
+       CPLUS_INCLUDE_PATH=/usr/include/eigen3 python setup.py install --user
+       # or 
+       CPLUS_INCLUDE_PATH=/usr/include/eigen3 pip install pyoscode
+
+    where  ``/usr/include/eigen3`` should be replaced with your system-specific
+    eigen location.
+
 
 Changelog
 ---------
