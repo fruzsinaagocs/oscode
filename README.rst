@@ -81,7 +81,7 @@ or via the setup.py
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
 you wish to install globally or in a virtual environment. If you have any
-difficulties, check out the FAQs section below
+difficulties, check out the FAQs_ section below
 
 C++
 ~~~
@@ -305,13 +305,15 @@ Installation
                   ^~~~~~~~~~~~~
 
     Try explicitly including the location of your Eigen library via the
-    `CPLUS_INCLUDE_PATH` environment variable, for example:
+    ``CPLUS_INCLUDE_PATH`` environment variable, for example:
 
     .. code:: bash
 
        CPLUS_INCLUDE_PATH=/usr/include/eigen3 python setup.py install --user
+       # or 
+       CPLUS_INCLUDE_PATH=/usr/include/eigen3 pip install pyoscode
 
-    where  `/usr/include/eigen3` should be replaced with your system-specific
+    where  ``/usr/include/eigen3`` should be replaced with your system-specific
     eigen location.
 
 
