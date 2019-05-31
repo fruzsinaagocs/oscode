@@ -1,7 +1,6 @@
 #pragma once
 #include "interpolator.hpp"
 
-// TODO: size checking
 class de_system
     {
     private:

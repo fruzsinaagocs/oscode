@@ -26,7 +26,8 @@ PyMODINIT_FUNC init_pyoscode(void){
 /* Function to run the solver */ 
 static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwargs){
 
-    int islogw=0,islogg=0,full_output=0,order=3,interp=1;
+    int islogw=0,islogg=0,order=3,interp=1;
+    const char* full_output="";
     double ti,tf,rtol=1e-4,atol=0.0,h0=1.0;
     std::complex<double> x0,dx0;
     PyObject *tsobj, *wsobj, *gsobj;
@@ -35,7 +36,7 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     {"ts","ws","gs","ti","tf","x0","dx0","logw","logg","order","rtol","atol","h","full_output",NULL};
 
     // Interpret input arguments.
-    if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OOOddDD|iiidddi",const_cast<char**>(kwlist),&tsobj,&wsobj,&gsobj,&ti,&tf,&x0,&dx0,&islogw,&islogg,&order,&rtol,&atol,&h0,&full_output))
+    if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OOOddDD|iiiddds",const_cast<char**>(kwlist),&tsobj,&wsobj,&gsobj,&ti,&tf,&x0,&dx0,&islogw,&islogg,&order,&rtol,&atol,&h0,&full_output))
         return NULL;
     // Interpret input objects as numpy arrays
     PyObject *tsarray = PyArray_FROM_OTF(tsobj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
@@ -50,9 +51,6 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     }
 
     // Get pointers to the data as c++-types
-    // TODO: find size of numpy arrays and check if consistent, then pass the
-    // result of the check to system.
-    // TODO: check overlap of integration range and supplied arrays
     PyArrayObject *tsarray_arr = reinterpret_cast<PyArrayObject*>(tsarray);
     PyArrayObject *wsarray_arr = reinterpret_cast<PyArrayObject*>(wsarray);
     PyArrayObject *gsarray_arr = reinterpret_cast<PyArrayObject*>(gsarray);

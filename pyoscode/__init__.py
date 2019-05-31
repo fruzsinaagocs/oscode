@@ -3,7 +3,7 @@ import os
 import _pyoscode
 
 def solve(ts, ws, gs, ti, tf, x0, dx0, logw=False, logg=False, order=3,
-rtol=1e-4, atol=0.0, h=1.0, full_output=False):
+rtol=1e-4, atol=0.0, h=1.0, full_output=""):
     """Solve a differential equation with the RKWKB method.
     
     Parameters
@@ -39,8 +39,9 @@ rtol=1e-4, atol=0.0, h=1.0, full_output=False):
     h: float, optional
         Size of the initial step, 1 by default.
 
-    full_output: boolean , optional
-        If true, the full solution will be written to a file.
+    full_output: str , optional
+        If given, the return dictionary will be written to a file with the supplied
+        name.
     
     Returns
     -------
@@ -66,7 +67,7 @@ rtol=1e-4, atol=0.0, h=1.0, full_output=False):
             True, the step was WKB, and RK otherwise.
      
     """
-
+    
     # Run oscode from module library
     resdict = _pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0, logw=logw, logg=logg,
     order=order, rtol=rtol, atol=atol, h=h, full_output=full_output) 

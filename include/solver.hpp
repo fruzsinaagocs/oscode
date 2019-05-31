@@ -18,7 +18,7 @@ class Solution
     double t, tf, rtol, atol, h0;
     std::complex<double> x, dx;
     int order;
-    bool fo;
+    const char* fo;
     WKBSolver * wkbsolver;
     WKBSolver1 wkbsolver1;
     WKBSolver2 wkbsolver2;
@@ -29,7 +29,7 @@ class Solution
     RKSolver rksolver;
     Solution(de_system &de_sys, std::complex<double> x0, std::complex<double>
     dx0, double t_i, double t_f, int o=3, double r_tol=1e-4, double a_tol=0.0,
-    double h_0=1, bool full_output=false, bool interp=true);
+    double h_0=1, const char* full_output="", bool interp=true);
     void solve();
     // stats
     int ssteps,totsteps,wkbsteps;
@@ -41,7 +41,7 @@ class Solution
 
 Solution::Solution(de_system &de_sys, std::complex<double> x0,
 std::complex<double> dx0, double t_i, double t_f, int o, double r_tol, double
-a_tol, double h_0, bool full_output, bool interp){
+a_tol, double h_0, const char* full_output, bool interp){
     
     // Set parameters for solver
     x = x0;
@@ -226,22 +226,20 @@ void Solution::solve(){
     };
 
     // Write output to file if prompted
-    if(fo){
-        std::string output;
-        std::cout << "Please enter filename to print output to: " << std::endl;
-        std::cin >> output;
+    if(not *fo==0){
+        std::string output(fo);
         std::ofstream f;
         f.open(output);
         f << "# Summary:\n# total steps taken: " + std::to_string(totsteps) +
         "\n# of which successful: " + std::to_string(ssteps) + "\n# of which"+
-        +"wkb: " + std::to_string(wkbsteps) + "\n# time, sol, dsol, wkb? (type)\n";
+        +" wkb: " + std::to_string(wkbsteps) + "\n# time, sol, dsol, wkb? (type)\n";
         auto it_t = times.begin();
         auto it_w = wkbs.begin();
         auto it_x = sol.begin();
         auto it_dx = dsol.begin();
         for(int i=0; i<=ssteps; i++){
-            f << std::setprecision(20) << *it_t << " " <<
-            std::setprecision(20) << *it_x << " " << std::setprecision(20) <<
+            f << std::setprecision(15) << *it_t << " " <<
+            std::setprecision(15) << *it_x << " " << std::setprecision(15) <<
             *it_dx << " " << *it_w << "\n"; 
             ++it_t;
             ++it_x;
