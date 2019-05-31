@@ -94,36 +94,42 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     }
 
     // Call the C++ functions to construct system and solve
-    de_system sys = de_system(ts,ws,gs,islogw,islogg);
-    Solution solution(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output,interp);
-    solution.solve();
-    // Build output values
-    std::list<std::complex<double>> sol,dsol;
-    std::list<double> times;
-    std::list<bool> wkbs;
-    sol = solution.sol;
-    dsol = solution.dsol;
-    times = solution.times;
-    wkbs = solution.wkbs;
-    auto itd = dsol.begin();
-    auto itt = times.begin();
-    auto itwkb = wkbs.begin();
-    int Nsol = sol.size();
-    PyObject *pysol=PyList_New(Nsol),*pydsol=PyList_New(Nsol),*pytimes=PyList_New(Nsol),*pywkbs=PyList_New(Nsol),*retdict;
-    Nsol = 0;
-    for(auto it=sol.begin(); it!=sol.end(); ++it){
-        PyList_SetItem(pysol,Nsol,Py_BuildValue("O",PyComplex_FromDoubles(std::real(*it), std::imag(*it)))); 
-        PyList_SetItem(pydsol,Nsol,Py_BuildValue("O",PyComplex_FromDoubles(std::real(*itd), std::imag(*itd)))); 
-        PyList_SetItem(pytimes,Nsol,Py_BuildValue("d",*itt)); 
-        PyList_SetItem(pywkbs,Nsol,Py_BuildValue("i",*itwkb));
-        ++itd; ++itt; ++itwkb, ++Nsol;
-    };
-    retdict = Py_BuildValue("{s:O,s:O,s:O,s:O}","sol",pysol,"dsol",pydsol,"t",pytimes,"types",pywkbs);
-
-    // Clean up
-    Py_DECREF(tsarray);
-    Py_DECREF(wsarray);
-    Py_DECREF(gsarray);
-    Py_INCREF(Py_None);
-    return retdict;
+    try{
+        de_system sys = de_system(ts,ws,gs,islogw,islogg);
+        Solution solution(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output,interp);
+        solution.solve();
+        // Build output values
+        std::list<std::complex<double>> sol,dsol;
+        std::list<double> times;
+        std::list<bool> wkbs;
+        sol = solution.sol;
+        dsol = solution.dsol;
+        times = solution.times;
+        wkbs = solution.wkbs;
+        auto itd = dsol.begin();
+        auto itt = times.begin();
+        auto itwkb = wkbs.begin();
+        int Nsol = sol.size();
+        PyObject *pysol=PyList_New(Nsol),*pydsol=PyList_New(Nsol),*pytimes=PyList_New(Nsol),*pywkbs=PyList_New(Nsol),*retdict;
+        Nsol = 0;
+        for(auto it=sol.begin(); it!=sol.end(); ++it){
+            PyList_SetItem(pysol,Nsol,Py_BuildValue("O",PyComplex_FromDoubles(std::real(*it), std::imag(*it)))); 
+            PyList_SetItem(pydsol,Nsol,Py_BuildValue("O",PyComplex_FromDoubles(std::real(*itd), std::imag(*itd)))); 
+            PyList_SetItem(pytimes,Nsol,Py_BuildValue("d",*itt)); 
+            PyList_SetItem(pywkbs,Nsol,Py_BuildValue("i",*itwkb));
+            ++itd; ++itt; ++itwkb, ++Nsol;
+        };
+        retdict = Py_BuildValue("{s:O,s:O,s:O,s:O}","sol",pysol,"dsol",pydsol,"t",pytimes,"types",pywkbs);
+    
+        // Clean up
+        Py_DECREF(tsarray);
+        Py_DECREF(wsarray);
+        Py_DECREF(gsarray);
+        Py_INCREF(Py_None);
+        return retdict;
+    }
+    catch(const char* errormsg2){
+        PyErr_SetString(PyExc_TypeError, errormsg2);
+        return (PyObject *) NULL;
+    }
 }

@@ -35,6 +35,7 @@ rtol=1e-4, atol=0.0, h=1.0, full_output=""):
     
     rtol, atol: float, optional
         Relative and absolute tolerance of the solver, 1e-4 and 0 by default.
+        Note that atol at the moment is not implemented. 
 
     h: float, optional
         Size of the initial step, 1 by default.

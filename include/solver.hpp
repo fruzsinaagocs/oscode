@@ -108,7 +108,7 @@ void Solution::solve(){
         fnext = fend;
     }
     else{
-        std::cout << "Direction of integration couldn't be determined, terminating." << std::endl;
+        throw "Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h. ";
         return;
     }
 
