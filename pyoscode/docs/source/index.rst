@@ -6,5 +6,6 @@ oscode's documentation
    :caption: Contents:
 
     Introduction <introduction>
-    oscode <oscode>
+    C++ interface (oscode) <oscode>
+    Python interface (pyoscode) <pyoscode>
 
