@@ -268,19 +268,22 @@ or using the BibTeX:
 
 .. code:: bibtex
 
-   @article{oscode,
-       doi = {},
-       url = {},
-       year  = {2019},
-       month = {},
-       publisher = {},
-       volume = {},
-       number = {},
-       author = {F. J. Agocs and W. J. Handley and A. N. Lasenby and M. P. Hobson},
-       title = {An efficient method for solving highly oscillatory ordinary
-       differential equations with applications to physical systems},
-       journal = {(in prep.)}
-   }
+	@ARTICLE{2019arXiv190601421A,
+	       author = {{Agocs}, F.~J. and {Handley}, W.~J. and {Lasenby}, A.~N. and
+	         {Hobson}, M.~P.},
+	        title = "{An efficient method for solving highly oscillatory ordinary differential equations with applications to physical systems}",
+	      journal = {arXiv e-prints},
+	     keywords = {Physics - Computational Physics, Astrophysics - Instrumentation and Methods for Astrophysics, Mathematics - Numerical Analysis},
+	         year = "2019",
+	        month = "May",
+	          eid = {arXiv:1906.01421},
+	        pages = {arXiv:1906.01421},
+	archivePrefix = {arXiv},
+	       eprint = {1906.01421},
+	 primaryClass = {physics.comp-ph},
+	       adsurl = {https://ui.adsabs.harvard.edu/abs/2019arXiv190601421A},
+	      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+	}
 
 
 Contributing
