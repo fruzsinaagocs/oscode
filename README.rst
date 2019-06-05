@@ -150,6 +150,14 @@ The above code, stored in ``airy.py``, produces the plot:
    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/airy-example.png
    :width: 800
 
+``cosmology.ipynb`` is a jupyter notebook that demonstrates how ``pyoscode`` can
+be used to quickly generate *primordial power spectra*, like these:
+
+.. image::
+    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra-text.gif
+    :width: 800
+
+
 C++
 ~~~
 
