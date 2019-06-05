@@ -264,8 +264,8 @@ If you use ``oscode`` to solve equations for a publication, please cite
 as: ::
 
    Agocs, F., Handley, W., Lasenby, A., and Hobson, M., (2019). An efficient method for solving highly oscillatory
-   ordinary differential equations with applications to physical systems. (In
-   prep.)
+   ordinary differential equations with applications to physical systems. arXiv
+   e-prints, arXiv:1906.01421 (2019) [physics.comp-ph].
 
 or using the BibTeX:
 
