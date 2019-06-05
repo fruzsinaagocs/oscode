@@ -155,7 +155,7 @@ be used to quickly generate *primordial power spectra*, like these:
 
 .. image::
     https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra-text.gif
-    :width: 800
+    :width: 1000
 
 
 C++
