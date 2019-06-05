@@ -11,3 +11,4 @@ pyoscode/docs/source/_templates
 examples/*
 !examples/*.cpp
 !examples/*.py
+!examples/*.ipynb
