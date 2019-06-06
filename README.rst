@@ -154,8 +154,8 @@ The above code, stored in ``airy.py``, produces the plot:
 be used to quickly generate *primordial power spectra*, like these:
 
 .. image::
-    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra-text.gif
-    :width: 1000
+    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra-text-64.gif
+
 
 
 C++
