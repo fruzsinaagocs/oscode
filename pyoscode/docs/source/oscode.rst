@@ -1,9 +1,13 @@
 .. title:: oscode (C++ interface)
 
+============================
+Using oscode's C++ interface
+============================
+
 .. sectnum:: 
 
-Using oscode's C++ interface - overview
----------------------------------------
+Overview
+--------
 
 This documentation illustrates how one can use ``oscode`` via its C++ interface.
 Usage of ``oscode`` involves
