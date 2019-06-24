@@ -29,7 +29,7 @@ class Solution
     RKSolver rksolver;
     Solution(de_system &de_sys, std::complex<double> x0, std::complex<double>
     dx0, double t_i, double t_f, int o=3, double r_tol=1e-4, double a_tol=0.0,
-    double h_0=1, const char* full_output="", bool interp=true);
+    double h_0=1, const char* full_output="");
     void solve();
     // stats
     int ssteps,totsteps,wkbsteps;
@@ -41,7 +41,7 @@ class Solution
 
 Solution::Solution(de_system &de_sys, std::complex<double> x0,
 std::complex<double> dx0, double t_i, double t_f, int o, double r_tol, double
-a_tol, double h_0, const char* full_output, bool interp){
+a_tol, double h_0, const char* full_output){
     
     // Set parameters for solver
     x = x0;
