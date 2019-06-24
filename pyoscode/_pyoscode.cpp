@@ -26,7 +26,7 @@ PyMODINIT_FUNC init_pyoscode(void){
 /* Function to run the solver */ 
 static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwargs){
 
-    int islogw=0,islogg=0,order=3,interp=1;
+    int islogw=0,islogg=0,order=3;
     const char* full_output="";
     double ti,tf,rtol=1e-4,atol=0.0,h0=1.0;
     std::complex<double> x0,dx0;
@@ -99,7 +99,7 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
 
     // Call the C++ functions to construct system and solve
     de_system sys = de_system(ts,ws,gs,islogw,islogg);
-    Solution solution(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output,interp);
+    Solution solution(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output);
     solution.solve();
     // Build output values
     std::list<std::complex<double>> sol,dsol;
