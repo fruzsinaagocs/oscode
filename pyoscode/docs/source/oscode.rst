@@ -28,7 +28,7 @@ The equations ``oscode`` can be used to solve are of the form
 
    \ddot{x}(t) + 2\gamma(t)\dot{x}(t) + \omega^2(t)x(t) = 0,
 
-where :math:`x(t)`,:math:`\gamma(t)`,:math:`\omega(t)` can be complex. We will
+where :math:`x(t)`, :math:`\gamma(t)`, :math:`\omega(t)` can be complex. We will
 call :math:`t` the independent variable, :math:`x` the dependent variable,
 :math:`\omega(t)` the frequency term, and :math:`\gamma(t)` the friction or
 first-derivative term. 
@@ -164,7 +164,7 @@ like this.
     };
 
 
-An example for the wanting to do linear interpolation outside of ``oscode`` is
+An example for wanting to do linear interpolation outside of ``oscode`` is
 when ``Solution.solve()`` is ran in a loop, and for each iteration a large grid
 of :math:`\omega` and :math:`\gamma` is required, depending on some parameter.
 Instead of generating them over and over again, one could define them as
