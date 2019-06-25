@@ -4,7 +4,7 @@ oscode: Oscillatory ordinary differential equation solver
 
 :oscode: oscillatory ordinary differential equation solver
 :Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
-:Version: 1.0.1
+:Version: 0.1.0
 :Homepage: https://github.com/fruzsinaagocs/oscode
 :Documentation: https://oscode.readthedocs.io
 
@@ -81,7 +81,13 @@ or via the setup.py
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
 you wish to install globally or in a virtual environment. If you have any
-difficulties, check out the FAQs_ section below
+difficulties, check out the FAQs_ section below. 
+
+You can check that things are working by running
+
+.. code:: bash
+
+   pytest tests/
 
 C++
 ~~~
@@ -335,9 +341,6 @@ Installation
 Changelog
 ---------
 
-- 1.0.1:
+- 0.1.0:
     - Memory leaks at python interface fixed
     - C++ documentation added 
-    - pip installable
-- 1.0.0
-

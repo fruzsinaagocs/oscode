@@ -17,7 +17,7 @@ Usage of ``oscode`` involves
 - and extracting the solution and other statistics about the run.
 
 The next sections will cover each of these. For a quick
-reference of function arguments, see the Quick Reference. 
+reference of function arguments, see the `Quick Reference`_. 
 
 Defining an equation
 --------------------
@@ -259,7 +259,7 @@ An instance of a ``Solution`` object is returned with the following attributes:
 - ``wkbsteps`` [int]: total number of successful WKB steps. 
 
 
-Quick reference
+Quick Reference
 ---------------
 
 To construct a system, use the overloaded ``de_system`` constructor:

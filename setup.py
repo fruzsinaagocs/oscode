@@ -30,7 +30,7 @@ pyoscode_module = Extension(
 
 setup(
     name="pyoscode",
-    version="1.0",
+    version="0.1.0",
     description=readme(short=True),
     long_description=readme(),
     url="https://github.com/fruzsinaagocs/oscode",
@@ -38,12 +38,15 @@ setup(
     author_email="fa325@cam.ac.uk",
     packages=find_packages(),
     install_requires=["numpy", "scipy"],
-    extras_require={"plotting:": "matplotlib", "docs":"sphinx"},
+    extras_require={"plotting:": "matplotlib",
+    "docs":["sphinx","sphinx-rtd-theme","numpydoc"]},
+    setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     include_package_data=True,
     license="oscode",
     ext_modules=[pyoscode_module],
     include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
+    keywords="PPS, cosmic inflation, cosmology, oscillatory, ODE",
     classifiers=[
                 'Intended Audience :: Developers',
                 'Intended Audience :: Science/Research',
@@ -58,6 +61,7 @@ setup(
                 'Topic :: Scientific/Engineering :: Physics',
                 'Topic :: Scientific/Engineering :: Visualization',
                 'Topic :: Scientific/Engineering :: Mathematics',
+                'Operating System :: OS Independent',
     ],
 )
 

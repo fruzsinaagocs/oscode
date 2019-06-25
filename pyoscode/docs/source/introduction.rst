@@ -6,7 +6,7 @@ oscode: Oscillatory ordinary differential equation solver
 
 :oscode: oscillatory ordinary differential equation solver
 :Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
-:Version: 1.0.1
+:Version: 0.1.0
 :Homepage: https://github.com/fruzsinaagocs/oscode
 :Documentation: https://oscode.readthedocs.io
 
@@ -79,7 +79,15 @@ or via the setup.py
    python setup.py install --user
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
-you wish to install in a virtual environment. 
+you wish to install in a virtual environment. If you have any difficulties,
+check out the FAQs_ section below. 
+
+You can check that things are working by running
+
+.. code:: bash
+
+   pytest tests/
+
 
 C++
 ~~~
@@ -295,10 +303,35 @@ by:
 - Opening and `issue <https://www.github.com/fruzsinaagocs/oscode/issues/>`__ to report bugs and propose new features.
 - Making a pull request.
 
+FAQs
+----
+
+Installation
+~~~~~~~~~~~~
+
+1. Eigen import errors:
+    .. code:: bash
+
+       pyoscode/_pyoscode.hpp:6:10: fatal error: Eigen/Dense: No such file or directory
+        #include <Eigen/Dense>
+                  ^~~~~~~~~~~~~
+
+    Try explicitly including the location of your Eigen library via the
+    ``CPLUS_INCLUDE_PATH`` environment variable, for example:
+
+    .. code:: bash
+
+       CPLUS_INCLUDE_PATH=/usr/include/eigen3 python setup.py install --user
+       # or 
+       CPLUS_INCLUDE_PATH=/usr/include/eigen3 pip install pyoscode
+
+    where  ``/usr/include/eigen3`` should be replaced with your system-specific
+    eigen location.
+
+
 Changelog
 ---------
 
-- 1.0.1:
+- 0.1.0:
     - Memory leaks at python interface fixed
     - C++ documentation added 
-- 1.0.0
