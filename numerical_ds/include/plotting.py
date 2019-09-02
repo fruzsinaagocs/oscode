@@ -39,8 +39,8 @@ errsrk = np.abs(solsrk - xrk)/np.abs(solsrk)
 plt.style.use('paper')
 fig,ax=plt.subplots(1,2,figsize=(5.95,2.375))
 ax[0].semilogx(times,analytic, color='black',label='true solution',lw=0.5)
-ax[0].semilogx(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
-ax[0].semilogx(t[wkb==0],x[wkb==0],'x',color='red', label='RK step')
+ax[0].semilogx(t[wkb==1],x[wkb==1],'^',ms=2.5,color='green',label='WKB step')
+ax[0].semilogx(t[wkb==0],x[wkb==0],'.',color='red', label='RK step')
 ax[0].set_xlim((0,40.0))
 ax[0].set_ylim((-0.5, 0.7))
 ax[0].set_xlabel("$t$")
@@ -48,9 +48,9 @@ ax[0].set_ylabel("$\Re\{x\}$")
 ax[0].legend()
 # Error progression
 ax[1].loglog(t, errs, '-', color='black')
-ax[1].loglog(t[wkb==1], errs[wkb==1],'x',color='green',label='WKB step')
-ax[1].loglog(t[wkb==0], errs[wkb==0],'x',color='red',label='RK step')
-ax[1].loglog(trk[wkbrk==0], errsrk[wkbrk==0],'x',color='red')
+ax[1].loglog(t[wkb==1], errs[wkb==1],'^',ms=2.5,color='green',label='WKB step')
+ax[1].loglog(t[wkb==0], errs[wkb==0],'.',color='red',label='RK step')
+ax[1].loglog(trk[wkbrk==0], errsrk[wkbrk==0],'.',color='red')
 ax[1].loglog(trk, errsrk, '-', color='black')
 ax[1].set_ylim((1e-6,1e-2))
 ax[1].set_xlabel("$t$")
@@ -63,7 +63,8 @@ ax[1].set_ylabel("relative error, $\\frac{|\Delta x|}{|x|}$")
 ax[1].legend()
 #plt.show()
 plt.tight_layout()
-plt.savefig("plots/airy-merged.pdf")
+#plt.show()
+plt.savefig("plots/airy-merged-dots.pdf")
 
 # Burst equation with w(t), g(t) given analytically
 # Single solution at n=40 and its error progression on one plot
@@ -94,18 +95,18 @@ errs2 = np.abs(sols2 - x2)/np.abs(sols2)
 plt.style.use('paper')
 fig,ax = plt.subplots(1,2,figsize=(5.95,2.375))
 ax[0].plot(times,analytic, color='black',label='true solution')
-ax[0].plot(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
-ax[0].plot(t[wkb==0],x[wkb==0],'x',color='red',label='RK step')
+ax[0].plot(t[wkb==1],x[wkb==1],'^',color='green',ms=2.5,label='WKB step')
+ax[0].plot(t[wkb==0],x[wkb==0],'.',color='red',label='RK step')
 ax[0].set_xlim((-40,40))
 ax[0].set_ylim((-60,60))
 ax[0].set_xlabel('$t$')
 ax[0].set_ylabel('$\Re{\{x(t)\}}$')
 ax[0].legend()
 ax[1].semilogy(t2,errs2,color='black')
-ax[1].semilogy(t2,errs2,'x',color='red')
+ax[1].semilogy(t2,errs2,'.',color='red')
 ax[1].semilogy(t,errs,color='black')
-ax[1].semilogy(t[wkb==1],errs[wkb==1],'x',color='green',label='WKB step')
-ax[1].semilogy(t[wkb==0],errs[wkb==0],'x',color='red',label='RK step')
+ax[1].semilogy(t[wkb==1],errs[wkb==1],'^',color='green',ms=2.5,label='WKB step')
+ax[1].semilogy(t[wkb==0],errs[wkb==0],'.',color='red',label='RK step')
 ax[1].set_ylabel('relative error, $\\frac{|\Delta x|}{|x|}$')
 ax[1].set_xlabel('$t$')
 ax[1].set_ylim(1e-7,1e-1)
@@ -113,10 +114,10 @@ ax[1].set_xlim(-60,60)
 ax[1].legend()
 #plt.show()
 plt.tight_layout()
-plt.savefig("plots/burst_n40merged.pdf")
+plt.savefig("plots/burst_n40merged-dots.pdf")
 
 # Large n example: number of oscillations traversed
-# FIGURE 5
+# FIGURE 4
 f = "plots/burstn1e5_tol-4.txt"
 n = 1e5
 data = np.loadtxt(f,dtype=complex,converters={1:parse_pair, 2:parse_pair})
@@ -130,21 +131,23 @@ for i,t in enumerate(ts):
     else:
         oscs[i] = None
 
-plt.figure();
+fig,ax = plt.subplots(1,1)
 plt.style.use("paper")
 plt.semilogy(ts,oscs,color='black')
-plt.semilogy(ts[wkbs==1],oscs[wkbs==1],'.',label='WKB step',color='green')
+plt.semilogy(ts[wkbs==1],oscs[wkbs==1],'^',ms=2.5,label='WKB step',color='green')
 plt.semilogy(ts[wkbs==0],oscs[wkbs==0],'.',label='RK step',color='red')
 plt.xlim((-n,n))
 plt.xlabel('$t$')
 plt.ylim((1e-2,1e4))
 plt.ylabel('oscillations traversed')
+ax.ticklabel_format(axis='x',style='sci',scilimits=(-2,2),useOffset=False)
 plt.legend()
+plt.tight_layout()
 #plt.show()
 plt.savefig('plots/burstn1e5_oscs.pdf')
 
 # Changing rtol at n=1e5, effect on relative error progression 
-# FIGURE 6
+# FIGURE 3
 f1 = 'plots/burstn1e5_tol-4.txt'
 f2 = 'plots/burstn1e5_tol-5.txt'
 f3 = 'plots/burstn1e5_tol-6.txt'
@@ -170,7 +173,7 @@ wkb3 = data3[:,3]
 sols3 = np.array([100*np.sqrt(1+ti**2)/n * (1j*np.sin(n * np.arctan(ti)) + np.cos(n * np.arctan(ti))) for ti in t3])
 errs3 = np.abs(sols3 - x3)/np.abs(sols3)
 #
-plt.figure()
+fig,ax = plt.subplots(1,1)
 plt.style.use('paper')
 plt.semilogy(t1,errs1,'-',color='black',label='rtol=$10^{-4}$')
 plt.semilogy(t2,errs2,'-.',color='black',label='rtol=$10^{-5}$')
@@ -179,12 +182,14 @@ plt.ylabel('relative error, $\\frac{|\Delta x|}{|x|}$')
 plt.xlabel('$t$')
 plt.xlim((-2*n,2*n))
 plt.ylim((1e-9, 1e-1))
+ax.ticklabel_format(axis='x',style='sci',scilimits=(-2,2),useOffset=False)
 plt.legend()
+plt.tight_layout()
 #plt.show()
 plt.savefig("plots/burstn1e5_rtols.pdf")
 
 # Effect of changing rtol and n on runtime
-# FIGURE 7
+# FIGURE 5
 f1 = 'plots/bursttimingtol-4.txt'
 f2 = 'plots/bursttimingtol-5.txt'
 f3 = 'plots/bursttimingtol-6.txt'
@@ -213,10 +218,11 @@ plt.xlim((1e1,10**(10)))
 plt.ylim((0.3,4.5))
 plt.legend()
 #plt.show()
+plt.tight_layout()
 plt.savefig("plots/bursttiming.pdf")
 
 # Effect of changing n, rtol on number of steps
-# FIGURE 9
+# FIGURE 7
 f1 = 'plots/bursttimingtol-4_stepscorr.txt'
 f2 = 'plots/bursttimingtol-5_stepscorr.txt'
 f3 = 'plots/bursttimingtol-6_stepscorr.txt'
@@ -237,7 +243,7 @@ plt.figure()
 plt.style.use('paper')
 plt.loglog(10**ns,ts1,':',color='black',label='total steps')
 plt.loglog(10**ns,ss1,'-',color='black',label='accepted steps')
-plt.loglog(10**ns,wkbs1,'-',color='green',label='WKB steps')
+plt.loglog(10**ns,wkbs1,'--',color='green',ms=2.5,label='WKB steps')
 plt.loglog(10**ns,ss1-wkbs1,'-',color='red',label='RK steps')
 #plt.loglog(10**ns,t2,'-.',color='black',label='rtol=$10^{-5}$')
 #plt.loglog(10**ns,t3,'--',color='black',label='rtol=$10^{-6}$')
@@ -251,7 +257,7 @@ plt.legend()
 plt.savefig("plots/burststeps.pdf")
 
 # Version 2 of the above plot - vary rtol rather than n
-# FIGURE 8
+# FIGURE 6
 from cycler import cycler
 grays = cycler(color=['0.00','0.20', '0.40', '0.50', '0.60', '0.70'])
 f1 = 'plots/bursttimingn1e1.txt'
@@ -292,6 +298,7 @@ plt.xlim((1e-7, 1e-3))
 plt.ylim((2e-1,1e2))
 plt.legend()
 #plt.show()
+plt.tight_layout()
 plt.savefig('plots/bursttiming_rtol.pdf')
 
 # Mukhanov--Sasaki equation
@@ -311,7 +318,7 @@ xnag = dnag[:,1]
 plt.figure()
 plt.style.use('fyr')
 plt.plot(tnag,xnag, color='black',label='true solution',lw=0.5)
-plt.plot(t[wkb==1],x[wkb==1],'x',color='green',label='WKB step')
+plt.plot(t[wkb==1],x[wkb==1],'^',color='green',ms=2.5,label='WKB step')
 plt.plot(t[wkb==0],x[wkb==0],'x',color='red',label='RK step')
 #plt.xlim((9900,2e5))
 #plt.ylim((-60,60))
@@ -470,11 +477,10 @@ plt.show()
 # BINGO: test/ms/pps-bingo-comparison-ltl-moreac-abs0.txt
 #        test/ms/pps-bingo-comparison-start2e2.txt
 
-# FIGURE 10
+# FIGURE 9 
 from cycler import cycler
+from matplotlib.ticker import FuncFormatter
 grays = cycler(color=['0.00','0.60', '0.40', '0.60', '0.80', '0.90'])
-#default = cycler(color=['#1f77b4','#ff7f0e', '#d62728', '#9467bd', '#8c564b',
-#'#e377c2'])
 
 fsolver = "test/ms/pps-bingo-start1e2-highk-lowk.txt"
 #"test/ms/pps-bingo-start1e2-highk-tol4.txt"
@@ -508,17 +514,21 @@ plt.loglog(tbingo1,xbingo1,'--',lw=1.0,label='$\mathrm{BINGO}$')
 #plt.loglog(tbingo3[:4900],xbingo3[:4900],label='BINGO, rtol$=10^{-6}$',alpha=0.8,lw=1.3)
 #plt.loglog(tbingo2[:4500],xbingo2[:4500],label='BINGO, rtol$=10^{-5}$',alpha=0.8,lw=1.3)
 #plt.loglog(tbingo1[:4900],xbingo1[:4900],label='BINGO, rtol$=10^{-4}$',alpha=0.8,lw=1.3)
+ax.text(0.0,1.01,'$\\times 10^{-9}$',transform=plt.gca().transAxes)
+ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos:('%.1f')%(x*1e9)))
+ax.yaxis.set_minor_formatter(FuncFormatter(lambda x, pos:('%.1f')%(x*1e9)))
 
 plt.xlabel('$k$/Mpc${}^{-1}$')
 plt.ylabel('$P_{\mathcal{R}}(k)$')
 plt.xlim((1e-5,1e8))
 plt.ylim((6e-10,4e-9))
 plt.legend()
+plt.tight_layout()
 plt.savefig("plots/rkwkb-v-bingo-pps.pdf")
 #plt.show()
 
 # Timing comparison with BINGO 2 - like-to-like
-# FIGURES 11 - 12
+# FIGURES 10 - 11
 from cycler import cycler
 grays = cycler(color=['0.00','0.40', '0.40', '0.60', '0.80', '0.90'])
 
@@ -543,7 +553,7 @@ tbingo1 = dbingo1[:,-1]
 kbingo2 = dbingo2[:,0]
 tbingo2 = dbingo2[:,-1]
 
-# FIGURE 11
+# FIGURE 10
 # tbingo/trkwkb plot
 fig,ax=plt.subplots(1,1)
 plt.style.use('paper')
@@ -563,12 +573,12 @@ plt.semilogx(kbingo1, tbingo1,label='bingo 100')
 plt.semilogx(kbingo2, tbingo2, label='bingo 200')
 
 # relative runtime within trkwkb
-# FIGURE 12
+# FIGURE 11
 tpivot = t1[2502]
 plt.style.use('paper')
-plt.loglog(k1,t1/tpivot)
-plt.loglog([1e-5,k1[2502]],[1,1], 'k:')
-plt.loglog([k1[2502],k1[2502]],[0,1],'k:')
+plt.semilogx(k1,t1/tpivot)
+plt.semilogx([1e-5,k1[2502]],[1,1], 'k:')
+plt.semilogx([k1[2502],k1[2502]],[0,1],'k:')
 plt.xlabel('$k$')
 plt.ylabel('relative runtime')
 plt.xlim((1e-5,1e8))
@@ -619,21 +629,26 @@ plt.ylabel('$\Re{\{ \mathcal{R}_k \}} $')
 plt.savefig('plots/modes-highk-lowk.pdf')
 #plt.show()
 
-# FIGURE 13
+# FIGURE 12
 plt.style.use('paper')
-fig,ax = plt.subplots(2,1,sharex=True)
+fig,ax = plt.subplots(2,1,sharex=True,sharey=True)#,figsize=(5.95,2.75))
 ax[0].plot(n1ref,rk1ref)
-ax[0].plot(n1,rk1,'x',color='red',label='RK step')
+ax[0].plot(n1,rk1,'.',color='red',label='RK step')
 ax[0].legend()
 ax[1].plot(n1ref,rk1ref)
-ax[1].plot(n1wkb[rk1steps==0],rk1wkb[rk1steps==0],'x',color='red',label='RK step')
-ax[1].plot(n1wkb[rk1steps==1],rk1wkb[rk1steps==1],'x',color='green',label='WKB step')
+ax[1].plot(n1wkb[rk1steps==0],rk1wkb[rk1steps==0],'.',color='red',label='RK step')
+ax[1].plot(n1wkb[rk1steps==1],rk1wkb[rk1steps==1],'^',color='green',ms=2.5,label='WKB step')
 ax[1].legend(loc='upper right')
-fig.text(0.5,0.02,'$N$',ha='center',va='center')
-fig.text(0.06,0.5,'$\Re{\{\mathcal{R}_k\}}$',ha='center',va='center',rotation='vertical')
-ax[0].set_xlim((n1ref[0],n1ref[-1]))
-ax[1].set_xlim((n1ref[0],n1ref[-1]))
-plt.savefig('plots/rkwkb-bingo-singlek.pdf')
+#fig.text(0.5,0.02,'$N$',ha='center',va='center')
+fig.text(0.02,0.5,'$\Re{\{\mathcal{R}_k\}}$',ha='center',va='center',rotation='vertical')
+ax[0].ticklabel_format(axis='y',style='sci',scilimits=(-2,2))
+ax[1].ticklabel_format(axis='y',style='sci',scilimits=(-2,2))
+ax[0].set_xlim((n1ref[0]-0.1,n1ref[-1]))
+ax[1].set_xlim((n1ref[0]-0.1,n1ref[-1]))
+plt.xlabel("$N$")
+#plt.ylabel("$\Re{\{\mathcal{R}_k\}}$")
+plt.tight_layout()
+plt.savefig('plots/rkwkb-bingo-singlek.pdf')#-elsevier-thin.pdf')
 #plt.show()
 
 # Kinetically dominated PPS in terms of N
@@ -664,8 +679,8 @@ plt.plot(N,2*(-(3.0-(0.5*dphi*dphi)) -
 #plt.semilogy(N,2e4*w)
 plt.show()
 
-# PPS
-# FIGURE 14
+# KD PPS
+# FIGURE 13
 from matplotlib.ticker import FuncFormatter
 f = "test/ms/pps-N-kd-sparsebg2.txt" #"test/ms/pps-testcomplexfn.txt" 
 d = np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair})
@@ -679,7 +694,7 @@ ax = fig.add_subplot(111)
 ax.set_xlabel("$k$/Mpc${}^{-1}$")
 ax.set_ylabel("$P_{\mathcal{R}}(k)$")
 ax.loglog(k[150:],p2[150:])
-ax.text(0.0,1.01,'$10^{-9}$',transform=plt.gca().transAxes)
+ax.text(0.0,1.01,'$\\times 10^{-9}$',transform=plt.gca().transAxes)
 #ax.set_xlim((1e-3,1e1))
 #ax.set_ylim((6e-10,2e-9))
 ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos:('%.1f')%(x*1e9)))
@@ -804,7 +819,7 @@ k = d[:,0]
 rk = d[:,1]
 wkb = d[:,3]
 plt.style.use('default')
-plt.plot(k[wkb==1],rk[wkb==1],'x',color='green',label='wkb step')
+plt.plot(k[wkb==1],rk[wkb==1],'^',color='green',ms=2.5,label='wkb step')
 plt.plot(k[wkb==0],rk[wkb==0],'x',color='red',label='rk step')
 #plt.plot(k,rk)
 
@@ -813,7 +828,6 @@ plt.show()
 
 # Effect of decreasing curvature on a curved universe
 # PPS
-# FIGURE 15
 from cycler import cycler
 #grays = cycler(color=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728','#9467bd',
 #'#8c564b', '#e377c2', '#7f7f7f','#bcbd22', '#17becf'])
@@ -851,10 +865,10 @@ ax2.loglog(ax2xs,np.ones_like(ax2xs),alpha=0)
 ax.legend()
 plt.tight_layout()
 #plt.show()
-plt.savefig("plots/closed-spectra-log-paper-colours.pdf")
+#plt.savefig("plots/closed-spectra-log-paper-colours.pdf")
 
 # Schrodinger equation
-# FIGURE 16
+# FIGURE 8 
 import scipy.special as sp
 K=2
 ns=[2,20,40,60,80,100]
@@ -892,21 +906,20 @@ for i in range(len(ns)):
     wkbr = d[:,3]
 
     if(i<len(ns)-1):
-        plt.plot(xl[wkbl==1],E + scale*((rkl[wkbl==1])),'.',color='green')
-        plt.plot(xl[wkbl==0],E + scale*((rkl[wkbl==0])),'.',color='red')
         plt.plot(tls[i],E + (lanalytics[i]))
-        plt.plot(xr[wkbr==1],E + scale*((rkr[wkbr==1])),'.',color='green')
-        plt.plot(xr[wkbr==0],E + scale*((rkr[wkbr==0])),'.',color='red')
         plt.plot(trs[i],E + (ranalytics[i]))
-
-    else:
-        plt.plot(xl[wkbl==1],E + scale*((rkl[wkbl==1])),'.',color='green')
+        plt.plot(xl[wkbl==1],E + scale*((rkl[wkbl==1])),'^',ms=3,color='green')
         plt.plot(xl[wkbl==0],E + scale*((rkl[wkbl==0])),'.',color='red')
+        plt.plot(xr[wkbr==1],E + scale*((rkr[wkbr==1])),'^',ms=3,color='green')
+        plt.plot(xr[wkbr==0],E + scale*((rkr[wkbr==0])),'.',color='red')
+    else:
         plt.plot(tls[i],E + (lanalytics[i]))
-        plt.plot(xr[wkbr==0],E + scale*((rkr[wkbr==0])),'.',color='red',label='RK step')
-        plt.plot(xr[wkbr==1],E + scale*((rkr[wkbr==1])),'.',color='green',label='WKB step')
         plt.plot(trs[i],E + (ranalytics[i]))#,label='true solution')
-    plt.text(xr[0]+1.0, E, 'n='+str(ns[i]))
+        plt.plot(xl[wkbl==1],E + scale*((rkl[wkbl==1])),'^',ms=3,color='green')
+        plt.plot(xl[wkbl==0],E + scale*((rkl[wkbl==0])),'.',color='red')
+        plt.plot(xr[wkbr==0],E + scale*((rkr[wkbr==0])),'.',color='red',label='RK step')
+        plt.plot(xr[wkbr==1],E + scale*((rkr[wkbr==1])),'^',color='green',ms=3,label='WKB step')
+        plt.text(xr[0]+1.0, E, 'n='+str(ns[i]))
 plt.xlabel('$x$')
 plt.ylabel('$E_n + 10\Psi_n(x)$')
 plt.legend(loc='lower left')
@@ -961,13 +974,13 @@ plt.legend()
 #plt.savefig('plots/ni-v-oki.pdf')
 plt.show() 
 
-# FIGURE
+# FIGURE 14
 # Improved plot showing closed universe spectra with varying curvature
 atoday=4.3e4
 okis=np.logspace(-3,2.17,300)
 labels=np.linspace(0,300,300)
 plt.style.use('paper')
-fig,axes=plt.subplots(3,2,figsize=(5.95,7.7),sharex=True,sharey='row')
+fig,axes=plt.subplots(3,2,figsize=(5.90,7.7),sharex=True,sharey='row')
 fs = []
 fints = []
 for num in [0,58,116,174,231,290]:
@@ -979,7 +992,7 @@ ds = [np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:pa
 dints = [np.genfromtxt(fint,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair}) for fint in fints]
 
 fig.text(0.5,1.01,"$k\\big/\\big(\\big(\\frac{h}{\mathrm{0.7}}\\big) \\big(\\frac{\Omega_{k,\mathrm{0}}}{\mathrm{0.01}}\\big)$ Mpc${}^{-1}$\\big)$ $",ha='center',va='center')
-fig.text(0.0,0.5,"$P_{\mathcal{R}}(k)/m^2$",ha='center',va='center',rotation='vertical')
+fig.text(0.01,0.5,"$P_{\mathcal{R}}(k)/m^2$",ha='center',va='center',rotation='vertical')
 fig.text(0.5,0.00,"comoving $k$",ha='center',va='center')
 
 okis = [1e-3,1e-2,1e-1,1e0,1e1,1e2]
@@ -995,7 +1008,7 @@ for i,ax,d,dint in zip(range(6),np.ravel(axes),ds,dints):
     ax2.loglog(ax2xs,np.ones_like(ax2xs),alpha=0)
     if(i!=0 and i!=1):
         ax2.set_xticklabels(['']*len(ax2xs))
-    ax.loglog(d[:,0],d[:,3],color='red')
+    ax.loglog(d[2:,0],d[2:,3],color='red')
     ax.loglog(dint[2:,0],dint[2:,3])
     ax.loglog(dint[2:50,0],dint[2:50,3],'.',ms=2.5)
     ax.set_xlim((5e-1,2e4))
@@ -1008,6 +1021,6 @@ for i,ax,d,dint in zip(range(6),np.ravel(axes),ds,dints):
     ax.text(0.70,0.1,'$\Omega_k^i=$'+str(okis[i]),transform=ax.transAxes)
 plt.subplots_adjust(wspace=0.1,hspace=0.1)
 plt.tight_layout()
-#plt.savefig("plots/closed-spectra-table.pdf")
-plt.show()
+plt.savefig("plots/closed-spectra-table-k3.pdf")
+#plt.show()
 
