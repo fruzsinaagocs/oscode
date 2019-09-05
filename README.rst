@@ -7,6 +7,7 @@ oscode: Oscillatory ordinary differential equation solver
 :Version: 0.1.0
 :Homepage: https://github.com/fruzsinaagocs/oscode
 :Documentation: https://oscode.readthedocs.io
+:Paper: https://arxiv.org/abs/1906.01421
 
 .. image:: https://readthedocs.org/projects/oscode/badge/?version=latest
     :target: https://oscode.readthedocs.io/en/latest/?badge=latest
