@@ -2,6 +2,10 @@
 oscode: Oscillatory ordinary differential equation solver
 ========================================================================
 
+.. image::
+    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra.gif
+    :width: 800
+
 :oscode: oscillatory ordinary differential equation solver
 :Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
 :Version: 0.1.0
