@@ -3,3 +3,10 @@ channels:
     - conda-forge
 dependencies:
     - eigen
+    - python
+    - numpy
+    - pip
+    - pip:
+        - matplotlib
+        - scipy
+        - .
