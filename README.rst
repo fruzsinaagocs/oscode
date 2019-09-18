@@ -2,15 +2,24 @@
 oscode: Oscillatory ordinary differential equation solver
 ========================================================================
 
+.. image::
+    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra.gif
+    :width: 800
+
 :oscode: oscillatory ordinary differential equation solver
 :Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
 :Version: 1.0.1
 :Homepage: https://github.com/fruzsinaagocs/oscode
 :Documentation: https://oscode.readthedocs.io
+:Paper: https://arxiv.org/abs/1906.01421
 
 .. image:: https://readthedocs.org/projects/oscode/badge/?version=latest
     :target: https://oscode.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
+
+.. image:: https://badges.gitter.im/oscode-help/community.svg
+    :target: https://gitter.im/oscode-help/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+    :alt: Chat on gitter
  
 
 ``oscode`` is a C++ tool with a Python interface that solves **osc**\illatory
@@ -81,7 +90,13 @@ or via the setup.py
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
 you wish to install globally or in a virtual environment. If you have any
-difficulties, check out the FAQs_ section below
+difficulties, check out the FAQs_ section below. 
+
+You can check that things are working by running
+
+.. code:: bash
+
+   pytest tests/
 
 C++
 ~~~
@@ -149,6 +164,14 @@ The above code, stored in ``airy.py``, produces the plot:
 .. image::
    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/airy-example.png
    :width: 800
+
+``cosmology.ipynb`` is a jupyter notebook that demonstrates how ``pyoscode`` can
+be used to quickly generate *primordial power spectra*, like these:
+
+.. image::
+    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra.gif
+    :width: 800
+
 
 C++
 ~~~
@@ -264,26 +287,30 @@ If you use ``oscode`` to solve equations for a publication, please cite
 as: ::
 
    Agocs, F., Handley, W., Lasenby, A., and Hobson, M., (2019). An efficient method for solving highly oscillatory
-   ordinary differential equations with applications to physical systems. (In
-   prep.)
+   ordinary differential equations with applications to physical systems. arXiv
+   e-prints, arXiv:1906.01421 (2019) [physics.comp-ph].
 
 or using the BibTeX:
 
 .. code:: bibtex
 
-   @article{oscode,
-       doi = {},
-       url = {},
-       year  = {2019},
-       month = {},
-       publisher = {},
-       volume = {},
-       number = {},
-       author = {F. J. Agocs and W. J. Handley and A. N. Lasenby and M. P. Hobson},
-       title = {An efficient method for solving highly oscillatory ordinary
-       differential equations with applications to physical systems},
-       journal = {(in prep.)}
-   }
+	@ARTICLE{2019arXiv190601421A,
+	       author = {{Agocs}, F.~J. and {Handley}, W.~J. and {Lasenby}, A.~N. and
+	         {Hobson}, M.~P.},
+	        title = "{An efficient method for solving highly oscillatory ordinary differential equations with applications to physical systems}",
+	      journal = {arXiv e-prints},
+	     keywords = {Physics - Computational Physics, Astrophysics - Instrumentation and Methods for Astrophysics, Mathematics - Numerical Analysis},
+	         year = "2019",
+	        month = "May",
+	          eid = {arXiv:1906.01421},
+	        pages = {arXiv:1906.01421},
+	archivePrefix = {arXiv},
+	       eprint = {1906.01421},
+	 primaryClass = {physics.comp-ph},
+	       adsurl = {https://ui.adsabs.harvard.edu/abs/2019arXiv190601421A},
+	      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+	}
+
 
 Contributing
 ------------
@@ -322,3 +349,7 @@ Installation
 
 Changelog
 ---------
+
+- 0.1.0:
+    - Memory leaks at python interface fixed
+    - C++ documentation added 

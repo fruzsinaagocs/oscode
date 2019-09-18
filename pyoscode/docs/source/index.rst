@@ -2,7 +2,7 @@ oscode's documentation
 ======================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 0
    :caption: Contents:
 
     Introduction <introduction>

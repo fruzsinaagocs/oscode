@@ -12,7 +12,6 @@ class de_system
         de_system(std::complex<double> (*w)(double), std::complex<double> (*g)(double));
         std::function<std::complex<double>(double)> w;
         std::function<std::complex<double>(double)> g;
-        bool interp;
 };
 
 template<typename X, typename Y, typename Z> de_system::de_system(const X &ts, const Y &ws, const Z &gs, bool islogw, bool islogg){
@@ -20,7 +19,6 @@ template<typename X, typename Y, typename Z> de_system::de_system(const X &ts, c
     // 3. User supplied t, w/ln(w), g/ln(g) as array-like objects
     // (Eigen::Vectors, std::vectors, or arrays)
     
-    interp = true;
     LinearInterpolator<X, Y> winterp(ts,ws);
     LinearInterpolator<X, Z> ginterp(ts,gs);
     if(islogw)
@@ -42,7 +40,6 @@ de_system::de_system(std::complex<double> (*W)(double), std::complex<double> (*G
     // 1. User (in c++) defined the functions w,g themselves and supplied
     // function pointers.
 
-    interp = false;
     w = W;
     g = G;
 };
