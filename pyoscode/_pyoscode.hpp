@@ -3,7 +3,7 @@
 #include "_python.hpp"
 #include <string>
 #include <functional>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <iomanip>
 #include <fstream>
 #include <complex>
