@@ -2,6 +2,7 @@ before_install:
     - git clone https://github.com/eigenteam/eigen-git-mirror
     - export CPLUS_INCLUDE_PATH="$HOME/eigen-git-mirror/:$CPLUS_INCLUDE_PATH"
     - echo $CPLUS_INCLUDE_PATH
+    - pwd
     - ls eigen*
     - ls eigen-git-mirror/Eigen/Den*
     - sudo apt-get update
