@@ -1,9 +1,9 @@
 before_install:
+    - git clone https://github.com/eigenteam/eigen-git-mirror
+    - export CPLUS_INCLUDE_PATH="$HOME/eigen-git-mirror/:$CPLUS_INCLUDE_PATH"
+    - echo $CPLUS_INCLUDE_PATH
     - sudo apt-get update
     - sudo apt-get install libboost-all-dev
-    - git clone https://github.com/eigenteam/eigen-git-mirror
-    - export $CPLUS_INCLUDE_PATH="$HOME/:$CPLUS_INCLUDE_PATH"
-    - echo $CPLUS_INCLUDE_PATH
 language: python
 python: 
     - "2.7"
