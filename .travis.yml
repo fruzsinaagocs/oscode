@@ -1,7 +1,7 @@
 before_install:
     - sudo apt-get update
     - sudo apt-get install libboost-all-dev
-    - sudo apt-get install libeigen3-dev
+    - git clone https://github.com/eigenteam/eigen-git-mirror
 language: python
 python: 
     - "2.7"
