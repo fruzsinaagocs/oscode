@@ -1,19 +1,15 @@
 before_install:
     - git clone https://github.com/eigenteam/eigen-git-mirror
     - export CPLUS_INCLUDE_PATH="$PWD/eigen-git-mirror/:$CPLUS_INCLUDE_PATH"
-    - echo $CPLUS_INCLUDE_PATH
-    - pwd
-    - ls eigen*
-    - ls eigen-git-mirror/Eigen/Den*
     - sudo apt-get update
     - sudo apt-get install libboost-all-dev
-    - echo $BOOST_ROOT
 language: python
 python: 
     - "2.7"
     - "3.4"
     - "3.5"
     - "3.6"
+    - "nightly"
 install: 
     - pip install -r requirements.txt
     - pip install .
