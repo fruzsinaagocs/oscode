@@ -141,7 +141,7 @@ void Solution::solve(){
             std::abs(wkberr(1))/std::abs(wkbx(1));
             rkdeltas << std::abs(rkerr(0))/std::abs(rkx(0)), std::abs(rkerr(1))/std::abs(rkx(1));
             rkdelta = std::max(1e-10, rkdeltas.maxCoeff()); 
-            if(isnan(wkbdeltas.maxCoeff())==false && isinf(std::real(wkbx(0)))==false && isinf(std::real(wkbx(1)))==false)
+            if(std::isnan(wkbdeltas.maxCoeff())==false && isinf(std::real(wkbx(0)))==false && isinf(std::real(wkbx(1)))==false)
                 wkbdelta = std::max(1e-10, wkbdeltas.maxCoeff(&maxindex));
             else
                 wkbdelta = std::numeric_limits<double>::infinity();
