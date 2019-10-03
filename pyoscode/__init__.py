@@ -1,9 +1,10 @@
 import sys
 import os
 import _pyoscode
+import numpy
 
 def solve(ts, ws, gs, ti, tf, x0, dx0, logw=False, logg=False, order=3,
-rtol=1e-4, atol=0.0, h=1.0, full_output=""):
+rtol=1e-4, atol=0.0, h=None, full_output=""):
     """Solve a differential equation with the RKWKB method.
     
     Parameters
@@ -68,6 +69,9 @@ rtol=1e-4, atol=0.0, h=1.0, full_output=""):
             True, the step was WKB, and RK otherwise.
      
     """
+    # Set direction of integration if initial stepsize, h, not given
+    if h==None:
+        h = numpy.sign(tf - ti)
     
     # Run oscode from module library
     resdict = _pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0, logw=logw, logg=logg,
