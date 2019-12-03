@@ -45,6 +45,7 @@ ax[0].set_xlim((0,40.0))
 ax[0].set_ylim((-0.5, 0.7))
 ax[0].set_xlabel("$t$")
 ax[0].set_ylabel("$\Re\{x\}$")
+ax[0].text(-0.2,1.1, '(a)', transform=ax[0].transAxes)
 ax[0].legend()
 # Error progression
 ax[1].loglog(t, errs, '-', color='black')
@@ -55,6 +56,7 @@ ax[1].loglog(trk, errsrk, '-', color='black')
 ax[1].set_ylim((1e-6,1e-2))
 ax[1].set_xlabel("$t$")
 ax[1].set_ylabel("relative error, $\\frac{|\Delta x|}{|x|}$")
+ax[1].text(-0.22,1.1, '(b)', transform=ax[1].transAxes)
 #plt.axvline(x=3.79)
 #plt.text(3.79/(7.0/3.79), 2e-4, 'RK', verticalalignment='center',
 #horizontalalignment='right')
@@ -64,7 +66,7 @@ ax[1].legend()
 #plt.show()
 plt.tight_layout()
 #plt.show()
-plt.savefig("plots/airy-merged-dots.pdf")
+plt.savefig("plots/airy-merged-dots-labelled.pdf")
 
 # Burst equation with w(t), g(t) given analytically
 # Single solution at n=40 and its error progression on one plot
@@ -101,6 +103,7 @@ ax[0].set_xlim((-40,40))
 ax[0].set_ylim((-60,60))
 ax[0].set_xlabel('$t$')
 ax[0].set_ylabel('$\Re{\{x(t)\}}$')
+ax[0].text(-0.2,1.1, '(a)', transform=ax[0].transAxes)
 ax[0].legend()
 ax[1].semilogy(t2,errs2,color='black')
 ax[1].semilogy(t2,errs2,'.',color='red')
@@ -111,10 +114,12 @@ ax[1].set_ylabel('relative error, $\\frac{|\Delta x|}{|x|}$')
 ax[1].set_xlabel('$t$')
 ax[1].set_ylim(1e-7,1e-1)
 ax[1].set_xlim(-60,60)
+ax[1].text(-0.23,1.1, '(b)', transform=ax[1].transAxes)
 ax[1].legend()
 #plt.show()
 plt.tight_layout()
-plt.savefig("plots/burst_n40merged-dots.pdf")
+plt.savefig("plots/burst_n40merged-dots-labelled.pdf")
+#plt.show()
 
 # Large n example: number of oscillations traversed
 # FIGURE 4
@@ -518,13 +523,13 @@ ax.text(0.0,1.01,'$\\times 10^{-9}$',transform=plt.gca().transAxes)
 ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos:('%.1f')%(x*1e9)))
 ax.yaxis.set_minor_formatter(FuncFormatter(lambda x, pos:('%.1f')%(x*1e9)))
 
-plt.xlabel('$k$/Mpc${}^{-1}$')
+plt.xlabel('$k$ [Mpc${}^{-1}$]')
 plt.ylabel('$P_{\mathcal{R}}(k)$')
 plt.xlim((1e-5,1e8))
 plt.ylim((6e-10,4e-9))
 plt.legend()
 plt.tight_layout()
-plt.savefig("plots/rkwkb-v-bingo-pps.pdf")
+plt.savefig("plots/rkwkb-v-bingo-pps-labelled.pdf")
 #plt.show()
 
 # Timing comparison with BINGO 2 - like-to-like
@@ -559,11 +564,11 @@ fig,ax=plt.subplots(1,1)
 plt.style.use('paper')
 ax.set_prop_cycle(grays)
 plt.semilogx(k1,tbingo1/t1)
-plt.xlabel('$k$')
+plt.xlabel('$k$ [Mpc${}^{-1}$]')
 plt.ylabel('relative runtime, $t_{\mathrm{BINGO}}/t_{\mathrm{RKWKB}}$')
 plt.xlim((1e-5,1e8))
 #plt.show()
-plt.savefig("plots/rkwkb-v-bingo-reltimes-semilog.pdf")
+plt.savefig("plots/rkwkb-v-bingo-reltimes-semilog-labelled.pdf")
 
 
 # abs runtimes
@@ -579,11 +584,12 @@ plt.style.use('paper')
 plt.semilogx(k1,t1/tpivot)
 plt.semilogx([1e-5,k1[2502]],[1,1], 'k:')
 plt.semilogx([k1[2502],k1[2502]],[0,1],'k:')
-plt.xlabel('$k$')
+plt.xlabel('$k$ [Mpc${}^{-1}$]')
 plt.ylabel('relative runtime')
 plt.xlim((1e-5,1e8))
+plt.ylim((0.5,2.5))
 #plt.show()
-plt.savefig("plots/rkwkb-reltimes.pdf")
+plt.savefig("plots/rkwkb-reltimes-labelled.pdf")
 
 # RK single-k solution of BINGO eqs with NAG
 f1 = "test/ms/bingo-singlek-k1e-5.txt"
@@ -634,6 +640,8 @@ plt.style.use('paper')
 fig,ax = plt.subplots(2,1,sharex=True,sharey=True)#,figsize=(5.95,2.75))
 ax[0].plot(n1ref,rk1ref)
 ax[0].plot(n1,rk1,'.',color='red',label='RK step')
+ax[0].text(-0.08,1.1, '(a)', transform=ax[0].transAxes)
+
 ax[0].legend()
 ax[1].plot(n1ref,rk1ref)
 ax[1].plot(n1wkb[rk1steps==0],rk1wkb[rk1steps==0],'.',color='red',label='RK step')
@@ -645,10 +653,12 @@ ax[0].ticklabel_format(axis='y',style='sci',scilimits=(-2,2))
 ax[1].ticklabel_format(axis='y',style='sci',scilimits=(-2,2))
 ax[0].set_xlim((n1ref[0]-0.1,n1ref[-1]))
 ax[1].set_xlim((n1ref[0]-0.1,n1ref[-1]))
+ax[1].text(-0.08,1.1, '(b)', transform=ax[1].transAxes)
+
 plt.xlabel("$N$")
 #plt.ylabel("$\Re{\{\mathcal{R}_k\}}$")
 plt.tight_layout()
-plt.savefig('plots/rkwkb-bingo-singlek.pdf')#-elsevier-thin.pdf')
+plt.savefig('plots/rkwkb-bingo-singlek-labelled.pdf')#-elsevier-thin.pdf')
 #plt.show()
 
 # Kinetically dominated PPS in terms of N
@@ -691,7 +701,7 @@ p2 = d[:,4] # attempted kd
 plt.style.use('paper')
 fig = plt.figure()
 ax = fig.add_subplot(111)
-ax.set_xlabel("$k$/Mpc${}^{-1}$")
+ax.set_xlabel("$k$ [Mpc${}^{-1}$]")
 ax.set_ylabel("$P_{\mathcal{R}}(k)$")
 ax.loglog(k[150:],p2[150:])
 ax.text(0.0,1.01,'$\\times 10^{-9}$',transform=plt.gca().transAxes)
@@ -701,7 +711,7 @@ ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos:('%.1f')%(x*1e9)))
 ax.yaxis.set_minor_formatter(FuncFormatter(lambda x, pos:('%.1f')%(x*1e9)))
 plt.tight_layout()
 #plt.show()
-plt.savefig("plots/example-pps-kd-N.pdf")
+plt.savefig("plots/example-pps-kd-N-labelled.pdf")
 
 
 # Single-k solutions
@@ -991,11 +1001,12 @@ for num in [0,58,116,174,231,290]:
 ds = [np.genfromtxt(f,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair}) for f in fs]
 dints = [np.genfromtxt(fint,delimiter=", ",dtype=complex,converters={1:parse_pair,2:parse_pair}) for fint in fints]
 
-fig.text(0.5,1.01,"$k\\big/\\big(\\big(\\frac{h}{\mathrm{0.7}}\\big) \\big(\\frac{\Omega_{k,\mathrm{0}}}{\mathrm{0.01}}\\big)$ Mpc${}^{-1}$\\big)$ $",ha='center',va='center')
+fig.text(0.5,1.01,"$k \\big[\\big(\\frac{h}{\mathrm{0.7}}\\big) \\big(\\frac{\Omega_{k,\mathrm{0}}}{\mathrm{0.01}}\\big)$ Mpc${}^{-1}$\\big]$ $",ha='center',va='center')
 fig.text(0.01,0.5,"$P_{\mathcal{R}}(k)/m^2$",ha='center',va='center',rotation='vertical')
 fig.text(0.5,0.00,"comoving $k$",ha='center',va='center')
 
 okis = [1e-3,1e-2,1e-1,1e0,1e1,1e2]
+labels = ['(a)','(b)','(c)','(d)','(e)','(f)']
 for i,ax,d,dint in zip(range(6),np.ravel(axes),ds,dints):
     ax2=ax.twiny()
     axxs=np.logspace(0,3,4)
@@ -1019,8 +1030,10 @@ for i,ax,d,dint in zip(range(6),np.ravel(axes),ds,dints):
     else:
         ax.set_ylim((1e0,1e3))
     ax.text(0.70,0.1,'$\Omega_k^i=$'+str(okis[i]),transform=ax.transAxes)
+    ax.text(0.05,0.9, labels[i], transform=ax.transAxes)
+
 plt.subplots_adjust(wspace=0.1,hspace=0.1)
 plt.tight_layout()
-plt.savefig("plots/closed-spectra-table-k3.pdf")
+plt.savefig("plots/closed-spectra-table-k3-labelled.pdf")
 #plt.show()
 
