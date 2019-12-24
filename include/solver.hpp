@@ -5,7 +5,6 @@
 #include <list>
 #include <string>
 #include <iomanip>
-#include <boost/math/special_functions/airy.hpp>
 #include <limits>
 #include "system.hpp"
 #include "rksolver.hpp"
