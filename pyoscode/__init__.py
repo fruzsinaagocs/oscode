@@ -72,6 +72,9 @@ rtol=1e-4, atol=0.0, h=None, full_output=""):
     # Set direction of integration if initial stepsize, h, not given
     if h==None:
         h = numpy.sign(tf - ti)
+        # Handle the case of ti = tf
+        if h==0:
+            h=1
     
     # Run oscode from module library
     resdict = _pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0, logw=logw, logg=logg,

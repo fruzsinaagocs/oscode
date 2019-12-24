@@ -6,7 +6,7 @@ oscode: Oscillatory ordinary differential equation solver
 
 :oscode: oscillatory ordinary differential equation solver
 :Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
-:Version: 0.1.1
+:Version: 0.1.2
 :Homepage: https://github.com/fruzsinaagocs/oscode
 :Documentation: https://oscode.readthedocs.io
 
@@ -332,6 +332,11 @@ Installation
 Changelog
 ---------
 
+- 0.1.2:
+    - Bug that occurred when beginning and end of integration coincided
+      corrected
+- 0.1.1:
+    - Automatic detection of direction of integration
 - 0.1.0:
     - Memory leaks at python interface fixed
     - C++ documentation added 
