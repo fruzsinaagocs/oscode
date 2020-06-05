@@ -3,7 +3,7 @@ import os
 import _pyoscode
 import numpy
 
-def solve(ts, ws, gs, ti, tf, x0, dx0, logw=False, logg=False, order=3,
+def solve(ts, ws, gs, ti, tf, x0, dx0, t_eval=[], logw=False, logg=False, order=3,
 rtol=1e-4, atol=0.0, h=None, full_output=""):
     """Solve a differential equation with the RKWKB method.
     
@@ -26,6 +26,9 @@ rtol=1e-4, atol=0.0, h=None, full_output=""):
 
     x0, dx0: complex
         Initial values of the dependent variable and its derivative.
+
+    t_eval: numpy.ndarray [float] or list [float]
+        An array of times where the solution is to be returned.
 
     logw, logg: boolean, optional
         If true, the array of frequencies and friction values, respectively, will be
@@ -67,6 +70,9 @@ rtol=1e-4, atol=0.0, h=None, full_output=""):
             A list of True/False values corresponding to the step types the
             solver chose at the timepoints listed under the keyword 't'. If
             True, the step was WKB, and RK otherwise.
+
+        x_eval: list [complex]
+            Values of the solution at the points specified in t_eval.
      
     """
     # Set direction of integration if initial stepsize, h, not given
@@ -77,7 +83,7 @@ rtol=1e-4, atol=0.0, h=None, full_output=""):
             h=1
     
     # Run oscode from module library
-    resdict = _pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0, logw=logw, logg=logg,
+    resdict = _pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0, t_eval=t_eval, logw=logw, logg=logg,
     order=order, rtol=rtol, atol=atol, h=h, full_output=full_output) 
     
     return resdict

@@ -5,6 +5,7 @@
 #include "solver.hpp"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
+#include <vector>
 
 
 /* Initialise the module */
@@ -30,18 +31,23 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     const char* full_output="";
     double ti,tf,rtol,atol,h0;
     std::complex<double> x0,dx0;
-    PyObject *tsobj, *wsobj, *gsobj;
+    PyObject *tsobj, *wsobj, *gsobj, *t_evalobj=NULL;
     // Define keywords
     static const char *kwlist[] =
-    {"ts","ws","gs","ti","tf","x0","dx0","logw","logg","order","rtol","atol","h","full_output",NULL};
+    {"ts","ws","gs","ti","tf","x0","dx0","t_eval","logw","logg","order","rtol","atol","h","full_output",NULL};
 
     // Interpret input arguments.
-    if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OOOddDD|iiiddds",const_cast<char**>(kwlist),&tsobj,&wsobj,&gsobj,&ti,&tf,&x0,&dx0,&islogw,&islogg,&order,&rtol,&atol,&h0,&full_output))
+    if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OOOddDD|Oiiiddds",const_cast<char**>(kwlist),&tsobj,&wsobj,&gsobj,&ti,&tf,&x0,&dx0,&t_evalobj,&islogw,&islogg,&order,&rtol,&atol,&h0,&full_output))
         return NULL;
     // Interpret input objects as numpy arrays
     PyObject *tsarray = PyArray_FROM_OTF(tsobj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
     PyObject *wsarray = PyArray_FROM_OTF(wsobj, NPY_CDOUBLE, NPY_ARRAY_IN_ARRAY);
     PyObject *gsarray = PyArray_FROM_OTF(gsobj, NPY_CDOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *t_evalarray = NULL;
+    if(t_evalobj!=NULL){
+        t_evalarray = PyArray_FROM_OTF(t_evalobj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    }
+    std::cout << "read in args" << t_evalarray << std::endl;
     // If that didn't work, throw an exception
     if(tsarray==NULL or wsarray==NULL or gsarray==NULL){
         Py_XDECREF(tsarray);    
@@ -54,10 +60,31 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     PyArrayObject *tsarray_arr = reinterpret_cast<PyArrayObject*>(tsarray);
     PyArrayObject *wsarray_arr = reinterpret_cast<PyArrayObject*>(wsarray);
     PyArrayObject *gsarray_arr = reinterpret_cast<PyArrayObject*>(gsarray);
+    PyArrayObject *t_evalarray_arr = NULL;
+    if(t_evalobj!=NULL){
+        t_evalarray_arr = reinterpret_cast<PyArrayObject*>(t_evalarray);
+    }
+    std::cout << "converted args" << t_evalarray_arr << std::endl;
     double *ts = (double*)PyArray_DATA(tsarray_arr);
     std::complex<double> *ws = (std::complex<double>*)PyArray_DATA(wsarray_arr);
     std::complex<double> *gs = (std::complex<double>*)PyArray_DATA(gsarray_arr);
-    
+    double *t_eval = NULL;
+    int t_evalsize = 0;
+    if(t_evalobj!=NULL){
+        t_eval = (double*)PyArray_DATA(t_evalarray_arr);  
+        t_evalsize = (int)PyArray_SIZE(t_evalarray_arr);
+    }
+    std::list<double> t_evallist;
+    t_evallist.resize(t_evalsize);
+    std::cout << "resized vector to " << t_evalsize << std::endl;
+    int i=0;
+    for(auto it=t_evallist.begin(); it!=t_evallist.end(); it++){
+        *it = t_eval[i];
+        std::cout << *it << std::endl;
+        i++;
+    }
+    std::cout << "filled up vector " << std::endl;
+
     // Get array sizes
     int tssize = (int)PyArray_SIZE(tsarray_arr);
     int wssize = (int)PyArray_SIZE(wsarray_arr);
@@ -99,21 +126,53 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
         Py_DECREF(tsarray);
         Py_DECREF(wsarray);
         Py_DECREF(gsarray);
+//        if(t_evalobj!=NULL){
+//            Py_DECREF(t_evalarray);
+//        }
         return (PyObject *) NULL;
     }
 
     // Call the C++ functions to construct system and solve
     de_system sys = de_system(ts,ws,gs,islogw,islogg);
-    Solution solution(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output);
-    solution.solve();
-    // Build output values
     std::list<std::complex<double>> sol,dsol;
     std::list<double> times;
     std::list<bool> wkbs;
-    sol = solution.sol;
-    dsol = solution.dsol;
-    times = solution.times;
-    wkbs = solution.wkbs;
+    std::list<std::complex<double>> x_eval;
+
+    if(t_evalobj!=NULL){
+        std::cout << "calling solution with dense output" << std::endl;
+        Solution solution(sys,x0,dx0,ti,tf,t_evallist,order,rtol,atol,h0,full_output);
+        std::cout << "solution returned" << std::endl;
+        solution.solve();
+        x_eval = solution.dosol;
+        sol = solution.sol;
+        dsol = solution.dsol;
+        times = solution.times;
+        wkbs = solution.wkbs;
+    }
+    else{ 
+        Solution solution(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output);
+        solution.solve();
+        x_eval = solution.dosol;
+        sol = solution.sol;
+        dsol = solution.dsol;
+        times = solution.times;
+        wkbs = solution.wkbs;
+    }
+    // Build output values
+    int Ndense = x_eval.size();
+    PyObject *pyx_eval = PyList_New(Ndense);
+    int Neval = 0;
+    std::cout << "building output dict" << std::endl;
+    for(auto itx_eval = x_eval.begin(); itx_eval!=x_eval.end(); ++itx_eval){
+        Py_complex x_eval_complex;
+        x_eval_complex.real = std::real(*itx_eval);
+        x_eval_complex.imag = std::real(*itx_eval);
+        PyList_SetItem(pyx_eval,Neval,Py_BuildValue("D",&x_eval_complex));
+        ++Neval;
+        std::cout << *itx_eval << std::endl;
+    }
+    std::cout << "built dense output list " << std::endl;
     auto itd = dsol.begin();
     auto itt = times.begin();
     auto itwkb = wkbs.begin();
@@ -130,10 +189,12 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
         PyList_SetItem(pydsol,Nsol,Py_BuildValue("D",&dx_complex)); 
         PyList_SetItem(pytimes,Nsol,Py_BuildValue("d",*itt)); 
         PyList_SetItem(pywkbs,Nsol,Py_BuildValue("i",*itwkb));
+        std::cout << *itd << ", " <<  *itt <<  ", " <<  *itwkb << std::endl;
         ++itd; ++itt; ++itwkb; ++Nsol;
     };
-    retdict = Py_BuildValue("{s:O,s:O,s:O,s:O}","sol",pysol,"dsol",pydsol,"t",pytimes,"types",pywkbs);
-
+    std::cout << "built other lists" << std::endl;
+        retdict = Py_BuildValue("{s:O,s:O,s:O,s:O,s:O}","sol",pysol,"dsol",pydsol,"t",pytimes,"types",pywkbs,"x_eval",pyx_eval);
+    std::cout << "built output dict" << std::endl;
     // Clean up
     Py_DECREF(tsarray);
     Py_DECREF(wsarray);
@@ -142,5 +203,8 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     Py_DECREF(pydsol);
     Py_DECREF(pytimes);
     Py_DECREF(pywkbs);
+    std::cout << "cleaned up" << std::endl;
+//    Py_DECREF(t_evalarray);
+//    Py_DECREF(pyx_eval);
     return retdict;
 }

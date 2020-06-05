@@ -6,6 +6,7 @@
 #include <string>
 #include <iomanip>
 #include <limits>
+#include <vector>
 #include "system.hpp"
 #include "rksolver.hpp"
 #include "wkbsolver.hpp"
@@ -29,12 +30,23 @@ class Solution
     Solution(de_system &de_sys, std::complex<double> x0, std::complex<double>
     dx0, double t_i, double t_f, int o=3, double r_tol=1e-4, double a_tol=0.0,
     double h_0=1, const char* full_output="");
+
+    template<typename X = double> Solution(de_system &de_sys,
+    std::complex<double> x0, std::complex<double> dx0, double t_i, double t_f,
+    const X &do_times, int o=3, double r_tol=1e-4, double a_tol=0.0,
+    double h_0=1, const char* full_output="");
+
     void solve();
     // stats
     int ssteps,totsteps,wkbsteps;
     std::list<std::complex<double>> sol, dsol;
     std::list<double> times;
     std::list<bool> wkbs;
+    // dense output
+    std::list<double> dotimes;
+    std::list<std::complex<double>> dosol, dodsol;
+    std::list<double>::iterator dotit;
+
 };
 
 
@@ -53,6 +65,14 @@ a_tol, double h_0, const char* full_output){
     h0 = h_0;
     fo = full_output;
     rksolver = RKSolver(de_sys);
+    // No dense output desired if this constructor was called, so only output
+    // answer at t_i and t_f
+    dotimes.push_back(t_i);
+    dotimes.push_back(t_f);
+    dosol.push_back(x0);
+    dodsol.push_back(dx0);
+    dotit = dotimes.end();
+
     switch(order){
         case 1: wkbsolver1 = WKBSolver1(de_sys, order);
                 wkbsolver = &wkbsolver1;
@@ -65,6 +85,49 @@ a_tol, double h_0, const char* full_output){
                 break;
     };
 };
+
+template<typename X> Solution::Solution(de_system &de_sys, std::complex<double> x0,
+std::complex<double> dx0, double t_i, double t_f, const X &do_times, int o, double r_tol, double
+a_tol, double h_0, const char* full_output){
+    
+    // Set parameters for solver
+    x = x0;
+    dx = dx0;
+    t = t_i;
+    tf = t_f;
+    order = o;
+    rtol = r_tol;
+    atol = a_tol;
+    h0 = h_0;
+    fo = full_output;
+    rksolver = RKSolver(de_sys);
+    // Dense output checks: 
+    int dosize = do_times.size();
+    dotimes.resize(dosize);
+    dosol.resize(dosize);
+    dodsol.resize(dosize);
+    int docount = 0;
+    auto doit = do_times.begin();
+    for(auto it=dotimes.begin(); it!=dotimes.end(); it++){
+        *it = *doit;
+        std::cout << "set: "<< *it << std::endl;
+        docount++; doit++;
+    }
+    dotit = dotimes.begin();
+
+    switch(order){
+        case 1: wkbsolver1 = WKBSolver1(de_sys, order);
+                wkbsolver = &wkbsolver1;
+                break;
+        case 2: wkbsolver2 = WKBSolver2(de_sys, order);
+                wkbsolver = &wkbsolver2;
+                break;
+        case 3: wkbsolver3 = WKBSolver3(de_sys, order);
+                wkbsolver = &wkbsolver3;
+                break;
+    };
+};
+
 
 void Solution::solve(){ 
     
@@ -94,6 +157,11 @@ void Solution::solve(){
     ssteps = 0;
     totsteps = 0;
     wkbsteps = 0;
+    // Dense output
+    std::list<double> inner_dotimes;
+    std::list<std::complex<double>> inner_dosols;
+    auto it_dosol = dosol.begin();
+
     // Determine direction of integration, fend>0 and integration ends when
     // it crosses zero
     if((t>=tf) and h<0){
@@ -174,6 +242,34 @@ void Solution::solve(){
             totsteps += 1;
             // check if chosen step was successful
             if(std::abs(hnext)>=std::abs(h)){
+                if(wkb){
+                    wkbsteps +=1;
+                    wkbs.push_back(true);
+                    // Successful WKB step; check for dense output required:
+                    if(dotit!=dotimes.end()){
+                        while(*dotit > t && *dotit <= tnext){
+                            std::cout << "found inner point: " << *dotit << std::endl;
+                            inner_dotimes.push_back(*dotit);
+                            dotit++;
+                        }
+                        if(inner_dotimes.size() > 0){
+                            inner_dosols.resize(inner_dotimes.size());
+                            wkbsolver->dense_step(t,inner_dotimes,inner_dosols);
+                            
+                       }
+                    }
+                    auto inner_it=inner_dosols.begin();
+                    while(inner_it!=inner_dosols.end() && it_dosol!=dosol.end()){
+                        std::cout << "inner dosol: " << *inner_it << std::endl;
+                        *it_dosol = *inner_it;
+                        it_dosol++;
+                        inner_it++;
+                    }
+                inner_dotimes.resize(0);
+                inner_dosols.resize(0);
+                }
+                else
+                    wkbs.push_back(false);
                 sol.push_back(xnext);
                 dsol.push_back(dxnext);
                 times.push_back(tnext);
@@ -191,12 +287,6 @@ void Solution::solve(){
                     fnext=tnext-tf;
                 };
                 ssteps +=1;
-                if(wkb){
-                    wkbsteps +=1;
-                    wkbs.push_back(true);
-                }
-                else
-                    wkbs.push_back(false);
                 break;
             }
             else{
@@ -244,7 +334,18 @@ void Solution::solve(){
             ++it_x;
             ++it_dx;
             ++it_w;
-        };
+        }
+        // print dense output to file
+        int dosize = dosol.size();
+        auto it_dosol = dosol.begin();
+        auto it_dotimes = dotimes.begin();
+        for(int i=0; i<dosize; i++){
+//            std::cout << *it_dotimes << ", " << *it_dosol << std::endl; 
+            f << std::setprecision(20) << *it_dotimes << ";" << std::setprecision(20) << *it_dosol << ";;\n";
+            ++it_dosol;
+            ++it_dotimes;
+        }
+        
         f.close();
     }
     

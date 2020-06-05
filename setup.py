@@ -25,7 +25,7 @@ pyoscode_module = Extension(
     name="_pyoscode",
     sources=["pyoscode/_pyoscode.cpp"],
     include_dirs=['include'],
-    extra_compile_args=['-std=c++11']
+    extra_compile_args=['-std=c++11','-Wall']
     )
 
 setup(
