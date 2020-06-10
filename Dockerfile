@@ -1,19 +1,3 @@
-FROM ubuntu
-RUN apt-get update && apt-get install -y \
-    git 
-RUN git clone https://github.com/eigenteam/eigen-git-mirror 
-RUN export CPLUS_INCLUDE_PATH="$PWD/eigen-git-mirror/:$CPLUS_INCLUDE_PATH"
-RUN git clone https://github.com/fruzsinaagocs/oscode
-
-
-FROM python:3.7-slim
-# install the notebook package
-RUN pip install --no-cache --upgrade pip && \
-    pip install --no-cache notebook
-RUN pip install numpy scipy matplotlib
-RUN cd oscode && \
-    pip install .
-
 # create user with a home directory
 ARG NB_USER
 ARG NB_UID
@@ -26,5 +10,22 @@ RUN adduser --disabled-password \
     ${NB_USER}
 WORKDIR ${HOME}
 USER ${USER}
+
+FROM ubuntu
+RUN apt-get update && apt-get install -y \
+    git 
+RUN git clone https://github.com/eigenteam/eigen-git-mirror 
+RUN export CPLUS_INCLUDE_PATH="$PWD/eigen-git-mirror/:$CPLUS_INCLUDE_PATH"
+RUN mkdir oscode
+RUN git clone https://github.com/fruzsinaagocs/oscode ${HOME}/oscode/
+
+
+FROM python:3.7-slim
+# install the notebook package
+RUN pip install --no-cache --upgrade pip && \
+    pip install --no-cache notebook
+RUN pip install numpy scipy matplotlib
+RUN cd oscode && \
+    pip install .
 
 
