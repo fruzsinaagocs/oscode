@@ -15,7 +15,7 @@ USER ${USER}
 
 RUN apt-get update && apt-get install -y \
     git \
-    pip \
+    pip 
 RUN git clone https://github.com/eigenteam/eigen-git-mirror 
 RUN export CPLUS_INCLUDE_PATH="$PWD/eigen-git-mirror/:$CPLUS_INCLUDE_PATH"
 RUN mkdir oscode
