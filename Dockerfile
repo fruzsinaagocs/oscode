@@ -9,10 +9,10 @@ RUN pip3 install --no-cache --upgrade pip && \
 RUN git clone https://github.com/eigenteam/eigen-git-mirror 
 RUN export CPLUS_INCLUDE_PATH="$PWD/eigen-git-mirror/:$CPLUS_INCLUDE_PATH"
 RUN mkdir oscode
-RUN git clone https://github.com/fruzsinaagocs/oscode ${HOME}/oscode/
+RUN git clone https://github.com/fruzsinaagocs/oscode oscode/
 
 RUN cd oscode && \
-    pip3 install .
+    python setup.py install 
 
 # create user with a home directory
 ARG NB_USER
