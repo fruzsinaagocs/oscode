@@ -8,7 +8,7 @@ FROM python:3.7-slim
 # install the notebook package
 RUN pip install --no-cache --upgrade pip && \
     pip install --no-cache notebook
-RUN pip install -r requirements.txt
+RUN pip install numpy scipy matplotlib
 RUN pip install .
 
 # create user with a home directory
