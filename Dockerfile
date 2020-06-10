@@ -12,7 +12,7 @@ RUN mkdir oscode
 RUN git clone https://github.com/fruzsinaagocs/oscode oscode/
 
 RUN cd oscode && \
-    python3 setup.py install 
+    CPLUS_INCLUDE_PATH="$PWD/eigen-git-mirror/" python3 setup.py install
 
 # create user with a home directory
 ARG NB_USER
