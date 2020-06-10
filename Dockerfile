@@ -1,3 +1,5 @@
+FROM ubuntu
+
 # create user with a home directory
 ARG NB_USER
 ARG NB_UID
@@ -11,7 +13,6 @@ RUN adduser --disabled-password \
 WORKDIR ${HOME}
 USER ${USER}
 
-FROM ubuntu
 RUN apt-get update && apt-get install -y \
     git \
     pip \
