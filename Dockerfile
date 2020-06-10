@@ -7,7 +7,7 @@ RUN pip3 install --no-cache --upgrade pip && \
     pip3 install scipy numpy matplotlib
 
 RUN git clone https://github.com/eigenteam/eigen-git-mirror 
-ENV CPLUS_INCLUDE_PATH=`pwd`/eigen-git-mirror/:${CPLUS_INCLUDE_PATH}
+ENV CPLUS_INCLUDE_PATH=${PWD}/eigen-git-mirror/:${CPLUS_INCLUDE_PATH}
 RUN echo $CPLUS_INCLUDE_PATH
 RUN mkdir oscode
 RUN git clone https://github.com/fruzsinaagocs/oscode oscode/
