@@ -2,9 +2,9 @@ FROM ubuntu
 
 RUN apt-get update && apt-get install -y \
     git python3-pip
-RUN pip install --no-cache --upgrade pip && \
-    pip install --no-cache notebook && \
-    pip install scipy numpy matplotlib
+RUN pip3 install --no-cache --upgrade pip && \
+    pip3 install --no-cache notebook && \
+    pip3 install scipy numpy matplotlib
 
 RUN git clone https://github.com/eigenteam/eigen-git-mirror 
 RUN export CPLUS_INCLUDE_PATH="$PWD/eigen-git-mirror/:$CPLUS_INCLUDE_PATH"
@@ -12,7 +12,7 @@ RUN mkdir oscode
 RUN git clone https://github.com/fruzsinaagocs/oscode ${HOME}/oscode/
 
 RUN cd oscode && \
-    pip install .
+    pip3 install .
 
 # create user with a home directory
 ARG NB_USER
