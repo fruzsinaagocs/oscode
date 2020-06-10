@@ -8,7 +8,7 @@ RUN pip3 install --no-cache --upgrade pip && \
 
 RUN git clone https://github.com/eigenteam/eigen-git-mirror 
 ENV CPLUS_INCLUDE_PATH=`pwd`/eigen-git-mirror/:${CPLUS_INCLUDE_PATH}
-
+RUN echo $CPLUS_INCLUDE_PATH
 RUN mkdir oscode
 RUN git clone https://github.com/fruzsinaagocs/oscode oscode/
 
