@@ -12,7 +12,7 @@ RUN mkdir oscode
 RUN git clone https://github.com/fruzsinaagocs/oscode oscode/
 
 RUN cd oscode && \
-    python setup.py install 
+    python3 setup.py install 
 
 # create user with a home directory
 ARG NB_USER
