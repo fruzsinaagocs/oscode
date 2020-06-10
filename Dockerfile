@@ -1,7 +1,7 @@
 FROM ubuntu
 
 RUN apt-get update && apt-get install -y \
-    git python-pip
+    git python3-pip
 RUN pip install --no-cache --upgrade pip && \
     pip install --no-cache notebook && \
     pip install scipy numpy matplotlib
