@@ -9,7 +9,9 @@ FROM python:3.7-slim
 RUN pip install --no-cache --upgrade pip && \
     pip install --no-cache notebook
 RUN pip install numpy scipy matplotlib
-RUN pip install .
+RUN git clone https://github.com/fruzsinaagocs/oscode && \
+    cd oscode && \
+    pip install .
 
 # create user with a home directory
 ARG NB_USER
