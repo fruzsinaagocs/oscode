@@ -18,7 +18,7 @@ USER ${USER}
 
 FROM ubuntu
 RUN apt-get update && apt-get install -y \
-    git \
+    git 
 RUN git clone https://github.com/eigenteam/eigen-git-mirror 
 RUN export CPLUS_INCLUDE_PATH="$PWD/eigen-git-mirror/:$CPLUS_INCLUDE_PATH"
 RUN pip install -r requirements.txt
