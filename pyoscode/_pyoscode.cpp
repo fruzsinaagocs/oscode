@@ -28,7 +28,7 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
 
     int islogw=0,islogg=0,order=3;
     const char* full_output="";
-    double ti,tf,rtol=1e-4,atol=0.0,h0=1.0;
+    double ti,tf,rtol,atol,h0;
     std::complex<double> x0,dx0;
     PyObject *tsobj, *wsobj, *gsobj;
     // Define keywords
@@ -87,6 +87,11 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
             throw "The start of integration, ti, must lie inside the array ts.";
         else if(tf < ts[0] or tf > ts[tssize-1])
             throw "The end of integration, tf, must lie inside of the array ts.";
+
+        // Check 4: direction of integration must match initial stepsize sign
+        if( ((tf-ti)>0 and h0<0) or ((tf-ti)<0 and h0>0) )
+            throw "Direction of integration ( tf-ti ) in conflict with sign of initial step (h).";
+        
     }
     catch(const char* errormsg){
         PyErr_SetString(PyExc_TypeError, errormsg);

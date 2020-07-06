@@ -2,16 +2,27 @@
 oscode: Oscillatory ordinary differential equation solver
 ========================================================================
 
+.. image::
+    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra.gif
+    :width: 800
+
 :oscode: oscillatory ordinary differential equation solver
 :Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
-:Version: 0.1.0
+:Version: 0.1.2
 :Homepage: https://github.com/fruzsinaagocs/oscode
 :Documentation: https://oscode.readthedocs.io
-
+:Paper: https://arxiv.org/abs/1906.01421
+  
+.. image:: https://travis-ci.org/fruzsinaagocs/oscode.svg?branch=master
+    :target: https://travis-ci.org/fruzsinaagocs/oscode
+    :alt: Travis CI build status
 .. image:: https://readthedocs.org/projects/oscode/badge/?version=latest
     :target: https://oscode.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
- 
+.. image:: https://badges.gitter.im/oscode-help/community.svg
+    :target: https://gitter.im/oscode-help/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+    :alt: Chat on gitter
+
 
 ``oscode`` is a C++ tool with a Python interface that solves **osc**\illatory
 **o**\rdinary **d**\ifferential **e**\quations efficiently. It is designed to
@@ -341,6 +352,11 @@ Installation
 Changelog
 ---------
 
+- 0.1.2:
+    - Bug that occurred when beginning and end of integration coincided
+      corrected
+- 0.1.1:
+    - Automatic detection of direction of integration
 - 0.1.0:
     - Memory leaks at python interface fixed
     - C++ documentation added 

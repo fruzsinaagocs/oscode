@@ -1,0 +1,19 @@
+before_install:
+    - git clone https://github.com/eigenteam/eigen-git-mirror
+    - export CPLUS_INCLUDE_PATH="$PWD/eigen-git-mirror/:$CPLUS_INCLUDE_PATH"
+    - sudo apt-get update
+    - sudo apt-get install libboost-all-dev
+language: python
+python: 
+    - "2.7"
+    - "3.4"
+    - "3.5"
+    - "3.6"
+install: 
+    - pip install -r requirements.txt
+    - pip install .
+script:
+    - pytest tests/
+branches:
+    only:
+    - master
