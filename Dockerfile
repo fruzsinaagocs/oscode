@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y \
     git python3-pip
 RUN pip3 install --no-cache --upgrade pip && \
     pip3 install --no-cache notebook && \
-    pip3 install scipy numpy matplotlib ipywidgets jupyter_contrib_extensions \
+    pip3 install scipy numpy matplotlib ipywidgets jupyter_contrib_nbextensions \
     hide_code cite2c && \
     jupyter contrib nbextension install --user && \
     jupyter nbextension enable hide_code --user --py && \
