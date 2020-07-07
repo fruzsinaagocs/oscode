@@ -4,7 +4,11 @@ RUN apt-get update && apt-get install -y \
     git python3-pip
 RUN pip3 install --no-cache --upgrade pip && \
     pip3 install --no-cache notebook && \
-    pip3 install scipy numpy matplotlib ipywidgets
+    pip3 install scipy numpy matplotlib ipywidgets jupyter_contrib_extensions \
+    hide_code cite2c && \
+    jupyter contrib nbextension install --user && \
+    jupyter nbextension enable hide_code --user --py && \
+    python3 -m cite2c.install
 
 RUN git clone https://github.com/eigenteam/eigen-git-mirror 
 ENV CPLUS_INCLUDE_PATH=${PWD}/eigen-git-mirror/:${CPLUS_INCLUDE_PATH}
