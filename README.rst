@@ -2,6 +2,13 @@
 oscode: Oscillatory ordinary differential equation solver
 ========================================================================
 
+
+**Scipy 2020 conference talk slides:**  |scipy-binder| 
+
+.. |scipy-binder| image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/fruzsinaagocs/oscode/dense-output-devel?filepath=pyoscode_scipy.ipynb
+
+
 :oscode: oscillatory ordinary differential equation solver
 :Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
 :Version: 0.1.2
@@ -19,10 +26,6 @@ oscode: Oscillatory ordinary differential equation solver
     :target: https://gitter.im/oscode-help/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
     :alt: Chat on gitter
 
-**Scipy 2020 conference talk slides:**
-
-.. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/fruzsinaagocs/oscode/dense-output-devel?filepath=pyoscode_scipy.ipynb
 
 ``oscode`` is a C++ tool with a Python interface that solves **osc**\illatory
 **o**\rdinary **d**\ifferential **e**\quations efficiently. It is designed to
@@ -60,7 +63,8 @@ Dependencies
 Basic requirements for using the C++ interface:
 
 - C++11 or later
-- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__
+- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__ 
+	- don't forget to add the location of Eigen source files to the ``CPLUS_INCLUDE_PATH`` environment variable (see `Installation troubleshooting`_)
 
 For using the Python interface, you will additionally need:
 
@@ -76,11 +80,13 @@ for the examples, plotting requires
 Python
 ~~~~~~
 
-``pyoscode`` can be installed via pip (*not available yet*)
+``pyoscode`` can be installed by cloning and using ``pip``:
 
 .. code:: bash
-
-   pip install pyoscode
+   
+   git clone https://github.com/fruzsinaagocs/oscode
+   cd oscode
+   pip install .
 
 or via the setup.py
 
@@ -92,7 +98,7 @@ or via the setup.py
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
 you wish to install globally or in a virtual environment. If you have any
-difficulties, check out the FAQs_ section below. 
+difficulties, check out the `Installation troubleshooting`_ section below. 
 
 You can check that things are working by running
 
@@ -115,6 +121,29 @@ and then include the relevant header files in your C++ code:
 
     #include "solver.hpp"
     #include "system.hpp"
+
+Installation troubleshooting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Eigen import errors:
+    .. code:: bash
+
+       pyoscode/_pyoscode.hpp:6:10: fatal error: Eigen/Dense: No such file or directory
+        #include <Eigen/Dense>
+                  ^~~~~~~~~~~~~
+
+    Try explicitly including the location of your Eigen library via the
+    ``CPLUS_INCLUDE_PATH`` environment variable, for example:
+
+    .. code:: bash
+
+       CPLUS_INCLUDE_PATH=/usr/include/eigen3 python setup.py install --user
+       # or 
+       CPLUS_INCLUDE_PATH=/usr/include/eigen3 pip install pyoscode
+
+    where  ``/usr/include/eigen3`` should be replaced with your system-specific
+    eigen location.
+
 
 
 Quick start
@@ -285,33 +314,7 @@ Citation
 If the works below are **in prep.**, please email the authors at fa325@cam.ac.uk
 for a copy.
 
-If you use ``oscode`` to solve equations for a publication, please cite
-as: ::
-
-   Agocs, F., Handley, W., Lasenby, A., and Hobson, M., (2019). An efficient method for solving highly oscillatory
-   ordinary differential equations with applications to physical systems. arXiv
-   e-prints, arXiv:1906.01421 (2019) [physics.comp-ph].
-
-or using the BibTeX:
-
-.. code:: bibtex
-
-	@ARTICLE{2019arXiv190601421A,
-	       author = {{Agocs}, F.~J. and {Handley}, W.~J. and {Lasenby}, A.~N. and
-	         {Hobson}, M.~P.},
-	        title = "{An efficient method for solving highly oscillatory ordinary differential equations with applications to physical systems}",
-	      journal = {arXiv e-prints},
-	     keywords = {Physics - Computational Physics, Astrophysics - Instrumentation and Methods for Astrophysics, Mathematics - Numerical Analysis},
-	         year = "2019",
-	        month = "May",
-	          eid = {arXiv:1906.01421},
-	        pages = {arXiv:1906.01421},
-	archivePrefix = {arXiv},
-	       eprint = {1906.01421},
-	 primaryClass = {physics.comp-ph},
-	       adsurl = {https://ui.adsabs.harvard.edu/abs/2019arXiv190601421A},
-	      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-	}
+If you use ``oscode`` to solve equations for a publication, please cite `this <https://scholar.google.com/scholar?q=An%20efficient%20method%20for%20solving%20highly%20oscillatory%20ordinary%20differential%20equations%20with%20applications%20to%20physical%20systems.%20arXiv%202019>`__ version.
 
 
 Contributing
@@ -323,30 +326,6 @@ by:
 - Opening and `issue <https://www.github.com/fruzsinaagocs/oscode/issues/>`__ to report bugs and propose new features.
 - Making a pull request.
 
-FAQs
-----
-
-Installation
-~~~~~~~~~~~~
-
-1. Eigen import errors:
-    .. code:: bash
-
-       pyoscode/_pyoscode.hpp:6:10: fatal error: Eigen/Dense: No such file or directory
-        #include <Eigen/Dense>
-                  ^~~~~~~~~~~~~
-
-    Try explicitly including the location of your Eigen library via the
-    ``CPLUS_INCLUDE_PATH`` environment variable, for example:
-
-    .. code:: bash
-
-       CPLUS_INCLUDE_PATH=/usr/include/eigen3 python setup.py install --user
-       # or 
-       CPLUS_INCLUDE_PATH=/usr/include/eigen3 pip install pyoscode
-
-    where  ``/usr/include/eigen3`` should be replaced with your system-specific
-    eigen location.
 
 
 Changelog
