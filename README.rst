@@ -2,12 +2,15 @@
 oscode: Oscillatory ordinary differential equation solver
 ========================================================================
 
+**Oxford talk slides:**  |oxford-binder|
 
 **Scipy 2020 conference talk slides:**  |scipy-binder| 
 
 .. |scipy-binder| image:: https://mybinder.org/badge_logo.svg
  :target: https://mybinder.org/v2/gh/fruzsinaagocs/oscode/dense-output-devel?filepath=pyoscode_scipy.ipynb
 
+.. |oxford-binder| image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/fruzsinaagocs/oscode/dense-output-devel?filepath=oxford-talk-2.ipynb
 
 :oscode: oscillatory ordinary differential equation solver
 :Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
