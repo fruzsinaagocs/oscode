@@ -5,20 +5,21 @@ class RKSolver
 {
     private: 
     // Frequency and friction term
-    std::function<std::complex<double>(double)> w;
+    //std::function<std::complex<double>(double)> w;
     std::function<std::complex<double>(double)> g;
     
 
     // Butcher tablaus
     Eigen::Matrix<double,5,5> butcher_a5;
     Eigen::Matrix<double,3,3> butcher_a4;
-    Eigen::Matrix<double,6,1> butcher_b5, butcher_c5;
+    Eigen::Matrix<double,6,1> butcher_b5, butcher_c5, dense_b5;
     Eigen::Matrix<double,4,1> butcher_b4, butcher_c4;
 
     // Current values of w, g
     std::complex<double> wi, gi;
    
     public:
+    std::function<std::complex<double>(double)> w;
 //    std::complex<double> w(double);
 //    std::complex<double> g(double);
     
@@ -33,6 +34,12 @@ class RKSolver
     Eigen::Matrix<std::complex<double>,2,2> step(std::complex<double>, std::complex<double>, double, double);
     // ODE to solve
     Eigen::Matrix<std::complex<double>,1,2> f(double t, const Eigen::Matrix<std::complex<double>,1,2> &y);  
+    // For dense output
+    Eigen::Matrix<std::complex<double>,6,2> k5;
+    Eigen::Matrix<std::complex<double>,1,2> dense_point(std::complex<double> x, std::complex<double> dx, const Eigen::Matrix<std::complex<double>,6,2> &k5);
+    Eigen::Matrix<std::complex<double>,7,2> k_dense;
+    Eigen::Matrix<double,7,4> P_dense;
+    void dense_step(double t0, double h0, std::complex<double> y0, const std::list<double> &dots, std::list<std::complex<double>> & doxs);
 
 };
 
@@ -55,9 +62,18 @@ RKSolver::RKSolver(de_system &de_sys){
                 -1.568317088384971429762,2.395643923738960001662,0,
                 -8.769507466172720011410,10.97821961869480000808,-1.208712152522079996671;
 	RKSolver::butcher_b5 << 0.1127557227351729739820,0,0.5065579732655351768382,0.04830040376995117617928,0.3784749562978469803166,-0.04608905606850630731611;
+	RKSolver::dense_b5 << 0.2089555395,0.,0.7699501023,0.009438629906,-0.003746982422,0.01540271068; 
 	RKSolver::butcher_c5 << 0,0.117472338035267653574,0.357384241759677451843,0.642615758240322548157,0.882527661964732346426,1;
 	RKSolver::butcher_b4 << -0.08333333333333333333558,0.5833333333333333333357,0.5833333333333333333356,-0.08333333333333333333558;
 	RKSolver::butcher_c4 << 0,0.172673164646011428100,0.827326835353988571900,1;
+    RKSolver::P_dense << 1.        , -2.48711376,  2.42525041, -0.82538093,
+                         0.        ,  0.        ,  0.        ,  0.,
+                         0.        ,  3.78546138, -5.54469086,  2.26578746,
+                         0.        , -0.27734213,  0.74788587, -0.42224334,
+                         0.        , -2.94848704,  7.41087391, -4.08391191,
+                         0.        ,  0.50817346, -1.20070313,  0.64644062,
+                         0.        ,  1.4193081 , -3.8386162 ,  2.4193081;
+
 };
 
 Eigen::Matrix<std::complex<double>,1,2> RKSolver::f(double t, const Eigen::Matrix<std::complex<double>,1,2> &y){
@@ -69,6 +85,49 @@ Eigen::Matrix<std::complex<double>,1,2> RKSolver::f(double t, const Eigen::Matri
     return result;
 };
 
+Eigen::Matrix<std::complex<double>,1,2> RKSolver::dense_point(std::complex<double> x, std::complex<double> dx, const Eigen::Matrix<std::complex<double>,6,2> &k5){
+
+    Eigen::Matrix<std::complex<double>,1,2> ydense;
+    ydense << x, dx;
+    for(int j=0; j<=5; j++)
+        ydense += 0.5866586817*dense_b5(j)*k5.row(j);       
+   return ydense; 
+    
+};
+
+void RKSolver::dense_step(double t0, double h0, std::complex<double> y0, const std::list<double> &dots, std::list<std::complex<double>> & doxs){
+    
+    int docount = dots.size();
+    double h = h0;
+    double sig, sig2, sig3, sig4;
+    Eigen::Matrix<std::complex<double>,2,4> Q_dense = k_dense.transpose()*P_dense;
+    Eigen::MatrixXd  R_dense(4,docount);
+    Eigen::MatrixXcd Y_dense(2,docount);
+    
+    int colcount = 0;
+    for(auto it=dots.begin(); it!=dots.end(); it++){
+        // Transform intermediate points to be in (-1,1):
+        sig = (*it - t0)/h; 
+        sig2 = sig*sig;
+        sig3 = sig2*sig;
+        sig4 = sig3*sig;
+        R_dense.col(colcount) << sig, sig2, sig3, sig4;
+        colcount += 1;
+    }
+    std::cout << R_dense << std::endl;
+    Y_dense = Q_dense*R_dense;
+    colcount = 0;
+    std::cout << "Y dense: " << Y_dense << std::endl;
+    std::cout << "y0: " << y0 << std::endl;
+    for(auto it=doxs.begin(); it!=doxs.end(); it++){
+        *it = y0 + Y_dense.row(0)(colcount);
+        std::cout << *it << std::endl;
+        colcount += 1;
+    }
+
+};
+
+
 Eigen::Matrix<std::complex<double>,2,2> RKSolver::step(std::complex<double> x0, std::complex<double> dx0, double t0, double h){
 
     Eigen::Matrix<std::complex<double>,1,2> y0, y, y4, y5, delta, k5_i, k4_i;
@@ -76,7 +135,6 @@ Eigen::Matrix<std::complex<double>,2,2> RKSolver::step(std::complex<double> x0, 
     y0 << x0, dx0;
     y5 = y4;
     // TODO: resizing of ws5, gs5, insertion
-    Eigen::Matrix<std::complex<double>,6,2> k5;
     Eigen::Matrix<std::complex<double>,4,2> k4;
     Eigen::Matrix<std::complex<double>,2,2> result;
     k5.row(0) = h*f(t0, y0);
@@ -117,6 +175,11 @@ Eigen::Matrix<std::complex<double>,2,2> RKSolver::step(std::complex<double> x0, 
     gs5(4) = gs5(3);
     gs5(3) = gs5(2);
     gs5(2) = g(t0 + h/2);
+
+    // Fill up k_dense matrix for dense output
+    for(int i=0; i<=5; i++)
+        k_dense.row(i) = k5.row(i);
+    k_dense.row(6) = h*f(t0+h,y5);
     return result;
 };
 

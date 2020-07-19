@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <limits>
 #include <vector>
+#include "interpolator.hpp"
 #include "system.hpp"
 #include "rksolver.hpp"
 #include "wkbsolver.hpp"
@@ -43,8 +44,8 @@ class Solution
     std::list<double> times;
     std::list<bool> wkbs;
     // dense output
-    std::list<double> dotimes;
-    std::list<std::complex<double>> dosol, dodsol;
+    std::list<double> dotimes, dotimes_rk;
+    std::list<std::complex<double>> dosol, dodsol, dosol_rk, dodsol_rk;
     std::list<double>::iterator dotit;
 
 };
@@ -110,10 +111,11 @@ a_tol, double h_0, const char* full_output){
     auto doit = do_times.begin();
     for(auto it=dotimes.begin(); it!=dotimes.end(); it++){
         *it = *doit;
-        std::cout << "set: "<< *it << std::endl;
+//        std::cout << "set: "<< *it << std::endl;
         docount++; doit++;
     }
     dotit = dotimes.begin();
+    std::cout << *dotit << std::endl;
 
     switch(order){
         case 1: wkbsolver1 = WKBSolver1(de_sys, order);
@@ -161,6 +163,8 @@ void Solution::solve(){
     std::list<double> inner_dotimes;
     std::list<std::complex<double>> inner_dosols;
     auto it_dosol = dosol.begin();
+    Eigen::Matrix<std::complex<double>,1,2> y_dense_rk;
+    std::complex<double> x_dense_rk, dx_dense_rk;
 
     // Determine direction of integration, fend>0 and integration ends when
     // it crosses zero
@@ -242,34 +246,84 @@ void Solution::solve(){
             totsteps += 1;
             // check if chosen step was successful
             if(std::abs(hnext)>=std::abs(h)){
+                std::cout << "t: " << t << ", w(t) interpolated: " << rksolver.w(t) << ", w(t) actual: " << std::pow(100*100 - 1.0,0.5)/(1.0 + t*t) << std::endl;
+                if(dotit!=dotimes.end()){
+                    while(*dotit >= t && *dotit <= tnext){
+                        //std::cout << "found inner point: " << *dotit << std::endl;
+                        inner_dotimes.push_back(*dotit);
+                        dotit++;
+                    }
+                    if(inner_dotimes.size() > 0){
+                        inner_dosols.resize(inner_dotimes.size());
+                        if(wkb){
+                            // Dense output after successful WKB step
+                            wkbsolver->dense_step(t,inner_dotimes,inner_dosols);
+                        }
+                        else{
+                            // Dense output after successful RK step
+                            for(auto it=inner_dotimes.begin(); it!=inner_dotimes.end(); it++)
+                                //std::cout << "Inner point: " << *it << std::endl;
+                            rksolver.dense_step(t,h,x,inner_dotimes,inner_dosols);
+                            //y_dense_rk = rksolver.dense_point(x,dx,rksolver.k5);                       
+                            //dosol_rk.push_back(y_dense_rk(0));                                         
+                            //dodsol_rk.push_back(y_dense_rk(1));                                        
+                            //dotimes_rk.push_back(t+0.5866586817*h);                                    
+                        }
+                   }
+                }
+                auto inner_it=inner_dosols.begin();
+                while(inner_it!=inner_dosols.end() && it_dosol!=dosol.end()){
+//                    std::cout << "inner dosol: " << *inner_it << std::endl;
+                    *it_dosol = *inner_it;
+                    it_dosol++;
+                    inner_it++;
+                }
+                inner_dotimes.resize(0);
+                inner_dosols.resize(0);
+               
+                // record type of step
                 if(wkb){
                     wkbsteps +=1;
                     wkbs.push_back(true);
-                    // Successful WKB step; check for dense output required:
-                    if(dotit!=dotimes.end()){
-                        while(*dotit > t && *dotit <= tnext){
-                            std::cout << "found inner point: " << *dotit << std::endl;
-                            inner_dotimes.push_back(*dotit);
-                            dotit++;
-                        }
-                        if(inner_dotimes.size() > 0){
-                            inner_dosols.resize(inner_dotimes.size());
-                            wkbsolver->dense_step(t,inner_dotimes,inner_dosols);
-                            
-                       }
-                    }
-                    auto inner_it=inner_dosols.begin();
-                    while(inner_it!=inner_dosols.end() && it_dosol!=dosol.end()){
-                        std::cout << "inner dosol: " << *inner_it << std::endl;
-                        *it_dosol = *inner_it;
-                        it_dosol++;
-                        inner_it++;
-                    }
-                inner_dotimes.resize(0);
-                inner_dosols.resize(0);
                 }
-                else
+                else{
                     wkbs.push_back(false);
+                }
+
+//                if(wkb){
+//                    wkbsteps +=1;
+//                    wkbs.push_back(true);
+//                    // Successful WKB step; check for dense output required:
+//                    if(dotit!=dotimes.end()){
+//                        while(*dotit > t && *dotit <= tnext){
+////                            std::cout << "found inner point: " << *dotit << std::endl;
+//                            inner_dotimes.push_back(*dotit);
+//                            dotit++;
+//                        }
+//                        if(inner_dotimes.size() > 0){
+//                            inner_dosols.resize(inner_dotimes.size());
+//                            wkbsolver->dense_step(t,inner_dotimes,inner_dosols);
+//                            
+//                       }
+//                    }
+//                    auto inner_it=inner_dosols.begin();
+//                    while(inner_it!=inner_dosols.end() && it_dosol!=dosol.end()){
+////                        std::cout << "inner dosol: " << *inner_it << std::endl;
+//                        *it_dosol = *inner_it;
+//                        it_dosol++;
+//                        inner_it++;
+//                    }
+//                    inner_dotimes.resize(0);
+//                    inner_dosols.resize(0);
+//                }
+//                else{
+//                    wkbs.push_back(false);
+//                    // Dense output for successful RK step
+//                    y_dense_rk = rksolver.dense_point(x,dx,rksolver.k5);
+//                    dosol_rk.push_back(y_dense_rk(0));
+//                    dodsol_rk.push_back(y_dense_rk(1));
+//                    dotimes_rk.push_back(t+0.5866586817*h);
+//                }
                 sol.push_back(xnext);
                 dsol.push_back(dxnext);
                 times.push_back(tnext);
@@ -327,15 +381,15 @@ void Solution::solve(){
         auto it_x = sol.begin();
         auto it_dx = dsol.begin();
         for(int i=0; i<=ssteps; i++){
-            f << std::setprecision(15) << *it_t << " " <<
-            std::setprecision(15) << *it_x << " " << std::setprecision(15) <<
-            *it_dx << " " << *it_w << "\n"; 
+            f << std::setprecision(15) << *it_t << ";" <<
+            std::setprecision(15) << *it_x << ";" << std::setprecision(15) <<
+            *it_dx << ";" << *it_w << "\n"; 
             ++it_t;
             ++it_x;
             ++it_dx;
             ++it_w;
         }
-        // print dense output to file
+        // print all dense output to file
         int dosize = dosol.size();
         auto it_dosol = dosol.begin();
         auto it_dotimes = dotimes.begin();
@@ -345,7 +399,21 @@ void Solution::solve(){
             ++it_dosol;
             ++it_dotimes;
         }
-        
+
+//        // print RK dense output to file
+//        dosize = dosol_rk.size();
+//        auto it_dosol_rk = dosol_rk.begin();
+//        auto it_dodsol_rk = dodsol_rk.begin();
+//        auto it_dotimes_rk = dotimes_rk.begin();
+//        for(int i=0; i<dosize; i++){
+////            std::cout << *it_dotimes << ", " << *it_dosol << std::endl; 
+//            f << std::setprecision(20) << *it_dotimes_rk << ";" << std::setprecision(20) << *it_dosol_rk << ";" << *it_dodsol_rk << ";\n";
+//            ++it_dosol_rk;
+//            ++it_dodsol_rk;
+//            ++it_dotimes_rk;
+//        }
+ 
+
         f.close();
     }
     

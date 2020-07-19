@@ -8,30 +8,51 @@ class de_system
 
     public:
         // constructors
-        template<typename X, typename Y, typename Z> de_system(const X &ts, const Y &ws, const Z &gs, bool isglogw=false, bool islogg=false);
+        template<typename X, typename Y, typename Z, typename X_it> de_system(X &ts, Y &ws, Z &gs, X_it x_it, int size, bool isglogw=false, bool islogg=false);
         de_system(std::complex<double> (*w)(double), std::complex<double> (*g)(double));
         std::function<std::complex<double>(double)> w;
         std::function<std::complex<double>(double)> g;
 };
 
-template<typename X, typename Y, typename Z> de_system::de_system(const X &ts, const Y &ws, const Z &gs, bool islogw, bool islogg){
+//void de_system::set_array_types(Eigen::VectorXd::InnerIterator it){
+//}
+//
+//void de_system::set_array_types(std::vector<double>::iterator it){
+//}
+//
+//void de_system::set_array_types(double * it){
+//}
+
+
+
+template<typename X, typename Y, typename Z, typename X_it> de_system::de_system(X &ts, Y &ws, Z &gs, X_it x_it, int size, bool islogw, bool islogg){
     
     // 3. User supplied t, w/ln(w), g/ln(g) as array-like objects
     // (Eigen::Vectors, std::vectors, or arrays)
     
-    LinearInterpolator<X, Y> winterp(ts,ws);
-    LinearInterpolator<X, Z> ginterp(ts,gs);
+    int even = 0;
+
+    LinearInterpolator<X, Y, X_it> winterp(ts,ws,even);
+    LinearInterpolator<X, Z, X_it> ginterp(ts,gs,even);
+    
+    if(even==0){
+        winterp.set_interp_start(x_it);
+        ginterp.set_interp_start(x_it);
+        winterp.set_interp_bounds(ts,ts+size-1);
+        ginterp.set_interp_bounds(ts,ts+size-1);
+    }
+    
     if(islogw)
-        w = std::bind(&LinearInterpolator<X,Y>::expit, winterp,
+        w = std::bind(&LinearInterpolator<X,Y,X>::expit, winterp,
         std::placeholders::_1);
     else
-        w = std::bind(&LinearInterpolator<X,Y>::operator(), winterp,
+        w = std::bind(&LinearInterpolator<X,Y,X>::operator(), winterp,
         std::placeholders::_1);
     if(islogg)
-        g = std::bind(&LinearInterpolator<X,Z>::expit, ginterp,
+        g = std::bind(&LinearInterpolator<X,Z,X>::expit, ginterp,
         std::placeholders::_1);
     else
-        g = std::bind(&LinearInterpolator<X,Z>::operator(), ginterp,
+        g = std::bind(&LinearInterpolator<X,Z,X>::operator(), ginterp,
         std::placeholders::_1);
 }
 
