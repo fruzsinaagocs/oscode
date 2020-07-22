@@ -19,6 +19,9 @@ class RKSolver
     std::complex<double> wi, gi;
    
     public:
+
+    de_system *de_sys_;
+
     std::function<std::complex<double>(double)> w;
 //    std::complex<double> w(double);
 //    std::complex<double> g(double);
@@ -47,10 +50,23 @@ RKSolver::RKSolver(){
 };
 
 RKSolver::RKSolver(de_system &de_sys){
-    
+
+//    std::cout << "Address: " << &de_sys << std::endl;
+   
+    de_sys_ = &de_sys;
+//    std::cout << "address: " << de_sys_ << std::endl;
+//    std::cout << "Calling function: " << de_sys_->w(2.0) << std::endl;
+//    de_sys_->Winterp.update_interp_bounds();
+//    std::cout << "Calling function: " << de_sys_->w(3.0) << std::endl;
+
     // Set frequency and friction terms
+
     w = de_sys.w;
     g = de_sys.g;
+//    de_sys.Winterp.update_interp_bounds();
+//    std::complex<double> bla = de_sys.w(15.0);
+//    de_sys.Winterp.update_interp_bounds();
+//    std::cout << "Address of w in RKSolver: " << &w << ", address of de_sys.w: " << &de_sys.w << std::endl;
 
     // Set Butcher tableaus
     RKSolver::butcher_a5 << 0.1174723380352676535740,0,0,0,0,
@@ -78,8 +94,8 @@ RKSolver::RKSolver(de_system &de_sys){
 
 Eigen::Matrix<std::complex<double>,1,2> RKSolver::f(double t, const Eigen::Matrix<std::complex<double>,1,2> &y){
     
-    wi = w(t);
-    gi = g(t);
+    wi = de_sys_->Winterp(t);
+    gi = de_sys_->Ginterp(t);
     Eigen::Matrix<std::complex<double>,1,2> result;
     result << y[1], -wi*wi*y[0]-2.0*gi*y[1];
     return result;

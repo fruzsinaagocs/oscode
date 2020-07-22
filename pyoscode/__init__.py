@@ -4,7 +4,7 @@ import _pyoscode
 import numpy
 
 def solve(ts, ws, gs, ti, tf, x0, dx0, t_eval=[], logw=False, logg=False, order=3,
-rtol=1e-4, atol=0.0, h=None, full_output=""):
+rtol=1e-4, atol=0.0, h=None, full_output="", even_grid=0):
     """Solve a differential equation with the RKWKB method.
     
     Parameters
@@ -47,6 +47,10 @@ rtol=1e-4, atol=0.0, h=None, full_output=""):
     full_output: str , optional
         If given, the return dictionary will be written to a file with the supplied
         name.
+
+    even_grid: boolean, optional
+        False by default, set to True if the ts array is evenly spaced for
+        faster interpolation.
     
     Returns
     -------
@@ -84,6 +88,6 @@ rtol=1e-4, atol=0.0, h=None, full_output=""):
     
     # Run oscode from module library
     resdict = _pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0, t_eval=t_eval, logw=logw, logg=logg,
-    order=order, rtol=rtol, atol=atol, h=h, full_output=full_output) 
+    order=order, rtol=rtol, atol=atol, h=h, full_output=full_output, even_grid=even_grid) 
     
     return resdict

@@ -3,19 +3,24 @@
 #include <cmath>
 #include <complex>
 
-template<typename X, typename Y, typename InputIt_x>
+template<typename X = double*, typename Y= std::complex<double>*, typename InputIt_x= double*>
 struct LinearInterpolator{
 
-    double xstart, dx;
-    X x_; // array of indep. variable
-    Y y_; // array of dep. variable
-    int even_; // Bool, true for evenly spaced grids
-    InputIt_x x_lower_bound, x_upper_bound;
-    InputIt_x x_lower_it, x_upper_it, x0_it;
-    double x_lower, x_upper, h; 
-    std::complex<double> y_lower, y_upper;
+    public:
+        double xstart, dx;
+        X x_; // array of indep. variable
+        Y y_; // array of dep. variable
+        int even_; // Bool, true for evenly spaced grids
+        InputIt_x x_lower_bound, x_upper_bound;
+        InputIt_x x_lower_it, x_upper_it, x0_it;
+        double x_lower, x_upper, h; 
+        std::complex<double> y_lower, y_upper;
 
-    LinearInterpolator(X &x, Y &y, int even){
+    LinearInterpolator(){
+        // Default constructor
+    }
+
+    LinearInterpolator(X x, Y y, int even){
         // Constructor of struct, sets struct members
 
         even_ = even;
@@ -46,7 +51,15 @@ struct LinearInterpolator{
     }
 
     void update_interp_bounds(){
-        x_lower_bound = x_upper_it;
+        //std::cout << "x0_it " << *x0_it << std::endl; 
+        //std::cout << "Updating lower bound to: " << *x_upper_it << std::endl;
+        if(even_ == 0){
+            x_lower_bound = x_upper_it;
+            //std::cout << "x0_it " << *x0_it << std::endl; 
+            //std::cout << "Upper interpolation bound: " << *x_upper_bound << std::endl;
+            //std::cout << "Updated lower bound to: " << *x_upper_it << std::endl;
+        }
+        //std::cout << "Updated interpolation lower bound to x=" << *x_lower_bound << std::endl;
     }
 
     void update_interp_bounds_reverse(){
@@ -64,19 +77,29 @@ struct LinearInterpolator{
             double x1 = xstart + (i+1)*dx;
             double x0 = xstart + i*dx; 
             result = (y0+(y1-y0)*(x-xstart-dx*i)/dx);
-            std::cout << "lower: " << x0 << ", x: " << x << ", upper: " << x1 << std::endl;
-            //std::cout << (y0*(x1-x) + y1*(x-x0))/(x1-x0) << ", " << result << std::endl;
+            //std::cout << "lower: " << x0 << ", x: " << x << ", upper: " << x1 << std::endl;
+            //std::cout << std::setprecision(12) << x << ", " << result << std::endl;
         }
         else{
+            //std::cout << "Bounds are: " << *x_lower_bound << " at index " << std::distance(x0_it,x_lower_bound) << " and " << *x_upper_bound << " at index " << std::distance(x0_it,x_upper_bound) <<  std::endl;
+            //std::cout << "x_[0]: " << x_[0] << ", x0_it: " << *x0_it << std::endl;
+            //std::cout << "x_[1]: " << x_[1] << std::endl;
 
             x_upper_it = std::upper_bound(x_lower_bound, x_upper_bound, x);
+            //std::cout << "interpolated. Bounds were: " << *x_lower_bound << ", " << *x_upper_bound << std::endl;
+            //std::cout << "set x_upper_it to point to a value: " << *x_upper_it << std::endl;
             x_lower_it = x_upper_it-1; 
             x_lower = *x_lower_it;
             x_upper = *x_upper_it;
             y_lower = y_[(x_lower_it - x0_it)];
             y_upper = y_[(x_upper_it - x0_it)];
             result = (y_lower*(x_upper-x) + y_upper*(x-x_lower))/(x_upper - x_lower);
-            std::cout << std::setprecision(7) << "lower: " << x_lower << ", x: " << x << ", upper: " << x_upper << std::endl;
+            //std::cout << "x_lower_it: " << *x_lower_it << ", x_upper_it: " << *x_upper_it << std::endl;
+            //std::cout << std::setprecision(12) << x << ", " << result << std::endl;
+            //std::cout << std::setprecision(7) << "lower: " << x_lower << ", x: " << x << ", upper: " << x_upper << std::endl;
+            //std::cout << "setting x0_it to something else..." << std::endl;
+            //x0_it = &x_[10];
+            //std::cout << "x0_it now points to " << *x0_it << std::endl; 
         }
         return result;
     }

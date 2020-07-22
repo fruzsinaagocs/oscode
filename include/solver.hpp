@@ -24,6 +24,8 @@ class Solution
     WKBSolver1 wkbsolver1;
     WKBSolver2 wkbsolver2;
     WKBSolver3 wkbsolver3;
+    // Underlying de_system object
+    de_system *de_sys_;
 
     public:
     // constructor
@@ -55,6 +57,15 @@ Solution::Solution(de_system &de_sys, std::complex<double> x0,
 std::complex<double> dx0, double t_i, double t_f, int o, double r_tol, double
 a_tol, double h_0, const char* full_output){
     
+    // Make underlying equation system accessible
+    de_sys_ = &de_sys;
+//    std::cout << "calling from solver.hpp:" << std::endl;
+//    de_sys_->Winterp(17.0);
+//    de_sys_->Winterp.update_interp_bounds();
+//    std::cout << "done solver.hpp" << std::endl;
+
+
+
     // Set parameters for solver
     x = x0;
     dx = dx0;
@@ -65,7 +76,8 @@ a_tol, double h_0, const char* full_output){
     atol = a_tol;
     h0 = h_0;
     fo = full_output;
-    rksolver = RKSolver(de_sys);
+    //std::cout << "address: " << de_sys_ << std::endl;
+    rksolver = RKSolver(*de_sys_);
     // No dense output desired if this constructor was called, so only output
     // answer at t_i and t_f
     dotimes.push_back(t_i);
@@ -73,15 +85,15 @@ a_tol, double h_0, const char* full_output){
     dosol.push_back(x0);
     dodsol.push_back(dx0);
     dotit = dotimes.end();
-
+    
     switch(order){
-        case 1: wkbsolver1 = WKBSolver1(de_sys, order);
+        case 1: wkbsolver1 = WKBSolver1(*de_sys_, order);
                 wkbsolver = &wkbsolver1;
                 break;
-        case 2: wkbsolver2 = WKBSolver2(de_sys, order);
+        case 2: wkbsolver2 = WKBSolver2(*de_sys_, order);
                 wkbsolver = &wkbsolver2;
                 break;
-        case 3: wkbsolver3 = WKBSolver3(de_sys, order);
+        case 3: wkbsolver3 = WKBSolver3(*de_sys_, order);
                 wkbsolver = &wkbsolver3;
                 break;
     };
@@ -90,7 +102,9 @@ a_tol, double h_0, const char* full_output){
 template<typename X> Solution::Solution(de_system &de_sys, std::complex<double> x0,
 std::complex<double> dx0, double t_i, double t_f, const X &do_times, int o, double r_tol, double
 a_tol, double h_0, const char* full_output){
-    
+
+    // Make underlying equation system accessible
+    de_sys_ = &de_sys;
     // Set parameters for solver
     x = x0;
     dx = dx0;
@@ -101,7 +115,7 @@ a_tol, double h_0, const char* full_output){
     atol = a_tol;
     h0 = h_0;
     fo = full_output;
-    rksolver = RKSolver(de_sys);
+    rksolver = RKSolver(*de_sys_);
     // Dense output checks: 
     int dosize = do_times.size();
     dotimes.resize(dosize);
@@ -118,13 +132,13 @@ a_tol, double h_0, const char* full_output){
     std::cout << *dotit << std::endl;
 
     switch(order){
-        case 1: wkbsolver1 = WKBSolver1(de_sys, order);
+        case 1: wkbsolver1 = WKBSolver1(*de_sys_, order);
                 wkbsolver = &wkbsolver1;
                 break;
-        case 2: wkbsolver2 = WKBSolver2(de_sys, order);
+        case 2: wkbsolver2 = WKBSolver2(*de_sys_, order);
                 wkbsolver = &wkbsolver2;
                 break;
-        case 3: wkbsolver3 = WKBSolver3(de_sys, order);
+        case 3: wkbsolver3 = WKBSolver3(*de_sys_, order);
                 wkbsolver = &wkbsolver3;
                 break;
     };
@@ -201,6 +215,8 @@ void Solution::solve(){
             wkbx = wkbstep.row(0);
             wkberr = wkbstep.row(2);
             truncerr = wkbstep.row(1);
+            //std::cout << "at t=(" << t << "," << t+h << "), RK estimate: " << rkx << ", WKB estimate: " << wkbx << std::endl; 
+            //std::cout << "RK error: " << rkerr << ", WKB error: " << wkberr << std::endl;
             // Safety feature for when all wkb steps are 0 (truncer=0), but not
             // necessarily in good WKB regime:
             truncerr(0) = std::max(1e-10,abs(truncerr(0)));
@@ -212,10 +228,13 @@ void Solution::solve(){
             std::abs(wkberr(1))/std::abs(wkbx(1));
             rkdeltas << std::abs(rkerr(0))/std::abs(rkx(0)), std::abs(rkerr(1))/std::abs(rkx(1));
             rkdelta = std::max(1e-10, rkdeltas.maxCoeff()); 
-            if(std::isnan(wkbdeltas.maxCoeff())==false && std::isinf(std::real(wkbx(0)))==false && std::isinf(std::real(wkbx(1)))==false)
+            if(std::isnan(wkbdeltas.maxCoeff())==false && std::isinf(std::real(wkbx(0)))==false && std::isinf(std::imag(wkbx(0)))==false && std::isinf(std::real(wkbx(1)))==false && std::isinf(std::imag(wkbx(1)))==false && std::isnan(std::real(wkbx(0)))==false && std::isnan(std::imag(wkbx(0)))==false && std::isnan(std::real(wkbx(1)))==false && std::isnan(std::imag(wkbx(1)))==false)
                 wkbdelta = std::max(1e-10, wkbdeltas.maxCoeff(&maxindex));
-            else
+            else{
+                //std::cout << "encountered a nan or infinity in wkb step. wkbx: " << wkbx << ", wkbdelta: " << wkbdeltas << std::endl;
+                //std::cout << std::isnan(wkbdeltas.maxCoeff()) << ", " << std::isinf(std::real(wkbx(0))) << ", " << std::isinf(std::imag(wkbx(0))) << ", " << std::isinf(std::real(wkbx(1))) << ", " << std::isinf(std::imag(wkbx(1))) << ", " << std::isnan(std::real(wkbx(0))) << ", " << std::isnan(std::imag(wkbx(0))) << ", " << std::real(wkbx(1)) << ", " << std::isnan(std::imag(wkbx(1))) << std::endl;
                 wkbdelta = std::numeric_limits<double>::infinity();
+            }
 
             // predict next stepsize 
             hrk = h*std::pow((rtol/rkdelta),1.0/nrk);
@@ -246,7 +265,7 @@ void Solution::solve(){
             totsteps += 1;
             // check if chosen step was successful
             if(std::abs(hnext)>=std::abs(h)){
-                std::cout << "t: " << t << ", w(t) interpolated: " << rksolver.w(t) << ", w(t) actual: " << std::pow(100*100 - 1.0,0.5)/(1.0 + t*t) << std::endl;
+                //std::cout << "t: " << t << ", w(t) interpolated: " << rksolver.w(t) << ", w(t) actual: " << std::pow(100*100 - 1.0,0.5)/(1.0 + t*t) << std::endl;
                 if(dotit!=dotimes.end()){
                     while(*dotit >= t && *dotit <= tnext){
                         //std::cout << "found inner point: " << *dotit << std::endl;
@@ -324,6 +343,7 @@ void Solution::solve(){
 //                    dodsol_rk.push_back(y_dense_rk(1));
 //                    dotimes_rk.push_back(t+0.5866586817*h);
 //                }
+                //std::cout << "t: " << tnext << ", x: " << xnext << ", dx: " << dxnext << ", type: " << wkb << std::endl;
                 sol.push_back(xnext);
                 dsol.push_back(dxnext);
                 times.push_back(tnext);
@@ -341,6 +361,13 @@ void Solution::solve(){
                     fnext=tnext-tf;
                 };
                 ssteps +=1;
+                // Update interpolation bounds
+                //std::cout << "printing: " <<  de_sys_.Winterp.y_lower << std::endl;
+                //std::complex<double> bla = de_sys_->Winterp(15.0);
+                //std::complex<double> bla2 = de_sys_->Ginterp(17.0);
+                de_sys_->Winterp.update_interp_bounds();
+                de_sys_->Ginterp.update_interp_bounds();
+
                 break;
             }
             else{
@@ -369,7 +396,7 @@ void Solution::solve(){
     };
 
     // Write output to file if prompted
-    if(not *fo==0){
+    if(not (*fo==0)){
         std::string output(fo);
         std::ofstream f;
         f.open(output);

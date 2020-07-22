@@ -27,17 +27,17 @@ PyMODINIT_FUNC init_pyoscode(void){
 /* Function to run the solver */ 
 static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwargs){
 
-    int islogw=0,islogg=0,order=3;
+    int islogw=0,islogg=0,order=3,even=0;
     const char* full_output="";
     double ti,tf,rtol,atol,h0;
     std::complex<double> x0,dx0;
     PyObject *tsobj, *wsobj, *gsobj, *t_evalobj=NULL;
     // Define keywords
     static const char *kwlist[] =
-    {"ts","ws","gs","ti","tf","x0","dx0","t_eval","logw","logg","order","rtol","atol","h","full_output",NULL};
+    {"ts","ws","gs","ti","tf","x0","dx0","t_eval","logw","logg","order","rtol","atol","h","full_output","even_grid",NULL};
 
     // Interpret input arguments.
-    if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OOOddDD|Oiiiddds",const_cast<char**>(kwlist),&tsobj,&wsobj,&gsobj,&ti,&tf,&x0,&dx0,&t_evalobj,&islogw,&islogg,&order,&rtol,&atol,&h0,&full_output))
+    if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OOOddDD|Oiiidddsi",const_cast<char**>(kwlist),&tsobj,&wsobj,&gsobj,&ti,&tf,&x0,&dx0,&t_evalobj,&islogw,&islogg,&order,&rtol,&atol,&h0,&full_output,&even))
         return NULL;
     // Interpret input objects as numpy arrays
     PyObject *tsarray = PyArray_FROM_OTF(tsobj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
@@ -133,7 +133,7 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     }
 
     // Call the C++ functions to construct system and solve
-    de_system sys = de_system(ts,ws,gs,islogw,islogg);
+    de_system sys = de_system(ts,ws,gs,ts,tssize,islogw,islogg,even);
     std::list<std::complex<double>> sol,dsol;
     std::list<double> times;
     std::list<bool> wkbs;
