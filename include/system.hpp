@@ -16,6 +16,7 @@ class de_system
         std::function<std::complex<double>(double)> g;
         LinearInterpolator<> Winterp;
         LinearInterpolator<> Ginterp; 
+        bool islogg_, islogw_;
 };
 
 //void de_system::set_array_types(Eigen::VectorXd::InnerIterator it){
@@ -37,7 +38,9 @@ template<typename X, typename Y, typename Z, typename X_it> de_system::de_system
     // (Eigen::Vectors, std::vectors, or arrays)
     
     even_ = even;
-    std::cout << "Even grid?: " << even_ << std::endl;
+    islogg_ = islogg;
+    islogw_ = islogw;
+    //std::cout << "Even grid?: " << even_ << std::endl;
 
     LinearInterpolator<X,Y,X_it> winterp(ts,ws,even_);
     LinearInterpolator<X,Z,X_it> ginterp(ts,gs,even_);
@@ -59,19 +62,17 @@ template<typename X, typename Y, typename Z, typename X_it> de_system::de_system
 //    Winterp.update_interp_bounds();  
 
 
-
-
     if(islogw)
-        w = std::bind(&LinearInterpolator<X,Y,X>::expit, Winterp,
+        w = std::bind(&LinearInterpolator<X,Y,X_it>::expit, Winterp,
         std::placeholders::_1);
     else
-        w = std::bind(&LinearInterpolator<X,Y,X>::operator(), Winterp,
+        w = std::bind(&LinearInterpolator<X,Y,X_it>::operator(), Winterp,
         std::placeholders::_1);
     if(islogg)
-        g = std::bind(&LinearInterpolator<X,Z,X>::expit, Ginterp,
+        g = std::bind(&LinearInterpolator<X,Z,X_it>::expit, Ginterp,
         std::placeholders::_1);
     else
-        g = std::bind(&LinearInterpolator<X,Z,X>::operator(), Ginterp,
+        g = std::bind(&LinearInterpolator<X,Z,X_it>::operator(), Ginterp,
         std::placeholders::_1);
      
 //    std::cout << "calling w: " << std::endl;

@@ -61,8 +61,8 @@ RKSolver::RKSolver(de_system &de_sys){
 
     // Set frequency and friction terms
 
-    w = de_sys.w;
-    g = de_sys.g;
+    //w = de_sys.w;
+    //g = de_sys.g;
 //    de_sys.Winterp.update_interp_bounds();
 //    std::complex<double> bla = de_sys.w(15.0);
 //    de_sys.Winterp.update_interp_bounds();
@@ -94,8 +94,15 @@ RKSolver::RKSolver(de_system &de_sys){
 
 Eigen::Matrix<std::complex<double>,1,2> RKSolver::f(double t, const Eigen::Matrix<std::complex<double>,1,2> &y){
     
-    wi = de_sys_->Winterp(t);
-    gi = de_sys_->Ginterp(t);
+    if(de_sys_->islogw_)
+        wi = de_sys_->Winterp.expit(t);
+    else
+        wi = de_sys_->Winterp(t);
+    if(de_sys_->islogg_)
+        gi = de_sys_->Ginterp.expit(t);
+    else
+        gi = de_sys_->Ginterp(t);
+    //std::cout << "t: " << t << ", w(t): " << wi << ", w_actual(t): " << std::pow(t,0.5) <<  ", g(t): " << gi << std::endl;
     Eigen::Matrix<std::complex<double>,1,2> result;
     result << y[1], -wi*wi*y[0]-2.0*gi*y[1];
     return result;
@@ -130,14 +137,14 @@ void RKSolver::dense_step(double t0, double h0, std::complex<double> y0, const s
         R_dense.col(colcount) << sig, sig2, sig3, sig4;
         colcount += 1;
     }
-    std::cout << R_dense << std::endl;
+    //std::cout << R_dense << std::endl;
     Y_dense = Q_dense*R_dense;
     colcount = 0;
-    std::cout << "Y dense: " << Y_dense << std::endl;
-    std::cout << "y0: " << y0 << std::endl;
+    //std::cout << "Y dense: " << Y_dense << std::endl;
+    //std::cout << "y0: " << y0 << std::endl;
     for(auto it=doxs.begin(); it!=doxs.end(); it++){
         *it = y0 + Y_dense.row(0)(colcount);
-        std::cout << *it << std::endl;
+        //std::cout << *it << std::endl;
         colcount += 1;
     }
 
@@ -187,10 +194,17 @@ Eigen::Matrix<std::complex<double>,2,2> RKSolver::step(std::complex<double> x0, 
     // Add in missing w, g at t+h/2
     ws5(4) = ws5(3);
     ws5(3) = ws5(2);
-    ws5(2) = w(t0 + h/2);
+    if(de_sys_->islogw_)
+        ws5(2) = de_sys_->Winterp.expit(t0+h/2);
+    else
+        ws5(2) = de_sys_->Winterp(t0+h/2);
     gs5(4) = gs5(3);
     gs5(3) = gs5(2);
-    gs5(2) = g(t0 + h/2);
+    if(de_sys_->islogg_)
+        gs5(2) = de_sys_->Ginterp.expit(t0+h/2);
+    else
+        gs5(2) = de_sys_->Ginterp(t0+h/2);
+
 
     // Fill up k_dense matrix for dense output
     for(int i=0; i<=5; i++)

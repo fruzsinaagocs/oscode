@@ -106,10 +106,38 @@ struct LinearInterpolator{
 
     std::complex<double> expit (double x)  {
         // Does linear interpolation when the input is ln()-d
-        int i=int((x-xstart)/dx);
-        std::complex<double> y0=y_[i];
-        std::complex<double> y1=y_[i+1];
-        return std::exp(y0+(y1-y0)*(x-xstart-dx*i)/dx);
+        //std::cout << "expit called" << std::endl;
+
+        std::complex<double> result;
+        if(even_ == 1){
+            int i=int((x-xstart)/dx);
+            std::complex<double> y0=y_[i];
+            std::complex<double> y1=y_[i+1];
+            result = std::exp(y0+(y1-y0)*(x-xstart-dx*i)/dx);
+        }
+        else{
+            //std::cout << "Bounds are: " << *x_lower_bound << " at index " << std::distance(x0_it,x_lower_bound) << " and " << *x_upper_bound << " at index " << std::distance(x0_it,x_upper_bound) <<  std::endl;
+            //std::cout << "x_[0]: " << x_[0] << ", x0_it: " << *x0_it << std::endl;
+            //std::cout << "x_[1]: " << x_[1] << std::endl;
+
+            x_upper_it = std::upper_bound(x_lower_bound, x_upper_bound, x);
+            //std::cout << "interpolated. Bounds were: " << *x_lower_bound << ", " << *x_upper_bound << std::endl;
+            //std::cout << "set x_upper_it to point to a value: " << *x_upper_it << std::endl;
+            x_lower_it = x_upper_it-1; 
+            x_lower = *x_lower_it;
+            x_upper = *x_upper_it;
+            y_lower = y_[(x_lower_it - x0_it)];
+            y_upper = y_[(x_upper_it - x0_it)];
+            result = (y_lower*(x_upper-x) + y_upper*(x-x_lower))/(x_upper - x_lower);
+            result = std::exp(result);
+            //std::cout << "x_lower_it: " << *x_lower_it << ", x_upper_it: " << *x_upper_it << std::endl;
+            //std::cout << std::setprecision(12) << x << ", " << result << std::endl;
+            //std::cout << std::setprecision(7) << "lower: " << x_lower << ", x: " << x << ", upper: " << x_upper << std::endl;
+            //std::cout << "setting x0_it to something else..." << std::endl;
+            //x0_it = &x_[10];
+            //std::cout << "x0_it now points to " << *x0_it << std::endl; 
+        }
+        return result;
     }
    
 };

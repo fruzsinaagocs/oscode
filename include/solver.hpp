@@ -129,7 +129,7 @@ a_tol, double h_0, const char* full_output){
         docount++; doit++;
     }
     dotit = dotimes.begin();
-    std::cout << *dotit << std::endl;
+    //std::cout << *dotit << std::endl;
 
     switch(order){
         case 1: wkbsolver1 = WKBSolver1(*de_sys_, order);
