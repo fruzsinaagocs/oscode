@@ -11,15 +11,6 @@ authors:
   - name: Fruzsina Agocs^[corresponding author.]
     orcid: 0000-0002-1763-5884
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Will Handley
-    orcid: 0000-0002-5866-0445
-    affiliation: "1, 2"
-  - name: Anthony Lasenby
-    orcid: 0000-0002-8208-6332 
-    affiliation: "1, 2"
-  - name: Mike Hobson
-    orcid: 0000-0002-0384-0182 
-    affiliation: 1
 affiliations:
  - name: Astrophysics Group, Cavendish Laboratory, J. J. Thomson Avenue, Cambridge, CB3 0HE, UK
    index: 1
@@ -80,14 +71,14 @@ other numerical methods aiming to extend the range of oscillatory ODEs to solve
 
 The efficient solution of oscillatory ODEs is a long-standing
 numerical analysis problem with many existing methods to handle certain
-sub-classes of equations. Examples include successful methods by Petzold et al. [@petzold], reviewed in [@petzold-review] with many references therein, 
-Iserles et al. [@condon-deano-iserles] [@deano-integrals] [@hu-et-al-circuits], and Bremer [@bremer].
+sub-classes of equations. Examples include successful methods by Petzold [@petzold], reviewed in [@petzold-review] with many references therein, 
+Iserles et al. [@condon-deano-iserles] [@deano-integrals] [@hu-et-al-circuits], and Bremer [@bremer] (with implementation at [@bremer-code]).
 
 # Acknowledgements
 
-We thank Lukas Hergt for invaluable discussions during the early development of
-`(py)oscode` and his ongoing support. FA was supported by the Science and
-Technology Facilities Council (STFC). WH thanks Gonville & Caius College for
-their continuing support via a college research fellowship.
+I thank Lukas Hergt for invaluable discussions during the early development of
+`(py)oscode` and his ongoing support. Construction of the algorithm would not have been possible
+without the help and guidance of Will Handley, Mike Hobson, and Anthony Lasebnby. 
+I was supported by the Science and Technology Facilities Council (STFC).
 
 # References
