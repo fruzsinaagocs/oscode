@@ -44,7 +44,8 @@ integration range.
 
 `(py)oscode` is in C++, but comes with a Python wrapper.
 Its Python interface was designed to be similar to those included in `scipy`'s numerical ODE solution
-modules, as demonstrated below.
+modules. This is demonstrated in the example below whose output is shown in
+\autoref{fig:airy}.
 
 ```python
 import numpy as np
@@ -62,9 +63,14 @@ xf = 40.0
 yi = sp.airy(-xi)[0]
 dyi = -sp.airy(-xi)[1]
 
+# Get dense output at the following points
+t_eval = np.linspace(15,35,600)
+
 # Solve the equation
-solution = pyoscode.solve(xs, ws, gs, xi, xf, yi, dyi)
+solution = pyoscode.solve(xs, ws, gs, xi, xf, yi, dyi, t_eval=t_eval)
 ```
+
+![Caption for example figure.\label{fig:airy}](examples/airy.png)
 
 # Statement of need 
 
