@@ -8,7 +8,7 @@ tags:
   - oscillatory 
   - runge-kutta 
 authors:
-  - name: Fruzsina Agocs^[corresponding author. Email: fa325@cam.ac.uk]
+  - name: Fruzsina Agocs^[corresponding author. Email: fa325\@cam.ac.uk]
     orcid: 0000-0002-1763-5884
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
 affiliations:
