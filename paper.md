@@ -71,7 +71,7 @@ solution = pyoscode.solve(xs, ws, gs, xi, xf, yi, dyi, t_eval=t_eval)
 increase in step-size of `pyoscode`'s internal steps (orange dots) is due to the
 algorithm switching from using the RK method to the WKB approximation in the presence of high-frequency
 oscillations. The orange segment shows dense output, the solution at these
-points was evaluated at no additional evaluations of terms in the differential
+points was computed at no additional evaluations of terms in the differential
 equation. \label{fig:airy}](examples/airy.png)
 
 # Statement of need 
