@@ -45,7 +45,7 @@ with a time-dependent frequency and damping term, i.e. are of the form
 \begin{equation}\label{eq:eom}
 y'' + 2\gamma(x) y' + \omega^2(x) y = 0.
 \end{equation}
-(py)oscode is in C++, but comes with a Python wrapper.
+`(py)oscode` is in C++, but comes with a Python wrapper.
 
 # Statement of need 
 
@@ -53,25 +53,41 @@ Even if the terms in \autoref{eq:eom} change slowly, if the frequency of
 oscillations in the solution is high enough, standard numerical methods struggle
 to solve such equations quickly. Traditional methods have to trace every
 oscillation in the solution, taking many steps in $x$ at an enormous
-computational cost. The algorithm underlying (py)oscode, published in
+computational cost. The algorithm underlying `(py)oscode`, published in
 [@oscode], can detect when the solution is oscillatory and switch to a method
 based on an analytic approximation (Wentzel--Kramers--Brillouin, WKB) suited for
 oscillatory functions, otherwise using a Runge--Kutta (RK) method. Using the WKB
-approximation allows the algorithm to skip over several wavelength of
+approximation allows the algorithm to skip over several wavelengths of
 oscillation in a single step, reducing the number of steps taken drastically. It
 adaptively updates its step-size to keep the local numerical error within a
-user-specified tolerance. (py)oscode is capable of producing a solution estimate
+user-specified tolerance. `(py)oscode` is capable of producing a solution estimate
 at an arbitrary value of $x$, not just at its internal steps, therefore it can
 be used to generate a "continuous" solution. 
 
-(py)oscode has been used to speed up the numerical evolution of quantum
+# Related research and software
+
+`(py)oscode`'s development was motivated by the need for a significantly more
+efficient solver for the evolution of early-universe quantum fluctuations. These
+perturbations are thought to have been stretched to macroscopic scales by a
+phase of accelerated expansion, cosmic inflation, to later become the
+large-scale structure we see today. To understand the origins of structure, it
+is therfore essential to model the perturbations and understand the physics
+involved in inflation. `(py)oscode` has been used to speed up the numerical evolution of quantum
 fluctuations in the early universe, enabling the exploration of models beyond
 the standard model of cosmology [@curved-pps]. It served as inspiration for
 other numerical methods aiming to extend the range of oscillatory ODEs to solve
-[@beyond-rkwkb]. The efficient solution of oscillatory ODEs is a long-standing
+[@beyond-rkwkb]. 
+
+The efficient solution of oscillatory ODEs is a long-standing
 numerical analysis problem with many existing methods to handle certain
-sub-classes of equations, such as [@petzold] and [@bremer].
+sub-classes of equations. Examples include successful methods by Petzold et al. [@petzold], reviewed in [@petzold-review] with many references therein, 
+Iserles et al. [@condon-deano-iserles] [@deano-integrals] [@hu-et-al-circuits], and Bremer [@bremer].
 
 # Acknowledgements
+
+We thank Lukas Hergt for invaluable discussions during the early development of
+`(py)oscode` and his ongoing support. FA was supported by the Science and
+Technology Facilities Council (STFC). WH thanks Gonville & Caius College for
+their continuing support via a college research fellowship.
 
 # References
