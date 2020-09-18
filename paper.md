@@ -36,7 +36,7 @@ with a time-dependent frequency and damping term, i.e. are of the form
 \begin{equation}\label{eq:eom}
 y'' + 2\gamma(x) y' + \omega^2(x) y = 0.
 \end{equation}
-Importantly, the frequency $\omega(x)$ and damping $\gamma(x)$ terms do not need
+The frequency $\omega(x)$ and damping $\gamma(x)$ terms do not need
 to be explicit functions of $x$ (they can instead be e.g. the result of another
 numerical solution of an ODE), as they are supplied as sequences $\omega_j,
 \gamma_j$ evaluated at $x_i \leq x_j \leq x_f$, where $(x_i, x_f)$ is the
@@ -56,21 +56,23 @@ import pyoscode
 xs = np.linspace(0,40.0,5000)
 ws = np.sqrt(xs)
 gs = np.zeros_like(xs)
-
 # Initial conditions
 xi = 1.0
 xf = 40.0
 yi = sp.airy(-xi)[0]
 dyi = -sp.airy(-xi)[1]
-
 # Get dense output at the following points
 t_eval = np.linspace(15,35,600)
-
 # Solve the equation
 solution = pyoscode.solve(xs, ws, gs, xi, xf, yi, dyi, t_eval=t_eval)
 ```
 
-![Caption for example figure.\label{fig:airy}](examples/airy.png)
+![Numerical solution of the Airy equation, $y'' + xy = 0$, with `pyoscode`. The
+increase in step-size of `pyoscode`'s internal steps (orange dots) is due to the
+algorithm switching from using the RK method to the WKB approximation in the presence of high-frequency
+oscillations. The orange segment shows dense output, the solution at these
+points was evaluated at no additional evaluations of terms in the differential
+equation. \label{fig:airy}](examples/airy.png)
 
 # Statement of need 
 
