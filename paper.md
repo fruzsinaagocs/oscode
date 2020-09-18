@@ -74,7 +74,7 @@ large-scale structure we see today. To understand the origins of structure, it
 is therfore essential to model the perturbations and understand the physics
 involved in inflation. `(py)oscode` has been used to speed up the numerical evolution of quantum
 fluctuations in the early universe, enabling the exploration of models beyond
-the standard model of cosmology [@curved-pps]. It served as inspiration for
+the standard model of cosmology [@pps-curved]. It served as inspiration for
 other numerical methods aiming to extend the range of oscillatory ODEs to solve
 [@beyond-rkwkb]. 
 
