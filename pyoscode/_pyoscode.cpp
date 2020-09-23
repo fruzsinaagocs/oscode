@@ -167,7 +167,7 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     for(auto itx_eval = x_eval.begin(); itx_eval!=x_eval.end(); ++itx_eval){
         Py_complex x_eval_complex;
         x_eval_complex.real = std::real(*itx_eval);
-        x_eval_complex.imag = std::real(*itx_eval);
+        x_eval_complex.imag = std::imag(*itx_eval);
         PyList_SetItem(pyx_eval,Neval,Py_BuildValue("D",&x_eval_complex));
         ++Neval;
         //std::cout << *itx_eval << std::endl;

@@ -26,6 +26,8 @@ class Solution
     WKBSolver3 wkbsolver3;
     // Underlying de_system object
     de_system *de_sys_;
+    // Related to direction of integration
+    double fend, fnext;
 
     public:
     // constructor
@@ -59,12 +61,6 @@ a_tol, double h_0, const char* full_output){
     
     // Make underlying equation system accessible
     de_sys_ = &de_sys;
-//    std::cout << "calling from solver.hpp:" << std::endl;
-//    de_sys_->Winterp(17.0);
-//    de_sys_->Winterp.update_interp_bounds();
-//    std::cout << "done solver.hpp" << std::endl;
-
-
 
     // Set parameters for solver
     x = x0;
@@ -76,8 +72,30 @@ a_tol, double h_0, const char* full_output){
     atol = a_tol;
     h0 = h_0;
     fo = full_output;
-    //std::cout << "address: " << de_sys_ << std::endl;
     rksolver = RKSolver(*de_sys_);
+
+    // Determine direction of integration, fend>0 and integration ends when
+    // it crosses zero
+    if((t>=tf) and h0<0){
+        // backwards
+        fend = t-tf;
+        fnext = fend;
+        de_sys_->Winterp.sign_ = 0;
+        de_sys_->Ginterp.sign_ = 0;
+
+    }
+    else if((t<=tf) and h0>0){
+        // forward
+        fend = tf-t;
+        fnext = fend;
+        de_sys_->Winterp.sign_ = 1;
+        de_sys_->Ginterp.sign_ = 1;
+    }
+    else{
+        throw "Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h. ";
+        return;
+    }
+
     // No dense output desired if this constructor was called, so only output
     // answer at t_i and t_f
     dotimes.push_back(t_i);
@@ -85,6 +103,7 @@ a_tol, double h_0, const char* full_output){
     dosol.push_back(x0);
     dodsol.push_back(dx0);
     dotit = dotimes.end();
+
     
     switch(order){
         case 1: wkbsolver1 = WKBSolver1(*de_sys_, order);
@@ -116,6 +135,28 @@ a_tol, double h_0, const char* full_output){
     h0 = h_0;
     fo = full_output;
     rksolver = RKSolver(*de_sys_);
+
+    // Determine direction of integration, fend>0 and integration ends when
+    // it crosses zero
+    if((t>=tf) and h0<0){
+        // backwards
+        fend = t-tf;
+        fnext = fend;
+        de_sys_->Winterp.sign_ = 0;
+        de_sys_->Ginterp.sign_ = 0;
+    }
+    else if((t<=tf) and h0>0){
+        // forward
+        fend = tf-t;
+        fnext = fend;
+        de_sys_->Winterp.sign_ = 1;
+        de_sys_->Ginterp.sign_ = 1;
+    }
+    else{
+        throw "Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h. ";
+        return;
+    }
+
     // Dense output checks: 
     int dosize = do_times.size();
     dotimes.resize(dosize);
@@ -123,13 +164,23 @@ a_tol, double h_0, const char* full_output){
     dodsol.resize(dosize);
     int docount = 0;
     auto doit = do_times.begin();
-    for(auto it=dotimes.begin(); it!=dotimes.end(); it++){
-        *it = *doit;
-//        std::cout << "set: "<< *it << std::endl;
-        docount++; doit++;
+    if(de_sys_->Winterp.sign_ == 1){
+                for(auto it=dotimes.begin(); it!=dotimes.end(); it++){
+            *it = *doit;
+            docount++; doit++;
+        }
+    }
+    else{
+         for(auto it=dotimes.rbegin(); it!=dotimes.rend(); ++it){
+            *it = *doit;
+            docount++; ++doit;
+        }
     }
     dotit = dotimes.begin();
-    //std::cout << *dotit << std::endl;
+//    std::cout << "Integrating forward? " << de_sys_->Winterp.sign_ << std::endl;
+//    std::cout << *dotit << std::endl;
+    //std::cout << *(dotit+1) << std::endl;
+    //std::cout << *(dotit-1) << std::endl;
 
     switch(order){
         case 1: wkbsolver1 = WKBSolver1(*de_sys_, order);
@@ -158,7 +209,7 @@ void Solution::solve(){
     Eigen::Matrix<std::complex<double>,1,2> rkerr, wkberr, truncerr;
     Eigen::Matrix<double,1,2> rkdeltas; 
     Eigen::Matrix<double,1,4> wkbdeltas;
-    double fend, fnext, tnext, hnext, h, hrk, hwkb;
+    double tnext, hnext, h, hrk, hwkb;
     double wkbdelta, rkdelta;
     std::complex<double> xnext, dxnext;
     bool wkb = false;
@@ -179,23 +230,6 @@ void Solution::solve(){
     auto it_dosol = dosol.begin();
     Eigen::Matrix<std::complex<double>,1,2> y_dense_rk;
     std::complex<double> x_dense_rk, dx_dense_rk;
-
-    // Determine direction of integration, fend>0 and integration ends when
-    // it crosses zero
-    if((t>=tf) and h<0){
-        // backwards
-        fend = t-tf;
-        fnext = fend;
-    }
-    else if((t<=tf) and h>0){
-        // forward
-        fend = tf-t;
-        fnext = fend;
-    }
-    else{
-        throw "Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h. ";
-        return;
-    }
 
     while(fend > 0){
         // Check if we are reaching the end of integration
@@ -267,8 +301,9 @@ void Solution::solve(){
             if(std::abs(hnext)>=std::abs(h)){
                 //std::cout << "t: " << t << ", w(t) interpolated: " << rksolver.w(t) << ", w(t) actual: " << std::pow(100*100 - 1.0,0.5)/(1.0 + t*t) << std::endl;
                 if(dotit!=dotimes.end()){
-                    while(*dotit >= t && *dotit <= tnext){
-                        //std::cout << "found inner point: " << *dotit << std::endl;
+//                    std::cout << "t: " << t << ", tnext: " << tnext << std::endl;
+                    while((*dotit-t>=0 && tnext-*dotit>=0) or (*dotit-t<=0 && tnext-*dotit<=0)){
+//                        std::cout << "found inner point: " << *dotit << std::endl;
                         inner_dotimes.push_back(*dotit);
                         dotit++;
                     }
@@ -281,7 +316,7 @@ void Solution::solve(){
                         else{
                             // Dense output after successful RK step
                             for(auto it=inner_dotimes.begin(); it!=inner_dotimes.end(); it++)
-                                //std::cout << "Inner point: " << *it << std::endl;
+//                                std::cout << "Inner point: " << *it << std::endl;
                             rksolver.dense_step(t,h,x,inner_dotimes,inner_dosols);
                             //y_dense_rk = rksolver.dense_point(x,dx,rksolver.k5);                       
                             //dosol_rk.push_back(y_dense_rk(0));                                         
@@ -292,7 +327,7 @@ void Solution::solve(){
                 }
                 auto inner_it=inner_dosols.begin();
                 while(inner_it!=inner_dosols.end() && it_dosol!=dosol.end()){
-//                    std::cout << "inner dosol: " << *inner_it << std::endl;
+                    //std::cout << "inner dosol: " << *inner_it << std::endl;
                     *it_dosol = *inner_it;
                     it_dosol++;
                     inner_it++;
@@ -394,6 +429,12 @@ void Solution::solve(){
             };
         };
     };
+
+    // If integrating backwards, reverse dense output (because it will have been
+    // reversed at the start)
+    if(de_sys_->Winterp.sign_ == 0){
+        dosol.reverse();
+    }
 
     // Write output to file if prompted
     if(not (*fo==0)){

@@ -7,6 +7,7 @@ template<typename X = double*, typename Y= std::complex<double>*, typename Input
 struct LinearInterpolator{
 
     public:
+        int sign_; // denotes direction of integration
         double xstart, dx;
         X x_; // array of indep. variable
         Y y_; // array of dep. variable
@@ -53,11 +54,14 @@ struct LinearInterpolator{
     void update_interp_bounds(){
         //std::cout << "x0_it " << *x0_it << std::endl; 
         //std::cout << "Updating lower bound to: " << *x_upper_it << std::endl;
-        if(even_ == 0){
+        if(even_ == 0 && sign_ == 1){
             x_lower_bound = x_upper_it;
             //std::cout << "x0_it " << *x0_it << std::endl; 
             //std::cout << "Upper interpolation bound: " << *x_upper_bound << std::endl;
             //std::cout << "Updated lower bound to: " << *x_upper_it << std::endl;
+        }
+        else if(even_ == 0 && sign_ == 0){
+            x_upper_bound = x_lower_it;
         }
         //std::cout << "Updated interpolation lower bound to x=" << *x_lower_bound << std::endl;
     }
