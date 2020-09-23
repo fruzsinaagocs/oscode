@@ -42,7 +42,7 @@ numerical solution of an ODE), as they are supplied as sequences $\omega_j,
 \gamma_j$ evaluated at $x_i \leq x_j \leq x_f$, where $(x_i, x_f)$ is the
 integration range.
 
-`(py)oscode` is in C++, but comes with a Python wrapper.
+`(py)oscode` is written in C++, but comes with a Python wrapper.
 Its Python interface was designed to be similar to those included in `scipy`'s numerical ODE solution
 modules. This is demonstrated in the example below whose output is shown in
 \autoref{fig:airy}.
@@ -81,7 +81,7 @@ oscillations in the solution is high enough, standard numerical methods struggle
 to solve such equations quickly. Traditional methods have to trace every
 oscillation in the solution, taking many steps in $x$ at an enormous
 computational cost. The algorithm underlying `(py)oscode`, published in
-[@oscode], can detect when the solution is oscillatory and switch to a method
+[@oscode] and based on [@rkwkb-handley], can detect when the solution is oscillatory and switch to a method
 based on an analytic approximation (Wentzel--Kramers--Brillouin, WKB) suited for
 oscillatory functions, otherwise using a Runge--Kutta (RK) method. Using the WKB
 approximation allows the algorithm to skip over several wavelengths of
@@ -89,7 +89,7 @@ oscillation in a single step, reducing the number of steps taken drastically. It
 adaptively updates its step-size to keep the local numerical error within a
 user-specified tolerance. `(py)oscode` is capable of producing a solution estimate
 at an arbitrary value of $x$, not just at its internal steps, therefore it can
-be used to generate a "continuous" solution, or dense output. 
+be used to generate a "continuous" solution, or dense output [@dense-output]. 
 
 # Related research and software
 
@@ -114,7 +114,7 @@ Iserles et al. [@condon-deano-iserles] [@deano-integrals] [@hu-et-al-circuits], 
 
 I thank Lukas Hergt for invaluable discussions during the early development of
 `(py)oscode` and his ongoing support. Construction of the algorithm would not have been possible
-without the help and guidance of Will Handley, Mike Hobson, and Anthony Lasebnby. 
+without the help and guidance of Will Handley, Mike Hobson, and Anthony Lasenby. 
 I was supported by the Science and Technology Facilities Council (STFC).
 
 # References
