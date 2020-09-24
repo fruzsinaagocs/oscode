@@ -275,10 +275,8 @@ Citation
 
 If you use ``oscode`` to solve equations for a publication, please cite:
 
-- `Efficient method for solving highly oscillatory ordinary differential
-equations with applications to physical systems
-<https://doi.org/10.1103/PhysRevResearch.2.013030>`__,
-- `Dense output for highly oscillatory numerical solutions  <https://arxiv.org/abs/2007.05013>`__.
+- `Efficient method for solving highly oscillatory ordinary differential equations with applications to physical systems <https://doi.org/10.1103/PhysRevResearch.2.013030>`__,
+- `Dense output for highly oscillatory numerical solutions  <https://arxiv.org/abs/2007.05013>`__
 
 Contributing
 ------------
