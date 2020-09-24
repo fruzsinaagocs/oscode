@@ -12,8 +12,12 @@ python:
 install: 
     - pip install -r requirements.txt
     - pip install .
+    - pip install coverage
 script:
-    - pytest tests/
+    - coverage run -m unittest discover
 branches:
     only:
     - master
+    - joss-paper
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
