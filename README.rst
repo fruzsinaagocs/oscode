@@ -17,16 +17,12 @@ oscode: Oscillatory ordinary differential equation solver
 .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
     :target: https://opensource.org/licenses/BSD-3-Clause
     :alt: BSD 3-clause license
-
-
-
-
-
+|
+|
 
 .. contents::
    :local:
-
-
+|
 About
 -----
 
