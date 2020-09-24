@@ -26,31 +26,26 @@ oscode: Oscillatory ordinary differential equation solver
 About
 -----
 
-``oscode`` is a C++ tool with a Python interface that solves **osc**\illatory
+Oscode is a C++ tool with a Python interface that solves **osc**\illatory
 **o**\rdinary **d**\ifferential **e**\quations efficiently. It is designed to
 deal with equations of the form
 
 .. image:: 
     https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/oscillator.png
 
-where |gamma| (friction term) and |omega| (frequency) can be given as
+where |gamma| (friction term) and |omega| (frequency) can be given as arrays.
 
 .. |gamma| image:: https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/gamma.png
 
 .. |omega| image:: https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/omega.png
 
-- *In C++*, explicit functions or sequence containers (Eigen::Vectors, arrays,
-  std::vectors, lists),
-- *In Python*, numpy.arrays.
-
-``oscode`` makes use of an analytic approximation of x(t) embedded in a
+Oscode makes use of an analytic approximation of x(t) embedded in a
 stepping procedure to skip over long regions of oscillations, giving a reduction
 in computing time. The approximation is valid when the frequency changes slowly
 relative to the timescales of integration, it is therefore worth applying when
 this condition holds for at least some part of the integration range. 
 
-For the details of the numerical method used by ``oscode``, see the Citations
-section.
+For the details of the numerical method used by oscode, see Citation_.
 
 
 Installation
@@ -62,23 +57,20 @@ Dependencies
 Basic requirements for using the C++ interface:
 
 - C++11 or later
-- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__
+- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__ (no need to install, already included in this source)
 
-For using the Python interface, you will additionally need:
+Python dependencies are automatically installed when you use `pip` or the `setup.py`. They are:
 
-- Python 2.7 or 3.5+
 - `numpy <https://pypi.org/project/numpy/>`__
-- `scipy <https://pypi.org/project/scipy/>`__
-
-for the examples, plotting requires
-
-- `matplotlib <https://pypi.org/project/matplotlib/>`__
-
+- `scipy <https://pypi.org/project/scipy/>`__ (optional, for running tests and examples)
+- `matplotlib <https://pypi.org/project/matplotlib/>`__ (optional, for running examples)
+- `sphinx <https://pypi.org/project/Sphinx/>`__ (optional, for offline documentation)
+- `pytest <https://docs.pytest.org/en/stable/getting-started.html>`__ (optional, for running offline tests)
 
 Python
 ~~~~~~
 
-``pyoscode`` can be installed via pip (*not available yet*)
+``pyoscode`` can be installed via pip 
 
 .. code:: bash
 
@@ -96,7 +88,7 @@ You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
 you wish to install globally or in a virtual environment. If you have any
 difficulties, check out the FAQs_ section below. 
 
-You can check that things are working by running
+You can check that things are working by running `tests/` (also ran by Travis continuous integration):
 
 .. code:: bash
 
@@ -127,7 +119,6 @@ Try the following quick examples. These and more are available in the `examples
 
 Python
 ~~~~~~
-
 
 .. code:: python
 
@@ -210,7 +201,6 @@ functions of time, and are defined as functions. The code is found in
         return 100*std::pow(1.0 + t*t,
         0.5)/n*std::complex<double>(std::cos(n*std::atan(t)),std::sin(n*std::atan(t))); 
     };
-    
     std::complex<double> dxburst(double t){
         return 100/std::pow(1.0 + t*t,
         0.5)/n*(std::complex<double>(t,n)*std::cos(n*std::atan(t)) +
@@ -273,8 +263,7 @@ Documentation
 
 Documentation is hosted at `readthedocs <https://oscode.readthedocs.io>`__.
 
-To build your own local copy of the documentation you'll need to install `sphinx
-<https://pypi.org/project/Sphinx/>`__. You can then run:
+To build your own local copy of the documentation you can run:
 
 .. code:: bash
 
@@ -284,37 +273,12 @@ To build your own local copy of the documentation you'll need to install `sphinx
 Citation
 --------
 
-If the works below are **in prep.**, please email the authors at fa325@cam.ac.uk
-for a copy.
+If you use ``oscode`` to solve equations for a publication, please cite:
 
-If you use ``oscode`` to solve equations for a publication, please cite
-as: ::
-
-   Agocs, F., Handley, W., Lasenby, A., and Hobson, M., (2019). An efficient method for solving highly oscillatory
-   ordinary differential equations with applications to physical systems. arXiv
-   e-prints, arXiv:1906.01421 (2019) [physics.comp-ph].
-
-or using the BibTeX:
-
-.. code:: bibtex
-
-	@ARTICLE{2019arXiv190601421A,
-	       author = {{Agocs}, F.~J. and {Handley}, W.~J. and {Lasenby}, A.~N. and
-	         {Hobson}, M.~P.},
-	        title = "{An efficient method for solving highly oscillatory ordinary differential equations with applications to physical systems}",
-	      journal = {arXiv e-prints},
-	     keywords = {Physics - Computational Physics, Astrophysics - Instrumentation and Methods for Astrophysics, Mathematics - Numerical Analysis},
-	         year = "2019",
-	        month = "May",
-	          eid = {arXiv:1906.01421},
-	        pages = {arXiv:1906.01421},
-	archivePrefix = {arXiv},
-	       eprint = {1906.01421},
-	 primaryClass = {physics.comp-ph},
-	       adsurl = {https://ui.adsabs.harvard.edu/abs/2019arXiv190601421A},
-	      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-	}
-
+- `Efficient method for solving highly oscillatory ordinary differential
+equations with applications to physical systems
+<https://doi.org/10.1103/PhysRevResearch.2.013030>`__,
+- `Dense output for highly oscillatory numerical solutions  <https://arxiv.org/abs/2007.05013>`__.
 
 Contributing
 ------------
@@ -324,6 +288,11 @@ by:
 
 - Opening and `issue <https://www.github.com/fruzsinaagocs/oscode/issues/>`__ to report bugs and propose new features.
 - Making a pull request.
+
+Further help
+------------
+
+You can get help by submitting an issue or posting a message on `Gitter <https://gitter.im/oscode-help/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge>`__.
 
 FAQs
 ----
