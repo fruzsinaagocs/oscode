@@ -2,10 +2,6 @@
 oscode: Oscillatory ordinary differential equation solver
 ========================================================================
 
-.. image::
-    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra.gif
-    :width: 800
-
 .. image:: https://codecov.io/gh/fruzsinaagocs/oscode/branch/joss-paper/graph/badge.svg
     :target: https://codecov.io/gh/fruzsinaagocs/oscode
 .. image:: https://travis-ci.org/fruzsinaagocs/oscode.svg?branch=master
@@ -20,6 +16,12 @@ oscode: Oscillatory ordinary differential equation solver
 .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
     :target: https://opensource.org/licenses/BSD-3-Clause
     :alt: BSD 3-clause license
+
+.. toctree::
+    :maxdepth: 2
+
+About
+-----
 
 ``oscode`` is a C++ tool with a Python interface that solves **osc**\illatory
 **o**\rdinary **d**\ifferential **e**\quations efficiently. It is designed to
