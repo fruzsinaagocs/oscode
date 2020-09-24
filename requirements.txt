@@ -2,3 +2,4 @@ scipy
 numpy
 sphinx
 numpydoc
+coverage

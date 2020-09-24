@@ -12,3 +12,4 @@
 !README.md
 !setup.py
 !requirements.txt
+!/Eigen/**
