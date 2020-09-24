@@ -6,13 +6,8 @@ oscode: Oscillatory ordinary differential equation solver
     https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra.gif
     :width: 800
 
-:oscode: oscillatory ordinary differential equation solver
-:Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
-:Version: 0.1.2
-:Homepage: https://github.com/fruzsinaagocs/oscode
-:Documentation: https://oscode.readthedocs.io
-:Paper: https://arxiv.org/abs/1906.01421
-  
+.. image:: https://codecov.io/gh/fruzsinaagocs/oscode/branch/joss-paper/graph/badge.svg
+    :target: https://codecov.io/gh/fruzsinaagocs/oscode
 .. image:: https://travis-ci.org/fruzsinaagocs/oscode.svg?branch=master
     :target: https://travis-ci.org/fruzsinaagocs/oscode
     :alt: Travis CI build status
