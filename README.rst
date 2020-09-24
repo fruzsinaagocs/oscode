@@ -17,8 +17,9 @@ oscode: Oscillatory ordinary differential equation solver
     :target: https://opensource.org/licenses/BSD-3-Clause
     :alt: BSD 3-clause license
 
-.. toctree::
-    :maxdepth: 2
+.. contents:: 
+
+.. sectnum::
 
 About
 -----
