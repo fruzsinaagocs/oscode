@@ -1,3 +1,8 @@
+========================================================================
+oscode: Oscillatory ordinary differential equation solver
+========================================================================
+
+
 .. image:: https://codecov.io/gh/fruzsinaagocs/oscode/branch/joss-paper/graph/badge.svg
     :target: https://codecov.io/gh/fruzsinaagocs/oscode
 .. image:: https://travis-ci.org/fruzsinaagocs/oscode.svg?branch=master
@@ -13,9 +18,10 @@
     :target: https://opensource.org/licenses/BSD-3-Clause
     :alt: BSD 3-clause license
 
-========================================================================
-oscode: Oscillatory ordinary differential equation solver
-========================================================================
+
+
+
+
 
 .. contents::
    :local:
