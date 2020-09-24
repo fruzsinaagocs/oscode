@@ -14,11 +14,10 @@ install:
     - pip install .
     - pip install coverage
 script:
-    - pytest tests/
+    - coverage run -m unittest tests/
 branches:
     only:
     - master
     - joss-paper
 after_success:
-    - codecov
     - bash <(curl -s https://codecov.io/bash)
