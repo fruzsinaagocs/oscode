@@ -177,11 +177,6 @@ a_tol, double h_0, const char* full_output){
         }
     }
     dotit = dotimes.begin();
-//    std::cout << "Integrating forward? " << de_sys_->Winterp.sign_ << std::endl;
-//    std::cout << *dotit << std::endl;
-    //std::cout << *(dotit+1) << std::endl;
-    //std::cout << *(dotit-1) << std::endl;
-
     switch(order){
         case 1: wkbsolver1 = WKBSolver1(*de_sys_, order);
                 wkbsolver = &wkbsolver1;
@@ -207,13 +202,13 @@ void Solution::solve(){
     Eigen::Matrix<std::complex<double>,3,2> wkbstep;
     Eigen::Matrix<std::complex<double>,1,2> rkx, wkbx;
     Eigen::Matrix<std::complex<double>,1,2> rkerr, wkberr, truncerr;
-    Eigen::Matrix<double,1,2> rkdeltas; 
-    Eigen::Matrix<double,1,4> wkbdeltas;
+    Eigen::Matrix<double,1,2> errmeasure_rk; 
+    Eigen::Matrix<double,1,4> errmeasure_wkb;
     double tnext, hnext, h, hrk, hwkb;
     double wkbdelta, rkdelta;
     std::complex<double> xnext, dxnext;
     bool wkb = false;
-    Eigen::Index maxindex;
+    Eigen::Index maxindex_wkb, maxindex_rk;
     h = h0;
     tnext = t+h;
     // Initialise stats
@@ -249,33 +244,39 @@ void Solution::solve(){
             wkbx = wkbstep.row(0);
             wkberr = wkbstep.row(2);
             truncerr = wkbstep.row(1);
-            //std::cout << "at t=(" << t << "," << t+h << "), RK estimate: " << rkx << ", WKB estimate: " << wkbx << std::endl; 
-            //std::cout << "RK error: " << rkerr << ", WKB error: " << wkberr << std::endl;
             // Safety feature for when all wkb steps are 0 (truncer=0), but not
             // necessarily in good WKB regime:
             truncerr(0) = std::max(1e-10,abs(truncerr(0)));
             truncerr(1) = std::max(1e-10,abs(truncerr(1)));
             // dominant error calculation
-            wkbdeltas << std::abs(truncerr(0))/std::abs(wkbx(0)),
-            std::abs(truncerr(1))/std::abs(wkbx(1)),
-            std::abs(wkberr(0))/std::abs(wkbx(0)),
-            std::abs(wkberr(1))/std::abs(wkbx(1));
-            rkdeltas << std::abs(rkerr(0))/std::abs(rkx(0)), std::abs(rkerr(1))/std::abs(rkx(1));
-            rkdelta = std::max(1e-10, rkdeltas.maxCoeff()); 
-            if(std::isnan(wkbdeltas.maxCoeff())==false && std::isinf(std::real(wkbx(0)))==false && std::isinf(std::imag(wkbx(0)))==false && std::isinf(std::real(wkbx(1)))==false && std::isinf(std::imag(wkbx(1)))==false && std::isnan(std::real(wkbx(0)))==false && std::isnan(std::imag(wkbx(0)))==false && std::isnan(std::real(wkbx(1)))==false && std::isnan(std::imag(wkbx(1)))==false)
-                wkbdelta = std::max(1e-10, wkbdeltas.maxCoeff(&maxindex));
+            // Error scale measures
+            errmeasure_rk << std::abs(rkerr(0))/(std::abs(rkx(0))*rtol+atol), std::abs(rkerr(1))/(std::abs(rkx(1))*rtol+atol);
+            errmeasure_wkb << std::abs(truncerr(0))/(std::abs(wkbx(0))*rtol+atol),
+            std::abs(truncerr(1))/(std::abs(wkbx(1))*rtol+atol),
+            std::abs(wkberr(0))/(std::abs(wkbx(0))*rtol+atol),
+            std::abs(wkberr(1))/(std::abs(wkbx(1))*rtol+atol);
+            rkdelta = std::max(1e-10, errmeasure_rk.maxCoeff(&maxindex_rk)); 
+            if(std::isnan(errmeasure_wkb.maxCoeff())==false &&
+               std::isinf(std::real(wkbx(0)))==false &&
+               std::isinf(std::imag(wkbx(0)))==false &&
+               std::isinf(std::real(wkbx(1)))==false &&
+               std::isinf(std::imag(wkbx(1)))==false &&
+               std::isnan(std::real(wkbx(0)))==false &&
+               std::isnan(std::imag(wkbx(0)))==false &&
+               std::isnan(std::real(wkbx(1)))==false &&
+               std::isnan(std::imag(wkbx(1)))==false){
+                wkbdelta = std::max(1e-10, errmeasure_wkb.maxCoeff(&maxindex_wkb));
+            }
             else{
-                //std::cout << "encountered a nan or infinity in wkb step. wkbx: " << wkbx << ", wkbdelta: " << wkbdeltas << std::endl;
-                //std::cout << std::isnan(wkbdeltas.maxCoeff()) << ", " << std::isinf(std::real(wkbx(0))) << ", " << std::isinf(std::imag(wkbx(0))) << ", " << std::isinf(std::real(wkbx(1))) << ", " << std::isinf(std::imag(wkbx(1))) << ", " << std::isnan(std::real(wkbx(0))) << ", " << std::isnan(std::imag(wkbx(0))) << ", " << std::real(wkbx(1)) << ", " << std::isnan(std::imag(wkbx(1))) << std::endl;
                 wkbdelta = std::numeric_limits<double>::infinity();
             }
 
             // predict next stepsize 
-            hrk = h*std::pow((rtol/rkdelta),1.0/nrk);
-            if(maxindex<=1)
-                hwkb = h*std::pow(rtol/wkbdelta,1.0/nwkb1);
+            hrk = h*std::pow((1.0/rkdelta),1.0/nrk);
+            if(maxindex_wkb<=1)
+                hwkb = h*std::pow(1.0/wkbdelta,1.0/nwkb1);
             else
-                hwkb = h*std::pow(rtol/wkbdelta,1.0/nwkb2);
+                hwkb = h*std::pow(1.0/wkbdelta,1.0/nwkb2);
             // choose step with larger predicted stepsize
             if(std::abs(hwkb) >= std::abs(hrk)){
                 wkb = true;
@@ -288,8 +289,8 @@ void Solution::solve(){
                 dxnext = wkbx(1);
                 // if wkb step chosen, ignore truncation error in
                 // stepsize-increase
-                wkbdelta = std::max(1e-10, std::abs(wkbdeltas.tail(2).maxCoeff()));
-                hnext = h*std::pow(rtol/wkbdelta,1.0/nwkb2);
+                wkbdelta = std::max(1e-10, errmeasure_wkb.tail(2).maxCoeff());
+                hnext = h*std::pow(1.0/wkbdelta,1.0/nwkb2);
             }
             else{
                 xnext = rkx(0);
@@ -299,11 +300,8 @@ void Solution::solve(){
             totsteps += 1;
             // check if chosen step was successful
             if(std::abs(hnext)>=std::abs(h)){
-                //std::cout << "t: " << t << ", w(t) interpolated: " << rksolver.w(t) << ", w(t) actual: " << std::pow(100*100 - 1.0,0.5)/(1.0 + t*t) << std::endl;
                 if(dotit!=dotimes.end()){
-//                    std::cout << "t: " << t << ", tnext: " << tnext << std::endl;
                     while((*dotit-t>=0 && tnext-*dotit>=0) or (*dotit-t<=0 && tnext-*dotit<=0)){
-//                        std::cout << "found inner point: " << *dotit << std::endl;
                         inner_dotimes.push_back(*dotit);
                         dotit++;
                     }
@@ -316,18 +314,12 @@ void Solution::solve(){
                         else{
                             // Dense output after successful RK step
                             for(auto it=inner_dotimes.begin(); it!=inner_dotimes.end(); it++)
-//                                std::cout << "Inner point: " << *it << std::endl;
                             rksolver.dense_step(t,h,x,inner_dotimes,inner_dosols);
-                            //y_dense_rk = rksolver.dense_point(x,dx,rksolver.k5);                       
-                            //dosol_rk.push_back(y_dense_rk(0));                                         
-                            //dodsol_rk.push_back(y_dense_rk(1));                                        
-                            //dotimes_rk.push_back(t+0.5866586817*h);                                    
                         }
                    }
                 }
                 auto inner_it=inner_dosols.begin();
                 while(inner_it!=inner_dosols.end() && it_dosol!=dosol.end()){
-                    //std::cout << "inner dosol: " << *inner_it << std::endl;
                     *it_dosol = *inner_it;
                     it_dosol++;
                     inner_it++;
@@ -344,41 +336,6 @@ void Solution::solve(){
                     wkbs.push_back(false);
                 }
 
-//                if(wkb){
-//                    wkbsteps +=1;
-//                    wkbs.push_back(true);
-//                    // Successful WKB step; check for dense output required:
-//                    if(dotit!=dotimes.end()){
-//                        while(*dotit > t && *dotit <= tnext){
-////                            std::cout << "found inner point: " << *dotit << std::endl;
-//                            inner_dotimes.push_back(*dotit);
-//                            dotit++;
-//                        }
-//                        if(inner_dotimes.size() > 0){
-//                            inner_dosols.resize(inner_dotimes.size());
-//                            wkbsolver->dense_step(t,inner_dotimes,inner_dosols);
-//                            
-//                       }
-//                    }
-//                    auto inner_it=inner_dosols.begin();
-//                    while(inner_it!=inner_dosols.end() && it_dosol!=dosol.end()){
-////                        std::cout << "inner dosol: " << *inner_it << std::endl;
-//                        *it_dosol = *inner_it;
-//                        it_dosol++;
-//                        inner_it++;
-//                    }
-//                    inner_dotimes.resize(0);
-//                    inner_dosols.resize(0);
-//                }
-//                else{
-//                    wkbs.push_back(false);
-//                    // Dense output for successful RK step
-//                    y_dense_rk = rksolver.dense_point(x,dx,rksolver.k5);
-//                    dosol_rk.push_back(y_dense_rk(0));
-//                    dodsol_rk.push_back(y_dense_rk(1));
-//                    dotimes_rk.push_back(t+0.5866586817*h);
-//                }
-                //std::cout << "t: " << tnext << ", x: " << xnext << ", dx: " << dxnext << ", type: " << wkb << std::endl;
                 sol.push_back(xnext);
                 dsol.push_back(dxnext);
                 times.push_back(tnext);
@@ -397,9 +354,6 @@ void Solution::solve(){
                 };
                 ssteps +=1;
                 // Update interpolation bounds
-                //std::cout << "printing: " <<  de_sys_.Winterp.y_lower << std::endl;
-                //std::complex<double> bla = de_sys_->Winterp(15.0);
-                //std::complex<double> bla2 = de_sys_->Ginterp(17.0);
                 de_sys_->Winterp.update_interp_bounds();
                 de_sys_->Ginterp.update_interp_bounds();
 
@@ -407,17 +361,17 @@ void Solution::solve(){
             }
             else{
                 if(wkb){
-                    if(maxindex<=1){
+                    if(maxindex_wkb<=1){
                         if(nwkb1 > 1)
-                            hnext = h*std::pow(rtol/wkbdelta,1.0/(nwkb1-1));
+                            hnext = h*std::pow(1.0/wkbdelta,1.0/(nwkb1-1));
                         else
-                            hnext = 0.95*h*rtol/wkbdelta;
+                            hnext = 0.95*h*1.0/wkbdelta;
                     }
                     else
-                        hnext = h*std::pow(rtol/wkbdelta,1.0/(nwkb2-1));
+                        hnext = h*std::pow(1.0/wkbdelta,1.0/(nwkb2-1));
                 }
                 else
-                    hnext = h*std::pow(rtol/rkdelta,1.0/(nrk-1));
+                    hnext = h*std::pow(1.0/rkdelta,1.0/(nrk-1));
                 h = hnext;
                 tnext = t + hnext;
                 if(h>0){
@@ -462,25 +416,10 @@ void Solution::solve(){
         auto it_dosol = dosol.begin();
         auto it_dotimes = dotimes.begin();
         for(int i=0; i<dosize; i++){
-//            std::cout << *it_dotimes << ", " << *it_dosol << std::endl; 
             f << std::setprecision(20) << *it_dotimes << ";" << std::setprecision(20) << *it_dosol << ";;\n";
             ++it_dosol;
             ++it_dotimes;
         }
-
-//        // print RK dense output to file
-//        dosize = dosol_rk.size();
-//        auto it_dosol_rk = dosol_rk.begin();
-//        auto it_dodsol_rk = dodsol_rk.begin();
-//        auto it_dotimes_rk = dotimes_rk.begin();
-//        for(int i=0; i<dosize; i++){
-////            std::cout << *it_dotimes << ", " << *it_dosol << std::endl; 
-//            f << std::setprecision(20) << *it_dotimes_rk << ";" << std::setprecision(20) << *it_dosol_rk << ";" << *it_dodsol_rk << ";\n";
-//            ++it_dosol_rk;
-//            ++it_dodsol_rk;
-//            ++it_dotimes_rk;
-//        }
- 
 
         f.close();
     }

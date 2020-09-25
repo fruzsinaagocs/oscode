@@ -17,12 +17,15 @@ oscode: Oscillatory ordinary differential equation solver
 .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
     :target: https://opensource.org/licenses/BSD-3-Clause
     :alt: BSD 3-clause license
+
 |
 |
 
 .. contents::
    :local:
+
 |
+
 About
 -----
 
@@ -321,6 +324,10 @@ Installation
 Changelog
 ---------
 
+- 1.0.0: current version
+    - Dense output
+    - Arrays for frequency and damping term need not be evenly spaced
+    - Eigen included in source for pip installability
 - 0.1.2:
     - Bug that occurred when beginning and end of integration coincided
       corrected

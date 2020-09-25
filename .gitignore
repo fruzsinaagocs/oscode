@@ -3,7 +3,7 @@
 !/examples/*.ipynb
 !/examples/*.cpp
 !/examples/images/**
-!/include/*
+!/include/**
 !/pyoscode/
 !/tests/
 !Dockerfile
@@ -12,4 +12,3 @@
 !README.md
 !setup.py
 !requirements.txt
-!/Eigen/**

@@ -1,6 +1,8 @@
 from __future__ import absolute_import, with_statement, print_function, division
 from setuptools import setup, Extension, find_packages
 import os
+import pip
+pip.main(['install', 'numpy'])
 import numpy.distutils.misc_util
 
 def readme(short=False):
@@ -10,41 +12,33 @@ def readme(short=False):
         else:
             return f.read()
 
-def get_version(short=False):
-    with open("README.rst") as f:
-        for line in f:
-            if ":Version:" in line:
-                ver = line.split(":")[2].strip()
-                if short:
-                    subver = ver.split(".")
-                    return "%s.%s" % tuple(subver[:2])
-                else:
-                    return ver
-
 pyoscode_module = Extension(
     name="_pyoscode",
     sources=["pyoscode/_pyoscode.cpp"],
-    include_dirs=['include'],
+    include_dirs=['include','pyoscode'],
+    depends=["pyoscode/_python.hpp", "pyoscode/_pyoscode.hpp"],
     extra_compile_args=['-std=c++11','-Wall']
     )
 
 setup(
     name="pyoscode",
-    version="0.1.2",
+    version="0.2.6",
     description=readme(short=True),
     long_description=readme(),
     url="https://github.com/fruzsinaagocs/oscode",
+    project_urls={"Documentation":"https://oscode.readthedocs.io"},
     author="Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby",
     author_email="fa325@cam.ac.uk",
     packages=find_packages(),
     install_requires=["numpy", "scipy"],
     extras_require={"plotting:": "matplotlib",
     "docs":["sphinx","sphinx-rtd-theme","numpydoc"]},
-    setup_requires=["pytest-runner"],
+    setup_requires=["pytest-runner","numpy"],
     tests_require=["pytest"],
     include_package_data=True,
     license="oscode",
     ext_modules=[pyoscode_module],
+    headers=["pyoscode/_python.hpp", "pyoscode/_pyoscode.hpp"],
     include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
     keywords="PPS, cosmic inflation, cosmology, oscillatory, ODE",
     classifiers=[

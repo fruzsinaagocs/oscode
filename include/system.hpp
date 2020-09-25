@@ -40,7 +40,6 @@ template<typename X, typename Y, typename Z, typename X_it> de_system::de_system
     even_ = even;
     islogg_ = islogg;
     islogw_ = islogw;
-    //std::cout << "Even grid?: " << even_ << std::endl;
 
     LinearInterpolator<X,Y,X_it> winterp(ts,ws,even_);
     LinearInterpolator<X,Z,X_it> ginterp(ts,gs,even_);
@@ -54,12 +53,6 @@ template<typename X, typename Y, typename Z, typename X_it> de_system::de_system
         Winterp.set_interp_bounds(ts,ts+size-1);
         Ginterp.set_interp_bounds(ts,ts+size-1);
     }
-
-//    std::cout << "calling from system.hpp" << std::endl;
-//    Winterp.update_interp_bounds();
-//    std::cout << "calling winterp: " << std::endl;
-//    std::complex<double> bla = Winterp(15.0);
-//    Winterp.update_interp_bounds();  
 
 
     if(islogw)
@@ -75,11 +68,7 @@ template<typename X, typename Y, typename Z, typename X_it> de_system::de_system
         g = std::bind(&LinearInterpolator<X,Z,X_it>::operator(), Ginterp,
         std::placeholders::_1);
      
-//    std::cout << "calling w: " << std::endl;
-//    std::complex<double> blaa = w(16.0);
-//    Winterp.update_interp_bounds();
-//    Ginterp.update_interp_bounds();
-       
+      
 }
 
 de_system::de_system(std::complex<double> (*W)(double), std::complex<double> (*G)(double)){

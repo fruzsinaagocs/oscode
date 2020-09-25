@@ -294,8 +294,7 @@ void WKBSolver::dense_step(double t0, const std::list<double> &dots, std::list<s
             *doxit = dense_x;
             doxit++;
         }
-//    for(auto it=doxs.begin(); it!=doxs.end(); it++)
-
+    
     return;
 };
 
