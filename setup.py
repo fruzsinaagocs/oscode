@@ -2,7 +2,14 @@ from __future__ import absolute_import, with_statement, print_function, division
 from setuptools import setup, Extension, find_packages
 import os
 import pip
-pip.main(['install', 'numpy'])
+try:
+    pip.main(['install', 'numpy'])
+except AttributeError:
+    from pip._internal import main
+    main(['install', 'numpy'])
+except: 
+    raise Warning("Couldn't install numpy automatically. Please make sure you have it installed, otherwise pyoscode install will fail.")
+
 import numpy.distutils.misc_util
 
 def readme(short=False):
