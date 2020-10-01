@@ -27,17 +27,17 @@ PyMODINIT_FUNC init_pyoscode(void){
 /* Function to run the solver */ 
 static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwargs){
 
-    int islogw=0,islogg=0,order=3,even=0;
+    int islogw=0, islogg=0, order=3, even=0, check_grid=0;
     const char* full_output="";
-    double ti,tf,rtol,atol,h0;
-    std::complex<double> x0,dx0;
+    double ti, tf, rtol, atol, h0;
+    std::complex<double> x0, dx0;
     PyObject *tsobj, *wsobj, *gsobj, *t_evalobj=NULL;
     // Define keywords
     static const char *kwlist[] =
-    {"ts","ws","gs","ti","tf","x0","dx0","t_eval","logw","logg","order","rtol","atol","h","full_output","even_grid",NULL};
+    {"ts","ws","gs","ti","tf","x0","dx0","t_eval","logw","logg","order","rtol","atol","h","full_output","even_grid","check_grid",NULL};
 
     // Interpret input arguments.
-    if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OOOddDD|Oiiidddsi",const_cast<char**>(kwlist),&tsobj,&wsobj,&gsobj,&ti,&tf,&x0,&dx0,&t_evalobj,&islogw,&islogg,&order,&rtol,&atol,&h0,&full_output,&even))
+    if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OOOddDD|Oiiidddsii",const_cast<char**>(kwlist),&tsobj,&wsobj,&gsobj,&ti,&tf,&x0,&dx0,&t_evalobj,&islogw,&islogg,&order,&rtol,&atol,&h0,&full_output,&even,&check_grid))
         return NULL;
     // Interpret input objects as numpy arrays
     PyObject *tsarray = PyArray_FROM_OTF(tsobj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
@@ -133,7 +133,15 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     }
 
     // Call the C++ functions to construct system and solve
-    de_system sys = de_system(ts,ws,gs,ts,tssize,islogw,islogg,even);
+    de_system sys = de_system(ts,ws,gs,ts,tssize,islogw,islogg,even,check_grid);
+    if(sys.grid_fine_enough!=1){
+        PyErr_WarnEx(PyExc_RuntimeWarning,"One or more of the arrays provided \
+(w, g, logw, logg) may not be fine enough to carry out linear \
+interpolation accurately. This may result in not traversing oscillatory \
+regions of the solution efficiently and numerical inaccuracies. Please \
+consider refining the sampling of the array(s) or switching to a more \
+suitable independent variable.",1);
+    }
     std::list<std::complex<double>> sol,dsol;
     std::list<double> times;
     std::list<bool> wkbs;

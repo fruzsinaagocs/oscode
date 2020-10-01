@@ -16,6 +16,7 @@ struct LinearInterpolator{
         InputIt_x x_lower_it, x_upper_it, x0_it;
         double x_lower, x_upper, h; 
         std::complex<double> y_lower, y_upper;
+        
 
     LinearInterpolator(){
         // Default constructor
@@ -108,6 +109,42 @@ struct LinearInterpolator{
             result = std::exp(result);
             }
         return result;
+    }
+
+    int check_grid_fineness(int N){
+    
+        int success = 1;
+        std::complex<double> y0, y1, yprev, ynext;
+        double x0, xprev, xnext;
+        double err;
+        
+        // Check grid fineness here
+        for(int i=2; i<N; i+=2){
+            if(even_ == 1){
+                y0 = y_[i-1];
+                y1 = 0.5*(y_[i]+y_[i-2]);
+                err = std::abs((y1-y0)/y0);
+                if(err > 2e-5){
+                    success = 0;
+                    break;
+                }
+            }
+            else{
+                y0 = y_[i-1];
+                x0 = x_[i-1];
+                xprev = x_[i-2];
+                xnext = x_[i];
+                yprev = y_[i-2];
+                ynext = y_[i];
+                y1 = (yprev*(xnext - x0) + ynext*(x0 - xprev))/(xnext - xprev);
+                err = std::abs((y1-y0)/y0);
+                if(err > 2e-5){
+                    success = 0;
+                    break;
+                }
+            }
+        }
+        return success;
     }
    
 };

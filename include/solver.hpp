@@ -298,6 +298,14 @@ void Solution::solve(){
                 hnext = hrk;
             };
             totsteps += 1;
+            // Checking for too many steps and low acceptance ratio:
+            if(totsteps % 5000 == 0){
+                std::cerr << "Warning: the solver took " << totsteps << " steps, and may take a while to converge." << std::endl; 
+                if(ssteps/totsteps < 0.05){
+                    std::cerr << "Warning: the step acceptance ratio is below 5%, the solver may take a while to converge." << std::endl;
+                }
+            }
+
             // check if chosen step was successful
             if(std::abs(hnext)>=std::abs(h)){
                 if(dotit!=dotimes.end()){

@@ -9,7 +9,7 @@ class de_system
 
     public:
         // constructors
-        template<typename X, typename Y, typename Z, typename X_it>de_system(X &ts, Y &ws, Z &gs, X_it x_it, int size, bool isglogw=false, bool islogg=false, int even=0);
+        template<typename X, typename Y, typename Z, typename X_it>de_system(X &ts, Y &ws, Z &gs, X_it x_it, int size, bool isglogw=false, bool islogg=false, int even=0, int check_grid=0);
         de_system(std::complex<double> (*w)(double), std::complex<double> (*g)(double));
         de_system();
         std::function<std::complex<double>(double)> w;
@@ -17,22 +17,15 @@ class de_system
         LinearInterpolator<> Winterp;
         LinearInterpolator<> Ginterp; 
         bool islogg_, islogw_;
+        // Grid fineness check
+        bool grid_fine_enough = 1;
 };
-
-//void de_system::set_array_types(Eigen::VectorXd::InnerIterator it){
-//}
-//
-//void de_system::set_array_types(std::vector<double>::iterator it){
-//}
-//
-//void de_system::set_array_types(double * it){
-//}
 
 de_system::de_system(){
     // Default constructor
 }
 
-template<typename X, typename Y, typename Z, typename X_it> de_system::de_system(X &ts, Y &ws, Z &gs, X_it x_it, int size, bool islogw, bool islogg, int even){
+template<typename X, typename Y, typename Z, typename X_it> de_system::de_system(X &ts, Y &ws, Z &gs, X_it x_it, int size, bool islogw, bool islogg, int even, int check_grid){
     
     // 3. User supplied t, w/ln(w), g/ln(g) as array-like objects
     // (Eigen::Vectors, std::vectors, or arrays)
@@ -53,7 +46,16 @@ template<typename X, typename Y, typename Z, typename X_it> de_system::de_system
         Winterp.set_interp_bounds(ts,ts+size-1);
         Ginterp.set_interp_bounds(ts,ts+size-1);
     }
-
+    
+    // Grid fineness check
+    if(check_grid == 1){
+        int w_is_fine = Winterp.check_grid_fineness(size);
+        int g_is_fine = Ginterp.check_grid_fineness(size);
+        if(w_is_fine==1 && g_is_fine==1)
+            grid_fine_enough = 1; 
+        else
+            grid_fine_enough = 0;
+    }
 
     if(islogw)
         w = std::bind(&LinearInterpolator<X,Y,X_it>::expit, Winterp,
