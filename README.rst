@@ -60,15 +60,18 @@ Dependencies
 Basic requirements for using the C++ interface:
 
 - C++11 or later
-- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__ (no need to install, already included in this source)
+- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__ (a header-only library included in this source)
 
-Python dependencies are automatically installed when you use `pip` or the `setup.py`. They are:
+The strictly necessary Python dependencies are automatically installed when you use `pip` or the `setup.py`. They are:
 
 - `numpy <https://pypi.org/project/numpy/>`__
-- `scipy <https://pypi.org/project/scipy/>`__ (optional, for running tests and examples)
-- `matplotlib <https://pypi.org/project/matplotlib/>`__ (optional, for running examples)
-- `sphinx <https://pypi.org/project/Sphinx/>`__ (optional, for offline documentation)
-- `pytest <https://docs.pytest.org/en/stable/getting-started.html>`__ (optional, for running offline tests)
+
+The *optional* dependencies are: 
+
+- `scipy <https://pypi.org/project/scipy/>`__ (for running tests and examples)
+- `matplotlib <https://pypi.org/project/matplotlib/>`__ (for running examples)
+- `sphinx <https://pypi.org/project/Sphinx/>`__ (for offline documentation)
+- `pytest <https://docs.pytest.org/en/stable/getting-started.html>`__ (for running offline tests)
 
 Python
 ~~~~~~
@@ -117,134 +120,30 @@ and then include the relevant header files in your C++ code:
 Quick start
 -----------
 
-Try the following quick examples. These and more are available in the `examples
-<https://github.com/fruzsinaagocs/oscode/pyoscode/examples/>`__.
+Try the following quick examples. They are available in the `examples
+<https://github.com/fruzsinaagocs/oscode/examples/>`__.
 
 Python
 ~~~~~~
 
-.. code:: python
+:Introduction to pyoscode: |intro_binder|
+:Cosmology examples: |cosmology_binder|
 
-    # "airy.py" 
-    import pyoscode
-    import numpy
-    from scipy.special import airy
-    from matplotlib import pyplot as plt
-    
-    # Define the frequency and friction term over the range of integration
-    ts = numpy.linspace(1,1000,5000)
-    ws = numpy.sqrt(ts)
-    gs = numpy.zeros_like(ws)
-    # Define the range of integration and the initial conditions
-    ti = 1.0
-    tf = 1000.
-    x0 = airy(-ti)[0] + 1j*airy(-ti)[2]
-    dx0 = -airy(-ti)[1] - 1j*airy(-ti)[3]
-    # Solve the system
-    sol = pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0)
-    t = numpy.asarray(sol['t'])
-    x = numpy.asarray(sol['sol'])
-    types = numpy.asarray(sol['types'])
-    # Plot the solution
-    ana_t = numpy.linspace(1.0,35.0,1000)
-    plt.plot(ana_t,[airy(-T)[0] for T in ana_t],label='true solution')
-    plt.plot(t[types==0],x[types==0],'.',color='red',label='RK steps')
-    plt.plot(t[types==1],x[types==1],'.',color='green',label='WKB steps')
-    plt.legend()
-    plt.xlim((1.0,35.0))
-    ply.ylim((-1.0,1.0))
-    plt.xlabel('t')
-    plt.ylabel('Ai(-t)')
-    plt.savefig('airy-example.png')
-    
-The above code, stored in ``airy.py``, produces the plot:
+.. |intro_binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/fruzsinaagocs/oscode/joss-paper?filepath=examples/introduction_to_pyoscode.ipynb
 
-.. image::
-   https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/airy-example.png
-   :width: 800
-
-``cosmology.ipynb`` is a jupyter notebook that demonstrates how ``pyoscode`` can
-be used to quickly generate *primordial power spectra*, like these:
+.. |cosmology_binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/fruzsinaagocs/oscode/joss-paper?filepath=examples/cosmology.ipynb
 
 .. image::
     https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra.gif
     :width: 800
 
-
 C++
 ~~~
 
-Below is an example where the frequency and friction terms are explicit
-functions of time, and are defined as functions. The code is found in
-``burst.cpp``, the results are plotted with ``plot_burst.py``.
-
-.. code:: c
-
-    // "burst.cpp"
-    #include "solver.hpp"
-    #include <cmath>
-    #include <fstream>
-    #include <string>
-    #include <stdlib.h>
-    
-    double n = 40.0;
-    
-    // Define the gamma term
-    std::complex<double> g(double t){
-        return 0.0;
-    };
-    
-    // Define the frequency
-    std::complex<double> w(double t){
-        return std::pow(n*n - 1.0,0.5)/(1.0 + t*t);
-    };
-    
-    // Initial conditions x, dx
-    std::complex<double> xburst(double t){
-        return 100*std::pow(1.0 + t*t,
-        0.5)/n*std::complex<double>(std::cos(n*std::atan(t)),std::sin(n*std::atan(t))); 
-    };
-    std::complex<double> dxburst(double t){
-        return 100/std::pow(1.0 + t*t,
-        0.5)/n*(std::complex<double>(t,n)*std::cos(n*std::atan(t)) +
-        std::complex<double>(-n,t)*std::sin(n*std::atan(t))); 
-    };
-    
-    int main(){
-    
-        std::ofstream f;
-        std::string output = "output.txt";
-        std::complex<double> x0, dx0;
-        double ti, tf;
-        // Create differential equation 'system'
-        de_system sys(&w, &g);
-        // Define integration range
-        ti = -2*n;
-        tf = 2*n;
-        // Define initial conditions
-        x0 = xburst(ti); 
-        dx0 = dxburst(ti); 
-        // Solve the equation
-        Solution solution(sys, x0, dx0, ti, tf); 
-        solution.solve();
-        // The solution is stored in lists, copy the solution
-        std::list<std::complex<double>> xs = solution.sol;
-        std::list<double> ts = solution.times;
-        std::list<bool> types = solution.wkbs;
-        int steps = solution.ssteps;
-        // Write result in file
-        f.open(output);
-        auto it_t = ts.begin();
-        auto it_x = xs.begin();
-        auto it_ty = types.begin();
-        for(int i=0; i<steps; i++){
-            f << *it_t << ", " << std::real(*it_x) << ", " << *it_ty << std::endl; 
-            ++it_t;
-            ++it_x;
-            ++it_ty;
-        };
-        f.close();
-    };
+:Introduction to oscode: `examples/burst.cpp`
+:To plot results from `burst.cpp`: `examples/plot_burst.py`
 
 To compile and run:
 
@@ -253,12 +152,6 @@ To compile and run:
     g++ -g -Wall -std=c++11 -c -o burst.o burst.cpp
     g++ -g -Wall -std=c++11 -o burst burst.o
     ./burst
-
-Plotting the results with Python yields
-
-.. image::
-   https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/burst-example.png
-   :width: 800
 
 
 Documentation

@@ -2,4 +2,5 @@ scipy
 numpy
 sphinx
 numpydoc
+matplotlib
 coverage
