@@ -54,7 +54,7 @@ extensions = [
 
 # Set up the breathe extension
 breathe_projects = {
-    "oscode": "./../../../docs/doxyoutput/xml"
+    "oscode": "./doxyoutput/xml"
 }
 
 breathe_default_project = "oscode"
@@ -77,7 +77,7 @@ exhale_args = {
 
 primary_domain = 'cpp'
 
-language_higlhights = 'cpp'
+higlhight_language = 'cpp'
 
 
 # Add any paths that contain templates here, relative to this directory.
