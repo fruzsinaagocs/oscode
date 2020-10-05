@@ -62,16 +62,16 @@ breathe_default_project = "oscode"
 # Setup the exhale extension
 exhale_args = {
     # These arguments are required
-    "containmentFolder":     "./api",
-    "rootFileName":          "library_root.rst",
-    "rootFileTitle":         "Library API",
+    "containmentFolder":     "./cpp-docs",
+    "rootFileName":          "oscode-reference.rst",
+    "rootFileTitle":         "oscode",
     "doxygenStripFromPath":  "..",
     # Suggested optional arguments
     "createTreeView":        True,
     # TIP: if using the sphinx-bootstrap-theme, you need
     # "treeViewIsBootstrap": True,
     "exhaleExecutesDoxygen": True,
-    "exhaleDoxygenStdin":    "INPUT = ../../../include/*.hpp",
+    "exhaleDoxygenStdin":    "INPUT = ./../../../include\nRECURSIVE = NO", 
     "verboseBuild" : True
 }
 

@@ -2,11 +2,11 @@ oscode's documentation
 ======================
 
 .. toctree::
-   :maxdepth: 0
+   :maxdepth: 2
    :caption: Contents:
 
     Introduction <introduction>
-    C++ interface (oscode) <oscode>
-    Python interface (pyoscode) <pyoscode>
-    api/library_root
+    Python interface (pyoscode) reference <pyoscode>
+    Using the C++ interface (oscode) <oscode>
+    C++ interface reference <cpp-docs/oscode-reference>
 
