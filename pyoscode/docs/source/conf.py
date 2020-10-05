@@ -52,27 +52,27 @@ extensions = [
     'exhale'
 ]
 
-## Set up the breathe extension
-#breathe_projects = {
-#    "oscode": "./../../../docs/doxyoutput/xml"
-#}
-#
-#breathe_default_project = "oscode"
+# Set up the breathe extension
+breathe_projects = {
+    "oscode": "./../../../docs/doxyoutput/xml"
+}
+
+breathe_default_project = "oscode"
 
 # Setup the exhale extension
-#exhale_args = {
-#    # These arguments are required
-#    "containmentFolder":     "./../../../docs/api",
-#    "rootFileName":          "library_root.rst",
-#    "rootFileTitle":         "Library API",
-#    "doxygenStripFromPath":  "..",
-#    # Suggested optional arguments
-#    "createTreeView":        True,
-#    # TIP: if using the sphinx-bootstrap-theme, you need
-#    # "treeViewIsBootstrap": True,
-#    "exhaleExecutesDoxygen": True,
-#    "exhaleDoxygenStdin":    "INPUT = ../../../include"
-#}
+exhale_args = {
+    # These arguments are required
+    "containmentFolder":     "./../../../docs/api",
+    "rootFileName":          "library_root.rst",
+    "rootFileTitle":         "Library API",
+    "doxygenStripFromPath":  "..",
+    # Suggested optional arguments
+    "createTreeView":        True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    # "treeViewIsBootstrap": True,
+    "exhaleExecutesDoxygen": True,
+    "exhaleDoxygenStdin":    "INPUT = ../../../include"
+}
 
 
 
