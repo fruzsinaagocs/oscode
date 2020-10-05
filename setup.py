@@ -38,7 +38,7 @@ setup(
     author_email="fa325@cam.ac.uk",
     packages=find_packages(),
     install_requires=["numpy"],
-    extras_require={"examples:": ["matplotlib", "scipy", "jupyter notebook"],
+    extras_require={"examples:":["matplotlib", "scipy", "jupyter"],
     "docs":["sphinx","sphinx-rtd-theme","numpydoc"], "testing":["pytest"]},
     setup_requires=["pytest-runner","numpy"],
     tests_require=["pytest", "numpy", "scipy"],
