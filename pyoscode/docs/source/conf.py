@@ -47,9 +47,9 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'numpydoc'
-#    'breathe'
-#    'exhale'
+    'numpydoc',
+    'breathe',
+    'exhale'
 ]
 
 ## Set up the breathe extension
