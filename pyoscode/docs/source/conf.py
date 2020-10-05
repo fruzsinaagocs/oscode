@@ -71,17 +71,20 @@ exhale_args = {
     # TIP: if using the sphinx-bootstrap-theme, you need
     # "treeViewIsBootstrap": True,
     "exhaleExecutesDoxygen": True,
-    "exhaleDoxygenStdin":    "INPUT = ../../../include"
+    "exhaleDoxygenStdin":    "INPUT = ../../../include/*.hpp",
+    "verboseBuild" : True
 }
 
+primary_domain = 'cpp'
 
+language_higlhights = 'cpp'
 
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
+# You can speify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
