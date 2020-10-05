@@ -1,5 +1,5 @@
 numpy
-sphinx
+sphinx>3.0
 numpydoc
 coverage
-#breathe
+breathe
