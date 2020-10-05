@@ -8,4 +8,5 @@ oscode's documentation
     Introduction <introduction>
     C++ interface (oscode) <oscode>
     Python interface (pyoscode) <pyoscode>
+    api/library_root
 

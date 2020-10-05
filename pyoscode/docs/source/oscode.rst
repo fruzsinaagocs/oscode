@@ -6,8 +6,6 @@ Using oscode's C++ interface
 
 .. sectnum:: 
 
-about 
-../api/library_root
 
 Overview
 --------
