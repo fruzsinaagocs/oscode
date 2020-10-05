@@ -4,5 +4,3 @@ sphinx
 numpydoc
 matplotlib
 coverage
-breathe
-exhale
