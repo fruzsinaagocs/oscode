@@ -1,0 +1,6 @@
+numpy
+sphinx>3.0
+numpydoc
+coverage
+breathe
+exhale

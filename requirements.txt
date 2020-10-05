@@ -1,6 +1,4 @@
 numpy
-sphinx>3.0
-numpydoc
+scipy
+matplotlib
 coverage
-breathe
-exhale
