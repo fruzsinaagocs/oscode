@@ -47,17 +47,17 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'numpydoc',
-    'breathe'
+    'numpydoc'
+#    'breathe'
 #    'exhale'
 ]
 
-# Set up the breathe extension
-breathe_projects = {
-    "oscode": "./../../../docs/doxyoutput/xml"
-}
-
-breathe_default_project = "oscode"
+## Set up the breathe extension
+#breathe_projects = {
+#    "oscode": "./../../../docs/doxyoutput/xml"
+#}
+#
+#breathe_default_project = "oscode"
 
 # Setup the exhale extension
 #exhale_args = {
