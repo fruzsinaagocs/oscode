@@ -145,7 +145,7 @@ suitable independent variable.",1);
     std::list<std::complex<double>> sol,dsol;
     std::list<double> times;
     std::list<bool> wkbs;
-    std::list<std::complex<double>> x_eval;
+    std::list<std::complex<double>> x_eval, dx_eval;
 
     if(t_evalobj!=NULL){
         //std::cout << "calling solution with dense output" << std::endl;
@@ -153,6 +153,7 @@ suitable independent variable.",1);
         //std::cout << "solution returned" << std::endl;
         solution.solve();
         x_eval = solution.dosol;
+        dx_eval = solution.dodsol;
         sol = solution.sol;
         dsol = solution.dsol;
         times = solution.times;
@@ -162,6 +163,7 @@ suitable independent variable.",1);
         Solution solution(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output);
         solution.solve();
         x_eval = solution.dosol;
+        dx_eval = solution.dodsol;
         sol = solution.sol;
         dsol = solution.dsol;
         times = solution.times;
@@ -169,15 +171,21 @@ suitable independent variable.",1);
     }
     // Build output values
     int Ndense = x_eval.size();
-    PyObject *pyx_eval = PyList_New(Ndense);
+    PyObject *pyx_eval = PyList_New(Ndense), *pydx_eval = PyList_New(Ndense);
     int Neval = 0;
     //std::cout << "building output dict" << std::endl;
-    for(auto itx_eval = x_eval.begin(); itx_eval!=x_eval.end(); ++itx_eval){
-        Py_complex x_eval_complex;
+    auto itx_eval = x_eval.begin();
+    auto itdx_eval = dx_eval.begin();
+    for(int Neval=0; Neval<Ndense; Neval++){
+        Py_complex x_eval_complex, dx_eval_complex;
         x_eval_complex.real = std::real(*itx_eval);
         x_eval_complex.imag = std::imag(*itx_eval);
+        dx_eval_complex.real = std::real(*itdx_eval);
+        dx_eval_complex.imag = std::imag(*itdx_eval);
         PyList_SetItem(pyx_eval,Neval,Py_BuildValue("D",&x_eval_complex));
-        ++Neval;
+        PyList_SetItem(pydx_eval,Neval,Py_BuildValue("D",&dx_eval_complex));
+        ++itx_eval;
+        ++itdx_eval;
         //std::cout << *itx_eval << std::endl;
     }
     //std::cout << "built dense output list " << std::endl;
@@ -201,7 +209,7 @@ suitable independent variable.",1);
         ++itd; ++itt; ++itwkb; ++Nsol;
     };
     //std::cout << "built other lists" << std::endl;
-        retdict = Py_BuildValue("{s:O,s:O,s:O,s:O,s:O}","sol",pysol,"dsol",pydsol,"t",pytimes,"types",pywkbs,"x_eval",pyx_eval);
+        retdict = Py_BuildValue("{s:O,s:O,s:O,s:O,s:O,s:O}","sol",pysol,"dsol",pydsol,"t",pytimes,"types",pywkbs,"x_eval",pyx_eval,"dx_eval",pydx_eval);
     //std::cout << "built output dict" << std::endl;
     // Clean up
     Py_DECREF(tsarray);

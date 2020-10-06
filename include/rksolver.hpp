@@ -40,7 +40,7 @@ class RKSolver
     Eigen::Matrix<std::complex<double>,1,2> dense_point(std::complex<double> x, std::complex<double> dx, const Eigen::Matrix<std::complex<double>,6,2> &k5);
     Eigen::Matrix<std::complex<double>,7,2> k_dense;
     Eigen::Matrix<double,7,4> P_dense;
-    void dense_step(double t0, double h0, std::complex<double> y0, const std::list<double> &dots, std::list<std::complex<double>> & doxs);
+    void dense_step(double t0, double h0, std::complex<double> y0, std::complex<double> dy0, const std::list<double> &dots, std::list<std::complex<double>> &doxs, std::list<std::complex<double>> &dodxs);
 
 };
 
@@ -100,7 +100,7 @@ Eigen::Matrix<std::complex<double>,1,2> RKSolver::dense_point(std::complex<doubl
     
 };
 
-void RKSolver::dense_step(double t0, double h0, std::complex<double> y0, const std::list<double> &dots, std::list<std::complex<double>> & doxs){
+void RKSolver::dense_step(double t0, double h0, std::complex<double> y0, std::complex<double> dy0, const std::list<double> &dots, std::list<std::complex<double>> &doxs, std::list<std::complex<double>> &dodxs){
     
     int docount = dots.size();
     double h = h0;
@@ -120,10 +120,13 @@ void RKSolver::dense_step(double t0, double h0, std::complex<double> y0, const s
         colcount += 1;
     }
     Y_dense = Q_dense*R_dense;
-    colcount = 0;
-    for(auto it=doxs.begin(); it!=doxs.end(); it++){
-        *it = y0 + Y_dense.row(0)(colcount);
-        colcount += 1;
+    auto it = doxs.begin();
+    auto dit = dodxs.begin();
+    for(int j=0; j<docount; j++){
+        *it = y0 + Y_dense.row(0)(j);
+        *dit = dy0 + Y_dense.row(1)(j);
+        it++;
+        dit++;
     }
 
 };

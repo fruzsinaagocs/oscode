@@ -1,7 +1,7 @@
 #pragma once
 #include "interpolator.hpp"
 
-/** \class bla */
+/** */
 class de_system
     {
     private:
