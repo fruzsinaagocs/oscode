@@ -1,18 +1,34 @@
 .. title:: Introduction
 
 ========================================================================
-oscode: Oscillatory ordinary differential equation solver
+(py)oscode: Oscillatory ordinary differential equation solver
 ========================================================================
 
-:oscode: oscillatory ordinary differential equation solver
-:Author: Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby
-:Version: 0.1.2
-:Homepage: https://github.com/fruzsinaagocs/oscode
-:Documentation: https://oscode.readthedocs.io
-
+.. image:: https://codecov.io/gh/fruzsinaagocs/oscode/branch/joss-paper/graph/badge.svg
+    :target: https://codecov.io/gh/fruzsinaagocs/oscode
+.. image:: https://travis-ci.org/fruzsinaagocs/oscode.svg?branch=master
+    :target: https://travis-ci.org/fruzsinaagocs/oscode
+    :alt: Travis CI build status
 .. image:: https://readthedocs.org/projects/oscode/badge/?version=latest
     :target: https://oscode.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
+.. image:: https://badges.gitter.im/oscode-help/community.svg
+    :target: https://gitter.im/oscode-help/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+    :alt: Chat on gitter
+.. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
+    :target: https://opensource.org/licenses/BSD-3-Clause
+    :alt: BSD 3-clause license
+
+|
+|
+
+.. contents::
+   :local:
+
+|
+
+About
+-----
 
 ``oscode`` is a C++ tool with a Python interface that solves **osc**\illatory
 **o**\rdinary **d**\ifferential **e**\quations efficiently. It is designed to
@@ -22,11 +38,8 @@ deal with equations of the form
 
 	\ddot{x}(t) + 2\gamma(t)\dot{x}(t) + \omega^2(t)x(t) = 0,
 
-where :math:`\gamma(t)` and :math:`\omega(t)` can be given as
+where :math:`\gamma(t)` and :math:`\omega(t)` can be given as arrays.
 
-- *In C++*, explicit functions or sequence containers (Eigen::Vectors, arrays,
-  std::vectors, lists),
-- *In Python*, numpy.arrays.
 
 ``oscode`` makes use of an analytic approximation of :math:`x(t)` embedded in a
 stepping procedure to skip over long regions of oscillations, giving a reduction
@@ -48,23 +61,31 @@ Dependencies
 Basic requirements for using the C++ interface:
 
 - C++11 or later
-- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__
+- `Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__ (a header-only library included in this source)
 
-For using the Python interface, you will additionally need:
+The strictly necessary Python dependencies are automatically installed when you use `pip` or the `setup.py`. They are:
 
-- Python 2.7 or 3.5+
 - `numpy <https://pypi.org/project/numpy/>`__
-- `scipy <https://pypi.org/project/scipy/>`__
 
-for the examples, plotting requires
+The *optional* dependencies are: 
 
-- `matplotlib <https://pypi.org/project/matplotlib/>`__
+- for tests:
+    - `scipy <https://pypi.org/project/scipy/>`__ 
+    - `pytest <https://docs.pytest.org/en/stable/getting-started.html>`__ 
+- for examples/plotting:
+    - `matplotlib <https://pypi.org/project/matplotlib/>`__
+    - `scipy <https://pypi.org/project/scipy/>`__ 
+- for generating offline documentation:
+    - `sphinx <https://pypi.org/project/Sphinx/>`__ 
+    - `doxygen <https://www.doxygen.nl/index.html>`__
+    - `breathe <https://pypi.org/project/breathe/>`__
+    - `exhale <https://pypi.org/project/exhale/>`__
 
 
 Python
 ~~~~~~
 
-``pyoscode`` can be installed via pip (*not available yet*)
+``pyoscode`` can be installed via pip 
 
 .. code:: bash
 
@@ -79,10 +100,10 @@ or via the setup.py
    python setup.py install --user
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
-you wish to install in a virtual environment. If you have any difficulties,
-check out the FAQs_ section below. 
+you wish to install globally or in a virtual environment. If you have any
+difficulties, check out the FAQs_ section below. 
 
-You can check that things are working by running
+You can check that things are working by running `tests/` (also ran by Travis continuous integration):
 
 .. code:: bash
 
@@ -109,141 +130,39 @@ and then include the relevant header files in your C++ code:
 Quick start
 -----------
 
-Try the following quick examples. These and more are available in the `examples
-<https://github.com/fruzsinaagocs/oscode/pyoscode/examples/>`__.
+Try the following quick examples. They are available in the `examples
+<https://github.com/fruzsinaagocs/oscode/tree/master/examples/>`__.
 
 Python
 ~~~~~~
 
-.. code:: python
+:Introduction to pyoscode: |intro_binder|
+:Cosmology examples: |cosmology_binder|
 
-    # "airy.py"
-    import pyoscode
-    import numpy
-    from scipy.special import airy
-    from matplotlib import pyplot as plt
-    
-    # Define the frequency and friction term over the range of integration
-    ts = numpy.linspace(1,1000,5000)
-    ws = numpy.sqrt(ts)
-    gs = numpy.zeros_like(ws)
-    # Define the range of integration and the initial conditions
-    ti = 1.0
-    tf = 1000.0
-    x0 = airy(-ti)[0] + 1j*airy(-ti)[2]
-    dx0 = -airy(-ti)[1] - 1j*airy(-ti)[3]
-    # Solve the system
-    sol = pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0)
-    t = numpy.asarray(sol['t'])
-    x = numpy.asarray(sol['sol'])
-    types = numpy.asarray(sol['types'])
-    # Plot the solution
-    ana_t = numpy.linspace(1,35.0,1000)
-    plt.plot(ana_t,[airy(-T)[0] for T in ana_t],label='true solution')
-    plt.plot(t[types==0],x[types==0],'.',color='red',label='RK steps')
-    plt.plot(t[types==1],x[types==1],'.',color='green',label='WKB steps')
-    plt.legend()
-    plt.xlim((1.0, 35.0))
-    plt.ylim((-1.0,1.0))
-    plt.xlabel('t')
-    plt.ylabel('Ai(-t)')
-    plt.savefig('airy-example.png')
+.. |intro_binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/fruzsinaagocs/oscode/joss-paper?filepath=examples/introduction_to_pyoscode.ipynb
 
-The above code, stored in ``airy.py``, produces the plot:
+.. |cosmology_binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/fruzsinaagocs/oscode/joss-paper?filepath=examples/cosmology.ipynb
 
 .. image::
-   https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/airy-example.png
-   :width: 800
+    https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/spectra.gif
+    :width: 800
+
 
 C++
 ~~~
 
-Below is an example where the frequency and friction terms are explicit
-functions of time, and are defined as functions. The code is found in
-``burst.cpp``, the results are plotted with ``plot_burst.py``.
-
-.. code:: c
-
-    // "burst.cpp"
-    #include "solver.hpp"
-    #include <cmath>
-    #include <fstream>
-    #include <string>
-    #include <stdlib.h>
-    
-    double n = 40.0;
-    
-    // Define the gamma term
-    std::complex<double> g(double t){
-        return 0.0;
-    };
-    
-    // Define the frequency
-    std::complex<double> w(double t){
-        return std::pow(n*n - 1.0,0.5)/(1.0 + t*t);
-    };
-    
-    // Initial conditions x, dx
-    std::complex<double> xburst(double t){
-        return 100*std::pow(1.0 + t*t,
-        0.5)/n*std::complex<double>(std::cos(n*std::atan(t)),std::sin(n*std::atan(t))); 
-    };
-    
-    std::complex<double> dxburst(double t){
-        return 100/std::pow(1.0 + t*t,
-        0.5)/n*(std::complex<double>(t,n)*std::cos(n*std::atan(t)) +
-        std::complex<double>(-n,t)*std::sin(n*std::atan(t))); 
-    };
-    
-    int main(){
-    
-        std::ofstream f;
-        std::string output = "output.txt";
-        std::complex<double> x0, dx0;
-        double ti, tf;
-        // Create differential equation 'system'
-        de_system sys(&w, &g);
-        // Define integration range
-        ti = -2*n;
-        tf = 2*n;
-        // Define initial conditions
-        x0 = xburst(ti); 
-        dx0 = dxburst(ti); 
-        // Solve the equation
-        Solution solution(sys, x0, dx0, ti, tf); 
-        solution.solve();
-        // The solution is stored in lists, copy the solution
-        std::list<std::complex<double>> xs = solution.sol;
-        std::list<double> ts = solution.times;
-        std::list<bool> types = solution.wkbs;
-        int steps = solution.ssteps;
-        // Write result in file
-        f.open(output);
-        auto it_t = ts.begin();
-        auto it_x = xs.begin();
-        auto it_ty = types.begin();
-        for(int i=0; i<steps; i++){
-            f << *it_t << ", " << std::real(*it_x) << ", " << *it_ty << std::endl; 
-            ++it_t;
-            ++it_x;
-            ++it_ty;
-        };
-        f.close();
-    };
+:Introduction to oscode: `examples/burst.cpp`
+:To plot results from `burst.cpp`: `examples/plot_burst.py`
 
 To compile and run:
 
 .. code:: bash
-    
+
     g++ -g -Wall -std=c++11 -c -o burst.o burst.cpp
     g++ -g -Wall -std=c++11 -o burst burst.o
     ./burst
-
-Plotting the results with Python yields
-
-.. image::
-   https://github.com/fruzsinaagocs/oscode/raw/master/pyoscode/images/burst-example.png
-   :width: 800
 
 
 Documentation
@@ -251,8 +170,7 @@ Documentation
 
 Documentation is hosted at `readthedocs <https://oscode.readthedocs.io>`__.
 
-To build your own local copy of the documentation you'll need to install `sphinx
-<https://pypi.org/project/Sphinx/>`__. You can then run:
+To build your own local copy of the documentation you can run:
 
 .. code:: bash
 
@@ -262,36 +180,10 @@ To build your own local copy of the documentation you'll need to install `sphinx
 Citation
 --------
 
-If the works below are **in prep.**, please email the authors at <fa325@cam.ac.uk>
-for a copy.
+If you use ``oscode`` to solve equations for a publication, please cite:
 
-If you use ``oscode`` to solve equations for a publication, please cite
-as: ::
-
-   Agocs, F., Handley, W., Lasenby, A., and Hobson, M., (2019). An efficient method for solving highly oscillatory
-   ordinary differential equations with applications to physical systems. arXiv
-   e-prints, arXiv:1906.01421 (2019) [physics.comp-ph].
-
-or using the BibTeX:
-
-.. code:: bibtex
-
-	@ARTICLE{2019arXiv190601421A,
-	       author = {{Agocs}, F.~J. and {Handley}, W.~J. and {Lasenby}, A.~N. and
-	         {Hobson}, M.~P.},
-	        title = "{An efficient method for solving highly oscillatory ordinary differential equations with applications to physical systems}",
-	      journal = {arXiv e-prints},
-	     keywords = {Physics - Computational Physics, Astrophysics - Instrumentation and Methods for Astrophysics, Mathematics - Numerical Analysis},
-	         year = "2019",
-	        month = "May",
-	          eid = {arXiv:1906.01421},
-	        pages = {arXiv:1906.01421},
-	archivePrefix = {arXiv},
-	       eprint = {1906.01421},
-	 primaryClass = {physics.comp-ph},
-	       adsurl = {https://ui.adsabs.harvard.edu/abs/2019arXiv190601421A},
-	      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-	}
+- `Efficient method for solving highly oscillatory ordinary differential equations with applications to physical systems <https://doi.org/10.1103/PhysRevResearch.2.013030>`__,
+- `Dense output for highly oscillatory numerical solutions  <https://arxiv.org/abs/2007.05013>`__
 
 
 Contributing
@@ -302,6 +194,12 @@ by:
 
 - Opening and `issue <https://www.github.com/fruzsinaagocs/oscode/issues/>`__ to report bugs and propose new features.
 - Making a pull request.
+
+Further help
+------------
+
+You can get help by submitting an issue or posting a message on `Gitter <https://gitter.im/oscode-help/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge>`__.
+
 
 FAQs
 ----
@@ -329,9 +227,26 @@ Installation
     eigen location.
 
 
+Thanks
+~~~~~~
+
+Many thanks to **Will Handley**, **Lukas Hergt**, **Anthony Lasenby**, and **Mike Hobson** for
+their support and advice regarding the algorithm behind `oscode`.
+There are many packages without which some part of `oscode` (e.g. testing and
+examples) wouldn't run as nicely and smoothly, thank you all developers for
+making and maintaining these open-source projects. A special thanks goes to the
+devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C++ documentation possible. 
+
+
 Changelog
 ---------
 
+- 1.0.0: current version
+    - Dense output
+    - Arrays for frequency and damping term need not be evenly spaced
+    - Automatic C++ documentation on readthedocs
+    - Eigen included in source for pip installability
+    - First pip release :)
 - 0.1.2:
     - Bug that occurred when beginning and end of integration coincided
       corrected
@@ -340,3 +255,4 @@ Changelog
 - 0.1.0:
     - Memory leaks at python interface fixed
     - C++ documentation added 
+

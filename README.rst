@@ -129,7 +129,7 @@ Quick start
 -----------
 
 Try the following quick examples. They are available in the `examples
-<https://github.com/fruzsinaagocs/oscode/examples/>`__.
+<https://github.com/fruzsinaagocs/oscode/tree/master/examples/>`__.
 
 Python
 ~~~~~~
@@ -224,7 +224,7 @@ Installation
 Thanks
 ~~~~~~
 
-Many thanks to **Will Handley**, **Lukas Hergt**, **Anthony Lasenb**y, and **Mike Hobson** for
+Many thanks to **Will Handley**, **Lukas Hergt**, **Anthony Lasenby**, and **Mike Hobson** for
 their support and advice regarding the algorithm behind `oscode`.
 There are many packages without which some part of `oscode` (e.g. testing and
 examples) wouldn't run as nicely and smoothly, thank you all developers for
