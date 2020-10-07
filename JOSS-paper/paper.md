@@ -96,7 +96,7 @@ efficient solver for the evolution of early-universe quantum fluctuations. These
 perturbations are thought to have been stretched to macroscopic scales by a
 phase of accelerated expansion, cosmic inflation, to later become the
 large-scale structure we see today. To understand the origins of structure it
-is therfore essential to model the perturbations and understand the physics
+is therefore essential to model the perturbations and understand the physics
 involved in inflation. `(py)oscode` has been used to speed up the numerical evolution of quantum
 fluctuations in the early universe, enabling the exploration of models beyond
 the standard model of cosmology [@pps-curved]. It served as inspiration for
