@@ -1,6 +1,14 @@
 #pragma once
 #include "system.hpp"
 
+/** Class that defines a 4 and 5th order Runge-Kutta method.
+ *
+ * This is a "bespoke"
+ * Runge-Kutta formula based on the nodes used in 5th and 6th order
+ * Gauss-Lobatto integration, as detailed in [1].
+ *
+ * [1] Agocs, F. J., et al. “Efficient Method for Solving Highly Oscillatory Ordinary Differential Equations with Applications to Physical Systems.” Physical Review Research, vol. 2, no. 1, 2020, doi:10.1103/physrevresearch.2.013030. 
+ */
 class RKSolver
 {
     private: 
@@ -20,16 +28,32 @@ class RKSolver
    
     public:
 
+    /** Defines the ODE */
     de_system *de_sys_;
 
+    /** Callable that gives the frequency term in the ODE at a given time */
     std::function<std::complex<double>(double)> w;
     
     // constructors
     RKSolver();
     RKSolver(de_system &de_sys);
     // grid of ws, gs
-    Eigen::Matrix<std::complex<double>,6,1> ws, gs;
-    Eigen::Matrix<std::complex<double>,5,1> ws5, gs5;
+    /** 6 values of the frequency term per step, evaluated at the nodes of 6th
+     * order Gauss-Lobatto quadrature
+     */
+    Eigen::Matrix<std::complex<double>,6,1> ws;
+    /** 6 values of the friction term per step, evaluated at the nodes of 6th
+     * order Gauss-Lobatto quadrature
+     */
+    Eigen::Matrix<std::complex<double>,6,1> gs;
+    /** 5 values of the frequency term per step, evaluated at the nodes of 5th
+     * order Gauss-Lobatto quadrature
+     */
+    Eigen::Matrix<std::complex<double>,5,1> ws5;
+    /** 5 values of the friction term per step, evaluated at the nodes of 5th
+     * order Gauss-Lobatto quadrature
+     */
+    Eigen::Matrix<std::complex<double>,5,1> gs5;
 
     // single step function 
     Eigen::Matrix<std::complex<double>,2,2> step(std::complex<double>, std::complex<double>, double, double);
@@ -44,9 +68,16 @@ class RKSolver
 
 };
 
+/** Default constructor. */
 RKSolver::RKSolver(){
 };
 
+/** Constructor for the RKSolver class. It sets up the Butcher tableaus for the
+ * two Runge-Kutta methods (4th and 5th order) used.
+ *
+ * @param de_sys[in] the system of first-order equations defining the
+ * second-order ODE to solve. 
+ */
 RKSolver::RKSolver(de_system &de_sys){
 
    
@@ -75,6 +106,16 @@ RKSolver::RKSolver(de_system &de_sys){
 
 };
 
+/** Turns the second-order ODE into a system of first-order ODEs as follows:
+ * 
+ * \f[ y = [x, \dot{x}], \f]
+ * \f[ \dot{y[0]} = y[1], \f]
+ * \f[ \dot{y[1]} = -\omega^2(t)y[0] -2\gamma(t)y[1]. \f]
+ *
+ * @param t[in] time \f$ t \f$
+ * @param y[in] vector of unknowns \f$ y = [x, \dot{x}] \f$
+ * @returns a vector of the derivative of \f$ y \f$
+ */
 Eigen::Matrix<std::complex<double>,1,2> RKSolver::f(double t, const Eigen::Matrix<std::complex<double>,1,2> &y){
     
     if(de_sys_->islogw_)
@@ -90,6 +131,11 @@ Eigen::Matrix<std::complex<double>,1,2> RKSolver::f(double t, const Eigen::Matri
     return result;
 };
 
+/** Gives dense output at a single point during the step "for free", i.e. at no
+ * extra evaluations of \f$ \omega(t), \gamma(t) \f$. This solution is roughly
+ * mid-way through the step at $\sigma \sim 0.59 \f$, where \f$ \sigma = 0 \f$
+ * corresponds to the start, \f$ \sigma = 1 \f$ to the end of the step.
+ */
 Eigen::Matrix<std::complex<double>,1,2> RKSolver::dense_point(std::complex<double> x, std::complex<double> dx, const Eigen::Matrix<std::complex<double>,6,2> &k5){
 
     Eigen::Matrix<std::complex<double>,1,2> ydense;
@@ -100,6 +146,9 @@ Eigen::Matrix<std::complex<double>,1,2> RKSolver::dense_point(std::complex<doubl
     
 };
 
+/** Calculated dense output at a given set of points during a step after a
+ * successful Runge-Kutta type step. 
+ */
 void RKSolver::dense_step(double t0, double h0, std::complex<double> y0, std::complex<double> dy0, const std::list<double> &dots, std::list<std::complex<double>> &doxs, std::list<std::complex<double>> &dodxs){
     
     int docount = dots.size();
@@ -131,7 +180,11 @@ void RKSolver::dense_step(double t0, double h0, std::complex<double> y0, std::co
 
 };
 
-
+/** Computes a single Runge-Kutta type step, and returns the solution and its
+ * local error estimate. 
+ *
+ *
+ */
 Eigen::Matrix<std::complex<double>,2,2> RKSolver::step(std::complex<double> x0, std::complex<double> dx0, double t0, double h){
 
     Eigen::Matrix<std::complex<double>,1,2> y0, y, y4, y5, delta, k5_i, k4_i;
