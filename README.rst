@@ -68,10 +68,18 @@ The strictly necessary Python dependencies are automatically installed when you 
 
 The *optional* dependencies are: 
 
-- `scipy <https://pypi.org/project/scipy/>`__ (for running tests and examples)
-- `matplotlib <https://pypi.org/project/matplotlib/>`__ (for running examples)
-- `sphinx <https://pypi.org/project/Sphinx/>`__ (for offline documentation)
-- `pytest <https://docs.pytest.org/en/stable/getting-started.html>`__ (for running offline tests)
+- for tests:
+    - `scipy <https://pypi.org/project/scipy/>`__ 
+    - `pytest <https://docs.pytest.org/en/stable/getting-started.html>`__ 
+- for examples/plotting:
+    - `matplotlib <https://pypi.org/project/matplotlib/>`__
+    - `scipy <https://pypi.org/project/scipy/>`__ 
+- for generating offline documentation:
+    - `sphinx <https://pypi.org/project/Sphinx/>`__ 
+    - `doxygen <https://www.doxygen.nl/index.html>`__
+    - `breathe <https://pypi.org/project/breathe/>`__
+    - `exhale <https://pypi.org/project/exhale/>`__
+
 
 Python
 ~~~~~~
@@ -213,6 +221,16 @@ Installation
     where  ``/usr/include/eigen3`` should be replaced with your system-specific
     eigen location.
 
+Thanks
+~~~~~~
+
+Many thanks to **Will Handley**, **Lukas Hergt**, **Anthony Lasenb**y, and **Mike Hobson** for
+their support and advice regarding the algorithm behind `oscode`.
+There are many packages without which some part of `oscode` (e.g. testing and
+examples) wouldn't run as nicely and smoothly, thank you all developers for
+making and maintaining these open-source projects. A special thanks goes to the
+devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C++ documentation possible. 
+
 
 Changelog
 ---------
@@ -220,7 +238,9 @@ Changelog
 - 1.0.0: current version
     - Dense output
     - Arrays for frequency and damping term need not be evenly spaced
+    - Automatic C++ documentation on readthedocs
     - Eigen included in source for pip installability
+    - First pip release :)
 - 0.1.2:
     - Bug that occurred when beginning and end of integration coincided
       corrected

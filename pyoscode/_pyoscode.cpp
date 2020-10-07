@@ -115,7 +115,19 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
         else if(tf < ts[0] or tf > ts[tssize-1])
             throw "The end of integration, tf, must lie inside of the array ts.";
 
-        // Check 4: direction of integration must match initial stepsize sign
+        // Check 4: dense output points must be inside integration range, and
+        // monotonous 
+        if(t_evalsize!=0){
+            if(std::is_sorted(t_evallist.begin(), t_evallist.end()) == false)
+                throw "The points at which dense output is requested are not in ascending order.";
+            else if(h0>0 and (t_evallist.front() < ti or t_evallist.back() > tf)){
+                throw "The point at which dense output is requested must lie in the integration range (between ti, tf).";
+            }
+            else if(h0<0 and (t_evallist.front() < tf or t_evallist.back() > ti)){
+                throw "The point at which dense output is requested must lie in the integration range (between ti, tf).";
+            }
+        } 
+        // Check 5: direction of integration must match initial stepsize sign
         if( ((tf-ti)>0 and h0<0) or ((tf-ti)<0 and h0>0) )
             throw "Direction of integration ( tf-ti ) in conflict with sign of initial step (h).";
         

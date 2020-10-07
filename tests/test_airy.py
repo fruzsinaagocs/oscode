@@ -12,12 +12,10 @@ def test_no_integration():
     tf = ti
     x0 = airy(-ti)[0] + 1j*airy(-ti)[2]
     dx0 = -airy(-ti)[1] - 1j*airy(-ti)[3]
-    t_eval = np.linspace(ti,1000.0,5000)
-    sol = pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0,t_eval=t_eval,even_grid=True)
+    sol = pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0,even_grid=True)
     t = np.asarray(sol['t'])
     x = np.asarray(sol['sol'])
     dx = np.asarray(sol['dsol'])
-    dense = np.asarray(sol['x_eval'])
     assert (x.shape[0] == 1 and dx.shape[0] == 1 and x[0] == x0 and dx[0] == dx0)
 
 
