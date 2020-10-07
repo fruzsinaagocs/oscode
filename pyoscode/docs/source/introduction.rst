@@ -228,7 +228,7 @@ Installation
 
 
 Thanks
-~~~~~~
+------
 
 Many thanks to **Will Handley**, **Lukas Hergt**, **Anthony Lasenby**, and **Mike Hobson** for
 their support and advice regarding the algorithm behind `oscode`.
