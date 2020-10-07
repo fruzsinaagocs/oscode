@@ -1,2 +1,4 @@
 numpy
-numpydoc
+scipy
+matplotlib
+coverage

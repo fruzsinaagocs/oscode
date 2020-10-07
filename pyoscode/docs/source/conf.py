@@ -16,12 +16,11 @@ import os
 import sys
 sys.path.append(os.path.abspath('../../../'))
 
-
 # -- Project information -----------------------------------------------------
 
-project = u'oscode'
-copyright = u'2019, Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby'
-author = u'Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby'
+project = u'(py)oscode'
+copyright = u'2019, Fruzsina Agocs'
+author = u'Fruzsina Agocs'
 
 # The short X.Y version
 version = u''
@@ -48,14 +47,44 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'numpydoc'
+    'numpydoc',
+    'breathe',
+    'exhale'
 ]
+
+# Set up the breathe extension
+breathe_projects = {
+    "oscode": "./doxyoutput/xml"
+}
+
+breathe_default_project = "oscode"
+
+# Setup the exhale extension
+exhale_args = {
+    # These arguments are required
+    "containmentFolder":     "./cpp-docs",
+    "rootFileName":          "oscode-reference.rst",
+    "rootFileTitle":         "oscode",
+    "doxygenStripFromPath":  "..",
+    # Suggested optional arguments
+    "createTreeView":        True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    # "treeViewIsBootstrap": True,
+    "exhaleExecutesDoxygen": True,
+    "exhaleDoxygenStdin":    "INPUT = ./../../../include\nRECURSIVE = NO", 
+    "verboseBuild" : True
+}
+
+primary_domain = 'cpp'
+
+higlhight_language = 'cpp'
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
+# You can speify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
@@ -138,8 +167,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'oscode.tex', u'oscode Documentation',
-     u'Fruzsina Agocs, Will Handley, Mike Hobson, and Anthony Lasenby', 'manual'),
+    (master_doc, '(py)oscode.tex', u'(py)oscode Documentation',
+     u'Fruzsina Agocs', 'manual'),
 ]
 
 
@@ -148,7 +177,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'oscode', u'oscode Documentation',
+    (master_doc, '(py)oscode', u'(py)oscode Documentation',
      [author], 1)
 ]
 
@@ -159,8 +188,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'oscode', u'oscode Documentation',
-     author, 'oscode', 'One line description of project.',
+    (master_doc, '(py)oscode', u'(py)oscode Documentation',
+     author, 'oscode', 'Fast solution of oscillatory ODEs',
      'Miscellaneous'),
 ]
 
