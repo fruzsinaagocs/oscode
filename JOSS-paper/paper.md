@@ -5,8 +5,6 @@ tags:
   - C++
   - numerical methods
   - ordinary differential equations
-  - oscillatory 
-  - runge-kutta 
 authors:
   - name: Fruzsina Julia Agocs^[corresponding author.]
     orcid: 0000-0002-1763-5884
@@ -16,7 +14,7 @@ affiliations:
    index: 1
  - name: Kavli Institute for Cosmology, Madingley Road, Cambridge, CB3 0HA, UK
    index: 2
-date: 13 August 2017
+date: 7 October 2020
 bibliography: paper.bib
 
 ---
