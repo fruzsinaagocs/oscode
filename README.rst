@@ -87,9 +87,7 @@ Python
 
 .. code:: bash
    
-   git clone https://github.com/fruzsinaagocs/oscode
-   cd oscode
-   pip install .
+   pip install pyoscode
 
 or via the setup.py
 
@@ -98,6 +96,14 @@ or via the setup.py
    git clone https://github.com/fruzsinaagocs/oscode
    cd oscode
    python setup.py install --user
+
+or
+
+.. code:: bash
+
+   git clone https://github.com/fruzsinaagocs/oscode
+   cd oscode
+   pip install .
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
 you wish to install globally or in a virtual environment. If you have any
