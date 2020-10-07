@@ -18,7 +18,7 @@ def test_dense_output_sorted():
         pyoscode.solve(ts,ws,gs,ti,tf,x0,dx0,t_eval=t_eval)
     return None;
 
-def test_dense_output_sorted():
+def test_dense_output_range():
     # Dense output outside integration range
     ts = np.linspace(1,50,2000)
     ws = np.linspace(1,50,2000)
