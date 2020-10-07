@@ -2,6 +2,7 @@
 #include <iomanip>
 #include "system.hpp"
 
+/** Class to carry out WKB steps of varying orders.  */
 class WKBSolver
 {
     protected: 
@@ -191,6 +192,32 @@ WKBSolver::WKBSolver(de_system &de_sys, int order){
         -3.49148624058568, -0.560400043118500e-8, 2.48198050935041;
 };
 
+/** Computes a WKB step of a given order and returns the solution and its local
+ * error estimate. 
+ *
+ *
+ * @param x0[in] value of the solution \f$x(t)\f$ at the start of the step
+ * @param dx0[in] value of the derivative of the solution \f$\frac{dx}{dt}\f$ at
+ * the start of the step
+ * @param t0[in] value of independent variable (time) at the start of the step
+ * @param h0[in] size of the step (solution will be given at t+t0)
+ * @param ws[in] vector of 6 evaulations of the frequency term at the
+ * Gauss-Lobatto nodes, this is necessary for Gauss-Lobatto integration, which
+ * in turn is needed to calculate the WKB series
+ * @param gs[in] vector of 6 evaluations of the friction term 
+ * @param ws5[in] vector of 5 evaluations of the friction term at the nodes of
+ * 5th order Gauss-Lobatto quadrature, this is needed to compute the error on
+ * Gauss-Lobatto quadrature, and in turn the WKB series
+ * @param gs5[in] vector of 5 evaluations of the friction term
+ *
+ * @returns a matrix, whose rows are:
+ * - \f$ x, \dot{x}\f$ at t0+h0 as an nth order WKB estimate
+ * - \f$ \Delta_{\mathrm{trunc}}x, \Delta_{\mathrm{trunc}}\dot{x}\f$ at t0+h0, defined as the difference between
+ *   an nth and (n-1)th order WKB estimate
+ * - \f$ \Delta_{\mathrm{int}}x, \Delta_{\mathrm{int}}\dot{x}\f$ at t0+h0,
+ *   defined as the local error coming from those terms in the WKB series that
+ *   involved numerical integrals
+ */
 Eigen::Matrix<std::complex<double>,3,2> WKBSolver::step(std::complex<double> x0,
 std::complex<double> dx0, double t0, double h0, const
 Eigen::Matrix<std::complex<double>,6,1> &ws, const
@@ -258,7 +285,15 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
     return result;
 };
 
-// Dense output
+/** Computes dense output at a set of timepoints within a step. 
+ *
+ * @param t0[in] value of independent variable (time) at the start of the step
+ * @param dots[in] sequence of timepoints at which dense output is to be
+ * generated
+ * @param doxs[in,out] dense output for the solution \f$x(t)\f$
+ * @param dodxs[in,out] dense output for the derivative of the solution
+ * \f$\dot{x}\f$
+ */
 void WKBSolver::dense_step(double t0, const std::list<double> &dots, std::list<std::complex<double>> &doxs, std::list<std::complex<double>> &dodxs){
 
     // We have: ws_, gs_, ws5_, gs5_, ws7_, x, dx, ddx, h, dws_, dws5_, d2wx,
