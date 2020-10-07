@@ -14,7 +14,7 @@ RUN pip3 install --no-cache --upgrade pip && \
 #ENV CPLUS_INCLUDE_PATH=${PWD}/eigen-git-mirror/:${CPLUS_INCLUDE_PATH}
 #RUN echo $CPLUS_INCLUDE_PATH
 RUN mkdir oscode
-RUN git clone --single-branch --branch joss-paper https://github.com/fruzsinaagocs/oscode oscode/
+RUN git clone --single-branch --branch master https://github.com/fruzsinaagocs/oscode oscode/
 
 RUN cd oscode && \
     python3 setup.py install
