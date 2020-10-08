@@ -68,13 +68,13 @@ The strictly necessary Python dependencies are automatically installed when you 
 
 The *optional* dependencies are: 
 
-- for tests:
+- for tests
     - `scipy <https://pypi.org/project/scipy/>`__ 
     - `pytest <https://docs.pytest.org/en/stable/getting-started.html>`__ 
-- for examples/plotting:
+- for examples/plotting
     - `matplotlib <https://pypi.org/project/matplotlib/>`__
     - `scipy <https://pypi.org/project/scipy/>`__ 
-- for generating offline documentation:
+- for generating offline documentation
     - `sphinx <https://pypi.org/project/Sphinx/>`__ 
     - `doxygen <https://www.doxygen.nl/index.html>`__
     - `breathe <https://pypi.org/project/breathe/>`__
