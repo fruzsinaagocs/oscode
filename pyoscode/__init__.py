@@ -10,8 +10,8 @@ rtol=1e-4, atol=0.0, h=None, full_output="", even_grid=False, check_grid=False):
     Parameters
     ----------
     ts: numpy.ndarray [float] or list [float]
-       An array of real numbers representing the values of the independe
-       nt variable at which the frequency and friction term are evaluated. 
+       An array of real numbers representing the values of the independent
+       variable at which the frequency and friction term are evaluated. 
 
     ws: numpy.ndarray [complex] or list [complex]
        An array-like object of real or complex 
@@ -83,6 +83,10 @@ rtol=1e-4, atol=0.0, h=None, full_output="", even_grid=False, check_grid=False):
 
         x_eval: list [complex]
             Values of the solution at the points specified in t_eval.
+
+        dx_eval: list [complex]
+            Values of the derivative of the solution at the points specified in
+            t_eval.
      
     """
     # Set direction of integration if initial stepsize, h, not given
