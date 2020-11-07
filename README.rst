@@ -109,7 +109,8 @@ or
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
 you wish to install globally or in a virtual environment. If you have any
-difficulties, check out the `Installation troubleshooting`_ section below. 
+difficulties, check out the `FAQs - Installation
+<https://github.com/fruzsinaagocs/oscode#installation-1>`__ section below. 
 
 You can check that things are working by running `tests/` (also ran by Travis continuous integration):
 
@@ -145,7 +146,7 @@ Python
 
 :Introduction to pyoscode: |intro_binder|
 :Cosmology examples: |cosmology_binder|
-:Scipy 2020 lecture notbook: |scipy_binder|
+:Scipy 2020 lecture notebook: |scipy_binder|
 
 .. |intro_binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/fruzsinaagocs/oscode/master?filepath=examples/introduction_to_pyoscode.ipynb
