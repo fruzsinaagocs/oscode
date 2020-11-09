@@ -18,6 +18,9 @@ oscode: Oscillatory ordinary differential equation solver
     :alt: BSD 3-clause license
 .. image:: https://img.shields.io/pypi/dm/pyoscode?color=indigo   
     :alt: PyPI - Downloads
+.. image:: https://joss.theoj.org/papers/d4c9396ef9b2b595e2f3881a4f8a7cda/status.svg
+    :target: https://joss.theoj.org/papers/d4c9396ef9b2b595e2f3881a4f8a7cda
+
 
 |
 |
