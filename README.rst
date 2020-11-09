@@ -3,23 +3,26 @@ oscode: Oscillatory ordinary differential equation solver
 ========================================================================
 
 .. image:: https://codecov.io/gh/fruzsinaagocs/oscode/branch/joss-paper/graph/badge.svg
-    :target: https://codecov.io/gh/fruzsinaagocs/oscode
+        :target: https://codecov.io/gh/fruzsinaagocs/oscode
+        :alt: codecov status
 .. image:: https://travis-ci.org/fruzsinaagocs/oscode.svg?branch=master
-    :target: https://travis-ci.org/fruzsinaagocs/oscode
-    :alt: Travis CI build status
+        :target: https://travis-ci.org/fruzsinaagocs/oscode
+        :alt: Travis CI build status
 .. image:: https://readthedocs.org/projects/oscode/badge/?version=latest
-    :target: https://oscode.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+        :target: https://oscode.readthedocs.io/en/latest/?badge=latest
+        :alt: Documentation Status
 .. image:: https://badges.gitter.im/oscode-help/community.svg
-    :target: https://gitter.im/oscode-help/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-    :alt: Chat on gitter
+        :target: https://gitter.im/oscode-help/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+        :alt: Chat on gitter
 .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
-    :target: https://opensource.org/licenses/BSD-3-Clause
-    :alt: BSD 3-clause license
-.. image:: https://img.shields.io/pypi/dm/pyoscode?color=indigo   
-    :alt: PyPI - Downloads
+        :target: https://opensource.org/licenses/BSD-3-Clause
+        :alt: BSD 3-clause license
+.. image:: https://img.shields.io/pypi/dm/pyoscode?color=indigo 
+        :target: https://pypi.org/project/pyoscode/
+        :alt: PyPI downloads
 .. image:: https://joss.theoj.org/papers/d4c9396ef9b2b595e2f3881a4f8a7cda/status.svg
-    :target: https://joss.theoj.org/papers/d4c9396ef9b2b595e2f3881a4f8a7cda
+        :target: https://joss.theoj.org/papers/d4c9396ef9b2b595e2f3881a4f8a7cda
+        :alt: JOSS status
 
 
 |
