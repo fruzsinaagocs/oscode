@@ -112,7 +112,7 @@ class WKBSolver
     Eigen::Matrix<std::complex<double>,5,1> &ws5, const
     Eigen::Matrix<std::complex<double>,5,1> &gs5); 
     // dense output
-    void dense_step(double t0, const std::list<double> &dots, std::list<std::complex<double>> &doxs, std::list<std::complex<double>> &dodxs);
+    void dense_step(double t0, const std::list<double> &dots, std::list<std::complex<double>> &doxs, std::list<std::complex<double>> &dodxs, std::list<double> &amps, std::list<double> &phases);
     Eigen::Matrix<double,6,1> dense_weights_6(double t);
     Eigen::Matrix<double,6,1> dense_weights_derivs_6(double t);
     std::complex<double> dense_integrate(const Eigen::Matrix<double,6,1>
@@ -294,7 +294,7 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
  * @param dodxs[in,out] dense output for the derivative of the solution
  * \f$\dot{x}\f$
  */
-void WKBSolver::dense_step(double t0, const std::list<double> &dots, std::list<std::complex<double>> &doxs, std::list<std::complex<double>> &dodxs){
+void WKBSolver::dense_step(double t0, const std::list<double> &dots, std::list<std::complex<double>> &doxs, std::list<std::complex<double>> &dodxs, std::list<double> &amps, std::list<double> &phases){
 
     // We have: ws_, gs_, ws5_, gs5_, ws7_, x, dx, ddx, h, dws_, dws5_, d2wx,
     // d3wx, etc., 
@@ -353,6 +353,9 @@ void WKBSolver::dense_step(double t0, const std::list<double> &dots, std::list<s
             dense_x = dense_ap_*dense_fp + dense_am_*dense_fm;
             *doxit = dense_x;
             doxit++;
+            *phases = std::imag(dense_s_.sum());
+            phases++;
+
 
             // Dense output dx
             ds0 = std::complex<double>(0,1)*dense_interpolate(dodws6,ws_);
