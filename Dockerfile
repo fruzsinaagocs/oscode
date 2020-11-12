@@ -7,8 +7,8 @@ RUN pip3 install --no-cache --upgrade pip && \
     pip3 install --no-cache notebook && \
     pip3 install scipy numpy matplotlib ipywidgets jupyter_contrib_nbextensions \
     hide_code cite2c RISE wand && \
+    jupyter nbextension install --py --user hide_code &&\
     jupyter contrib nbextension install --user && \
-    jupyter nbextension enable hide_code --user --py && \
     python3 -m cite2c.install
 
 #RUN git clone https://github.com/eigenteam/eigen-git-mirror 
