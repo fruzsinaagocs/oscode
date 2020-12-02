@@ -1,3 +1,8 @@
+os:
+    - linux
+    - osx
+    osx_image:
+    - xcode12.2
 language: python
 python: 
     - "2.7"
@@ -6,12 +11,11 @@ python:
     - "3.6"
 install: 
     - pip install -r requirements.txt
-    - pip install .
+    - pip install pyoscode
 script:
     - coverage run -m pytest tests/
 branches:
     only:
-    - master
-    - joss-paper
+    - mac-install-error
 after_success:
     - bash <(curl -s https://codecov.io/bash)
