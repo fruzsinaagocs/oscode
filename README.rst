@@ -256,7 +256,9 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 Changelog
 ---------
 
-- 1.0.0: current version
+- 1.0.1: current version
+    - Added `pyproject.toml` to handle build dependencies (numpy)
+- 1.0.0: first release
     - Dense output
     - Arrays for frequency and damping term need not be evenly spaced
     - Automatic C++ documentation on readthedocs
