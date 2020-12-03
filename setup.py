@@ -1,15 +1,6 @@
 from __future__ import absolute_import, with_statement, print_function, division
 from setuptools import setup, Extension, find_packages
 import os
-import pip
-try:
-    pip.main(['install', 'numpy'])
-except AttributeError:
-    from pip._internal import main
-    main(['install', 'numpy'])
-except: 
-    raise Warning("Couldn't install numpy automatically. Please make sure you have it installed, otherwise pyoscode install will fail.")
-
 import numpy.distutils.misc_util
 
 def readme(short=False):
@@ -22,14 +13,14 @@ def readme(short=False):
 pyoscode_module = Extension(
     name="_pyoscode",
     sources=["pyoscode/_pyoscode.cpp"],
-    include_dirs=['include','pyoscode'],
+    include_dirs=['include','pyoscode',numpy.distutils.misc_util.get_numpy_include_dirs()],
     depends=["pyoscode/_python.hpp", "pyoscode/_pyoscode.hpp"],
     extra_compile_args=['-std=c++11','-Wall']
     )
 
 setup(
     name="pyoscode",
-    version="1.0.0",
+    version="1.0.1",
     description=readme(short=True),
     long_description=readme(),
     url="https://github.com/fruzsinaagocs/oscode",
