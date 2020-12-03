@@ -1,5 +1,6 @@
 os:
     - osx
+    - linux
 osx_image:  xcode12.2
 python:
     - "2.7"
