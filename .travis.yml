@@ -12,6 +12,6 @@ script:
     - coverage run -m pytest tests/
 branches:
     only:
-    - mac-install-error
+    - master
 after_success:
     - bash <(curl -s https://codecov.io/bash)
