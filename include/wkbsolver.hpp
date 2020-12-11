@@ -355,6 +355,8 @@ void WKBSolver::dense_step(double t0, const std::list<double> &dots, std::list<s
             doxit++;
             *phases = std::imag(dense_s_.sum());
             phases++;
+            *amps = std::abs(dende_ap_)*std::exp(std::real(dense_s_.sum());
+            amps++;
 
 
             // Dense output dx
