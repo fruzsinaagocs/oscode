@@ -94,7 +94,7 @@ be used to generate a "continuous" solution, or dense output [@dense-output].
 `(py)oscode`'s development was motivated by the need for a significantly more
 efficient solver for the evolution of early-universe quantum fluctuations. These
 perturbations are thought to have been stretched to macroscopic scales by a
-phase of accelerated expansion, cosmic inflation, to later become the
+phase of accelerated expansion of the universe (cosmic inflation), to later become the
 large-scale structure we see today. To understand the origins of structure it
 is therefore essential to model the perturbations and understand the physics
 involved in inflation. `(py)oscode` has been used to speed up the numerical evolution of quantum
