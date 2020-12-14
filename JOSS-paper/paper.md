@@ -41,7 +41,7 @@ numerical solution of an ODE), as they are supplied as sequences $\omega_j,
 integration range.
 
 `(py)oscode` is written in C++, but comes with a Python wrapper.
-Its Python interface was designed to be similar to those included in `scipy`'s numerical ODE solution
+Its Python interface was designed to be similar to those included in `SciPy`'s [@scipy] numerical ODE solution
 modules. This is demonstrated in the example below whose output is shown in
 \autoref{fig:airy}.
 
@@ -106,7 +106,7 @@ other numerical methods aiming to extend the range of oscillatory ODEs to solve
 The efficient solution of oscillatory ODEs is a long-standing
 numerical analysis problem with many existing methods to handle certain
 sub-classes of equations. Examples include successful methods by Petzold [@petzold], reviewed in [@petzold-review] with many references therein, 
-Iserles et al. [@condon-deano-iserles] [@deano-integrals] [@hu-et-al-circuits], and Bremer [@bremer] (with code available from [@bremer-code]).
+Iserles et al. [@condon-deano-iserles] [@deano-integrals] [@condon-et-al-circuits], and Bremer [@bremer] (with code available from [@bremer-code]).
 
 # Acknowledgements
 
