@@ -105,8 +105,8 @@ other numerical methods aiming to extend the range of oscillatory ODEs to solve
 
 The efficient solution of oscillatory ODEs is a long-standing
 numerical analysis problem with many existing methods to handle certain
-sub-classes of equations. Examples include successful methods by Petzold [@petzold], reviewed in [@petzold-review] with many references therein, 
-Iserles et al. [@condon-deano-iserles] [@deano-integrals] [@condon-et-al-circuits], and Bremer [@bremer] (with code available from [@bremer-code]).
+sub-classes of equations. Examples include successful methods by Petzold [@petzold], reviewed in @petzold-review with many references therein, 
+Iserles et al. [@condon-deano-iserles; @deano-integrals; @condon-et-al-circuits], and Bremer [@bremer] (with code available from @bremer-code).
 
 # Acknowledgements
 
