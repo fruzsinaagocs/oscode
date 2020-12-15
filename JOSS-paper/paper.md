@@ -79,7 +79,7 @@ oscillations in the solution is high enough, standard numerical methods struggle
 to solve such equations quickly. Traditional methods have to trace every
 oscillation in the solution, taking many steps in $x$ at an enormous
 computational cost. The algorithm underlying `(py)oscode`, published in
-[@oscode] and based on [@rkwkb-handley], can detect when the solution is oscillatory and switch to a method
+@oscode and based on @rkwkb-handley, can detect when the solution is oscillatory and switch to a method
 based on an analytic approximation (Wentzel--Kramers--Brillouin, WKB) suited for
 oscillatory functions, otherwise using a Runge--Kutta (RK) method. Using the WKB
 approximation allows the algorithm to skip over several wavelengths of
