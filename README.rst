@@ -23,7 +23,9 @@ oscode: Oscillatory ordinary differential equation solver
 .. image:: https://joss.theoj.org/papers/d4c9396ef9b2b595e2f3881a4f8a7cda/status.svg
         :target: https://joss.theoj.org/papers/d4c9396ef9b2b595e2f3881a4f8a7cda
         :alt: JOSS status
-
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4322958.svg
+        :target: https://doi.org/10.5281/zenodo.4322958
+        :alt: Zenodo doi
 
 |
 |
@@ -256,7 +258,9 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 Changelog
 ---------
 
-- 1.0.2: current version
+- 1.0.3: 
+    - paper accepted to JOSS
+- 1.0.2:
     - Fixed getting correct numpy include directories
 - 1.0.1:
     - Added `pyproject.toml` to handle build dependencies (numpy)
