@@ -13,7 +13,7 @@ class RKSolver
 {
     private: 
     // Frequency and friction term
-    //std::function<std::complex<double>(double)> w;
+    std::function<std::complex<double>(double)> w;
     std::function<std::complex<double>(double)> g;
     
 
@@ -32,7 +32,7 @@ class RKSolver
     de_system *de_sys_;
 
     /** Callable that gives the frequency term in the ODE at a given time */
-    std::function<std::complex<double>(double)> w;
+    //std::function<std::complex<double>(double)> w;
     
     // constructors
     RKSolver();
@@ -82,6 +82,10 @@ RKSolver::RKSolver(de_system &de_sys){
 
    
     de_sys_ = &de_sys;
+    if(de_sys_->is_interpolated == 0){
+        w = de_sys.w;
+        g = de_sys.g;
+    }
     // Set Butcher tableaus
     RKSolver::butcher_a5 << 0.1174723380352676535740,0,0,0,0,
                  -0.1862479800651504276304,0.5436322218248278794734,0,0,0,
@@ -118,14 +122,21 @@ RKSolver::RKSolver(de_system &de_sys){
  */
 Eigen::Matrix<std::complex<double>,1,2> RKSolver::f(double t, const Eigen::Matrix<std::complex<double>,1,2> &y){
     
-    if(de_sys_->islogw_)
-        wi = de_sys_->Winterp.expit(t);
-    else
-        wi = de_sys_->Winterp(t);
-    if(de_sys_->islogg_)
-        gi = de_sys_->Ginterp.expit(t);
-    else
-        gi = de_sys_->Ginterp(t);
+//    std::cout << "Are we interpolating? " << de_sys_->is_interpolated << std::endl;
+    if(de_sys_->is_interpolated == 1){ 
+        if(de_sys_->islogw_)
+            wi = de_sys_->Winterp.expit(t);
+        else
+            wi = de_sys_->Winterp(t);
+        if(de_sys_->islogg_)
+            gi = de_sys_->Ginterp.expit(t);
+        else
+            gi = de_sys_->Ginterp(t);
+    }
+    else{
+        wi = w(t);
+        gi = g(t);
+    }
     Eigen::Matrix<std::complex<double>,1,2> result;
     result << y[1], -wi*wi*y[0]-2.0*gi*y[1];
     return result;
@@ -194,7 +205,9 @@ Eigen::Matrix<std::complex<double>,2,2> RKSolver::step(std::complex<double> x0, 
     // TODO: resizing of ws5, gs5, insertion
     Eigen::Matrix<std::complex<double>,4,2> k4;
     Eigen::Matrix<std::complex<double>,2,2> result;
+//    std::cout << "Set up RK step" << std::endl;
     k5.row(0) = h*f(t0, y0);
+//    std::cout << "Asked for f" << std::endl;
     ws(0) = wi;
     gs(0) = gi;
     for(int s=1; s<=5; s++){
@@ -228,16 +241,22 @@ Eigen::Matrix<std::complex<double>,2,2> RKSolver::step(std::complex<double> x0, 
     // Add in missing w, g at t+h/2
     ws5(4) = ws5(3);
     ws5(3) = ws5(2);
-    if(de_sys_->islogw_)
-        ws5(2) = de_sys_->Winterp.expit(t0+h/2);
-    else
-        ws5(2) = de_sys_->Winterp(t0+h/2);
     gs5(4) = gs5(3);
     gs5(3) = gs5(2);
-    if(de_sys_->islogg_)
-        gs5(2) = de_sys_->Ginterp.expit(t0+h/2);
-    else
-        gs5(2) = de_sys_->Ginterp(t0+h/2);
+    if(de_sys_->is_interpolated == 1){
+        if(de_sys_->islogw_)
+            ws5(2) = de_sys_->Winterp.expit(t0+h/2);
+        else
+            ws5(2) = de_sys_->Winterp(t0+h/2);
+        if(de_sys_->islogg_)
+            gs5(2) = de_sys_->Ginterp.expit(t0+h/2);
+        else
+            gs5(2) = de_sys_->Ginterp(t0+h/2);
+    }
+    else{
+        ws5(2) = w(t0+h/2);
+        gs5(2) = g(t0+h/2);
+    }
 
 
     // Fill up k_dense matrix for dense output
