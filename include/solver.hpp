@@ -30,6 +30,8 @@ class Solution
     /** These define the event at which integration finishes (currently: when tf
      * is reached. */
     double fend, fnext;
+    /** a boolean encoding the direction of integration: 1/True for forward. */
+    bool sign;
 
     public:
     Solution(de_system &de_sys, std::complex<double> x0, std::complex<double>
@@ -109,16 +111,24 @@ a_tol, double h_0, const char* full_output){
         // backwards
         fend = t-tf;
         fnext = fend;
-        de_sys_->Winterp.sign_ = 0;
-        de_sys_->Ginterp.sign_ = 0;
+        if(de_sys_->is_interpolated == 1){
+            de_sys_->Winterp.sign_ = 0;
+            de_sys_->Ginterp.sign_ = 0;
+        }
+        else
+            sign = 0;
 
     }
     else if((t<=tf) and h0>0){
         // forward
         fend = tf-t;
         fnext = fend;
-        de_sys_->Winterp.sign_ = 1;
-        de_sys_->Ginterp.sign_ = 1;
+        if(de_sys_->is_interpolated == 1){
+            de_sys_->Winterp.sign_ = 1;
+            de_sys_->Ginterp.sign_ = 1;
+        }
+        else
+            sign = 1;
     }
     else{
         throw "Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h. ";
@@ -188,15 +198,23 @@ a_tol, double h_0, const char* full_output){
         // backwards
         fend = t-tf;
         fnext = fend;
-        de_sys_->Winterp.sign_ = 0;
-        de_sys_->Ginterp.sign_ = 0;
+        if(de_sys_->is_interpolated == 1){
+            de_sys_->Winterp.sign_ = 0;
+            de_sys_->Ginterp.sign_ = 0;
+        }
+        else
+            sign = 0;
     }
     else if((t<=tf) and h0>0){
         // forward
         fend = tf-t;
         fnext = fend;
-        de_sys_->Winterp.sign_ = 1;
-        de_sys_->Ginterp.sign_ = 1;
+        if(de_sys_->is_interpolated == 1){
+            de_sys_->Winterp.sign_ = 1;
+            de_sys_->Ginterp.sign_ = 1;
+        }
+        else
+            sign = 1;
     }
     else{
         throw "Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h. ";
@@ -211,7 +229,7 @@ a_tol, double h_0, const char* full_output){
     int docount = 0;
     auto doit = do_times.begin();
     if(de_sys_->Winterp.sign_ == 1){
-                for(auto it=dotimes.begin(); it!=dotimes.end(); it++){
+        for(auto it=dotimes.begin(); it!=dotimes.end(); it++){
             *it = *doit;
             docount++; doit++;
         }
@@ -420,8 +438,10 @@ void Solution::solve(){
                 };
                 ssteps +=1;
                 // Update interpolation bounds
-                de_sys_->Winterp.update_interp_bounds();
-                de_sys_->Ginterp.update_interp_bounds();
+                if(de_sys_->is_interpolated == 1){
+                    de_sys_->Winterp.update_interp_bounds();
+                    de_sys_->Ginterp.update_interp_bounds();
+                }
 
                 break;
             }
@@ -452,9 +472,17 @@ void Solution::solve(){
 
     // If integrating backwards, reverse dense output (because it will have been
     // reversed at the start)
-    if(de_sys_->Winterp.sign_ == 0){
-        dosol.reverse();
-        dodsol.reverse();
+    if(de_sys_->is_interpolated == 1){
+        if(de_sys_->Winterp.sign_ == 0){
+            dosol.reverse();
+            dodsol.reverse();
+        }
+    }
+    else{
+        if(sign == 0){
+            dosol.reverse();
+            dodsol.reverse();
+        }
     }
 
     // Write output to file if prompted

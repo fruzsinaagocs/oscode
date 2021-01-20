@@ -19,6 +19,7 @@ class de_system
         LinearInterpolator<> Ginterp; 
         bool islogg_, islogw_;
         bool grid_fine_enough = 1;
+        bool is_interpolated;
 };
 
 /** Default contructor */
@@ -32,6 +33,7 @@ template<typename X, typename Y, typename Z, typename X_it>
 de_system::de_system(X &ts, Y &ws, Z &gs, X_it x_it, int size, bool islogw, bool
 islogg, int even, int check_grid){
     
+    is_interpolated = 1; 
     even_ = even;
     islogg_ = islogg;
     islogw_ = islogw;
@@ -85,7 +87,8 @@ islogg, int even, int check_grid){
  * defined as functions
  */
 de_system::de_system(std::complex<double> (*W)(double), std::complex<double> (*G)(double)){
-
+    
+    is_interpolated = 0;
     w = W;
     g = G;
 };
