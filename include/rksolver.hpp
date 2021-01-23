@@ -138,7 +138,7 @@ Eigen::Matrix<std::complex<double>,1,2> RKSolver::f(double t, const Eigen::Matri
         gi = g(t);
     }
     Eigen::Matrix<std::complex<double>,1,2> result;
-    result << y[1], -wi*wi*y[0]-2.0*gi*y[1];
+    result << y[1], 3000.0*(1.0-y[0]*y[0])*y[1] - y[0];
     return result;
 };
 

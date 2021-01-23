@@ -67,7 +67,7 @@ class Solution
     /** Iterator to iterate over the dense output timepoints, for when these
      * need to be written out to file */
     std::list<double>::iterator dotit;
-
+    std::list<Eigen::Matrix<double,1,3>> allhs; // time, stepsize, reject?
 };
 
 /** Constructor for when dense output was not requested. Sets up solution of the
@@ -274,6 +274,7 @@ void Solution::solve(){
     Eigen::Matrix<std::complex<double>,1,2> rkerr, wkberr, truncerr;
     Eigen::Matrix<double,1,2> errmeasure_rk; 
     Eigen::Matrix<double,1,4> errmeasure_wkb;
+    Eigen::Matrix<double,1,3> h_stat;
     double tnext, hnext, h, hrk, hwkb;
     double wkbdelta, rkdelta;
     std::complex<double> xnext, dxnext;
@@ -427,6 +428,9 @@ void Solution::solve(){
                 sol.push_back(xnext);
                 dsol.push_back(dxnext);
                 times.push_back(tnext);
+                // Store stepsize statistics
+                h_stat << t, h, 1;
+                allhs.push_back(h_stat);
                 tnext += hnext;
                 x = xnext;
                 dx = dxnext;
@@ -462,6 +466,8 @@ void Solution::solve(){
                 }
                 else
                     hnext = h*std::pow(1.0/rkdelta,1.0/(nrk-1));
+                h_stat << t, h, 0; 
+                allhs.push_back(h_stat);
                 h = hnext;
                 tnext = t + hnext;
                 if(h>0){
