@@ -77,8 +77,8 @@ int main(){
     double ti, tf;
    
     /** Define integration range */
-    ti = 1.0;
-    tf = 30.0;
+    ti = -2*n;
+    tf = 2*n;
 
     /** Define initial conditions */
     x0 = xburst(ti); 
@@ -146,7 +146,7 @@ int main(){
     */
 
     /** Solve the ODE */    
-    Solution solution(sys, x0, dx0, ti, tf);
+    Solution solution(sys, x0, dx0, ti, tf, 3, 1e-6);
     solution.solve();
 
     /** Extract the solution and the types of steps taken by oscode */
@@ -161,7 +161,7 @@ int main(){
     auto it_x = xs.begin();
     auto it_ty = types.begin();
     for(int i=0; i<=steps; i++){
-        f << *it_t << ", " << std::real(*it_x) << ", " << std::imag(*it_x) << ", type: " <<  *it_ty << std::endl;
+        f << *it_t << ", " << std::real(*it_x) << ", " << std::imag(*it_x) << ", " <<  *it_ty << std::endl;
         ++it_t;
         ++it_x;
         ++it_ty;

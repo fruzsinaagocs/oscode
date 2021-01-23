@@ -348,13 +348,17 @@ void Solution::solve(){
                 hwkb = h*std::pow(1.0/wkbdelta,1.0/nwkb1);
             else
                 hwkb = h*std::pow(1.0/wkbdelta,1.0/nwkb2);
+            
+            // Manually select RK step always
+            wkb = false;
+
             // choose step with larger predicted stepsize
-            if(std::abs(hwkb) >= std::abs(hrk)){
-                wkb = true;
-            }
-            else{
-                wkb = false;
-            }
+            //if(std::abs(hwkb) >= std::abs(hrk)){
+            //    wkb = true;
+            //}
+            //else{
+            //    wkb = false;
+            //}
             if(wkb){
                 xnext = wkbx(0);
                 dxnext = wkbx(1);

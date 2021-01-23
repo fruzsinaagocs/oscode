@@ -8,10 +8,10 @@ f = "output.txt"
 data = np.genfromtxt(f, delimiter=', ')
 t = data[:,0]
 x = data[:,1]
-types = data[:,2]
+types = data[:,3]
 # Analytic solution (real part)
 ts = np.linspace(-200,200,40000)
-xs = 100.0*(1+ts**2)**0.5/100.0*(np.cos(100.0*np.arctan(ts)))
+xs = 100*(1+ts**2)**0.5/100.0*(np.cos(100.0*np.arctan(ts)))
 fig, ax = plt.subplots(1,2)
 
 ax[0].plot(ts,xs,label='true solution',lw=1)
