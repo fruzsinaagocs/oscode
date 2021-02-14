@@ -260,6 +260,7 @@ Changelog
 
 - 1.0.4:
     - set minimally required numpy version: numpy>=1.20.0
+    - drop Python 2.7 support, instead support 3.8 and 3.9 in addition to 3.7
 - 1.0.3: 
     - paper accepted to JOSS
 - 1.0.2:
