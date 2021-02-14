@@ -1,11 +1,12 @@
 language: python
 matrix:
     include:
-        - name: "Python 3.7,8,9 on Xenial Linux"
-          python: 
-            - "3.7"
-            - "3.8"
-            - "3.9"
+        - name: "Python 3.7 on Xenial Linux"
+          python: 3.7 
+        - name: "Python 3.8 on Xenial Linux"
+          python: 3.8 
+        - name: "Python 3.9 on Xenial Linux"
+          python: 3.9 
         - name: "Python 3.7 on macOS"
           os: osx
           osx_image: xcode12.2
@@ -23,9 +24,10 @@ matrix:
           env: PYENV_VERSION=3.9.0
 install: 
     - python --version
-    - pip install -U pip
-    - pip install -r requirements.txt
-    - pip install .
+    - python3 --version
+    - pip3 install -U pip
+    - pip3 install -r requirements.txt
+    - pip3 install .
 script:
     - coverage run -m pytest tests/
 branches:
