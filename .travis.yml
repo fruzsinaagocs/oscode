@@ -3,8 +3,9 @@ os:
     - linux
 osx_image:  xcode12.2
 python:
-    - "2.7"
     - "3.7"
+    - "3.8"
+    - "3.9"
 install: 
     - pip install -r requirements.txt
     - pip install pyoscode==1.0.2
