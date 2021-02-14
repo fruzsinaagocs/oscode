@@ -1,11 +1,26 @@
-os:
-    - osx
-    - linux
-osx_image:  xcode12.2
-python:
-    - "3.7"
-    - "3.8"
-    - "3.9"
+language: python
+matrix:
+    include:
+        - name: "Python 3.7,8,9 on Xenial Linux"
+          python: 
+            - "3.7"
+            - "3.8"
+            - "3.9"
+        - name: "Python 3.7 on macOS"
+          os: osx
+          osx_image: xcode12.2
+          language: generic
+          env: PYENV_VERSION=3.7.5
+        - name: "Python 3.8 on macOS"
+          os: osx
+          osx_image: xcode12.2
+          language: generic
+          env: PYENV_VERSION=3.8.0
+        - name: "Python 3.9 on macOS"
+          os: osx
+          osx_image: xcode12.2
+          language: generic
+          env: PYENV_VERSION=3.9.0
 install: 
     - python --version
     - pip install -U pip
