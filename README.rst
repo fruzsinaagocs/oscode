@@ -258,6 +258,8 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 Changelog
 ---------
 
+- 1.0.4:
+    - set minimally required numpy version: numpy>=1.20.0
 - 1.0.3: 
     - paper accepted to JOSS
 - 1.0.2:
