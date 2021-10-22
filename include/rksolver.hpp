@@ -65,6 +65,8 @@ class RKSolver
     Eigen::Matrix<std::complex<double>,7,2> k_dense;
     Eigen::Matrix<double,7,4> P_dense;
     void dense_step(double t0, double h0, std::complex<double> y0, std::complex<double> dy0, const std::list<double> &dots, std::list<std::complex<double>> &doxs, std::list<std::complex<double>> &dodxs);
+    // Experimental continuous representation of solution
+    Eigen::Matrix<std::complex<double>,7,1> x_vdm;
 
 };
 
@@ -263,6 +265,12 @@ Eigen::Matrix<std::complex<double>,2,2> RKSolver::step(std::complex<double> x0, 
     for(int i=0; i<=5; i++)
         k_dense.row(i) = k5.row(i);
     k_dense.row(6) = h*f(t0+h,y5);
+
+    // Experimental continuous output
+    Eigen::Matrix<std::complex<double>,1,4> Q_dense = (k_dense.transpose()*P_dense).row(0);
+    x_vdm.tail(6) << Q_dense(0), Q_dense(1), Q_dense(2), Q_dense(3), 0.0, 0.0;
+    x_vdm(0) = x0;
+
     return result;
 };
 

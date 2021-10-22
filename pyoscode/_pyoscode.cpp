@@ -158,6 +158,7 @@ suitable independent variable.",1);
     std::list<double> times;
     std::list<bool> wkbs;
     std::list<std::complex<double>> x_eval, dx_eval;
+    std::list<Eigen::Matrix<std::complex<double>,7,1>> cts_rep;
 
     if(t_evalobj!=NULL){
         //std::cout << "calling solution with dense output" << std::endl;
@@ -170,6 +171,7 @@ suitable independent variable.",1);
         dsol = solution.dsol;
         times = solution.times;
         wkbs = solution.wkbs;
+        cts_rep = solution.sol_vdm;
     }
     else{ 
         Solution solution(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output);
@@ -180,6 +182,7 @@ suitable independent variable.",1);
         dsol = solution.dsol;
         times = solution.times;
         wkbs = solution.wkbs;
+        cts_rep = solution.sol_vdm;
     }
     // Build output values
     int Ndense = x_eval.size();
@@ -204,11 +207,12 @@ suitable independent variable.",1);
     auto itd = dsol.begin();
     auto itt = times.begin();
     auto itwkb = wkbs.begin();
+    auto itctsrep = cts_rep.begin();
     int Nsol = sol.size();
-    PyObject *pysol=PyList_New(Nsol),*pydsol=PyList_New(Nsol),*pytimes=PyList_New(Nsol),*pywkbs=PyList_New(Nsol),*retdict;
+    PyObject *pysol=PyList_New(Nsol),*pydsol=PyList_New(Nsol),*pytimes=PyList_New(Nsol),*pywkbs=PyList_New(Nsol),*pycts_rep=PyList_New(Nsol-1),*retdict;
     Nsol = 0;
     for(auto it=sol.begin(); it!=sol.end(); ++it){
-        Py_complex x_complex, dx_complex;
+        Py_complex x_complex, dx_complex, coeff_complex;
         x_complex.real = std::real(*it);
         x_complex.imag = std::imag(*it);
         dx_complex.real = std::real(*itd);
@@ -217,11 +221,22 @@ suitable independent variable.",1);
         PyList_SetItem(pydsol,Nsol,Py_BuildValue("D",&dx_complex)); 
         PyList_SetItem(pytimes,Nsol,Py_BuildValue("d",*itt)); 
         PyList_SetItem(pywkbs,Nsol,Py_BuildValue("i",*itwkb));
+        if(it!=sol.begin()){
+            PyObject *pycts_rep_element=PyList_New(7);
+            for(int i=0; i<=6; i++){
+                coeff_complex.real = std::real((*itctsrep)(i));
+                coeff_complex.imag = std::imag((*itctsrep)(i));
+                //std::cout << " Extracted real and imag parts at index " << i << ": " << std::real((*itctsrep)(i)) << ", " << std::imag((*itctsrep)(i)) << std::endl;
+                PyList_SetItem(pycts_rep_element,i,Py_BuildValue("D",&coeff_complex));
+            }
+            PyList_SetItem(pycts_rep,Nsol-1,pycts_rep_element);
+            ++itctsrep;
+        }
         //std::cout << *itd << ", " <<  *itt <<  ", " <<  *itwkb << std::endl;
         ++itd; ++itt; ++itwkb; ++Nsol;
     };
     //std::cout << "built other lists" << std::endl;
-        retdict = Py_BuildValue("{s:O,s:O,s:O,s:O,s:O,s:O}","sol",pysol,"dsol",pydsol,"t",pytimes,"types",pywkbs,"x_eval",pyx_eval,"dx_eval",pydx_eval);
+        retdict = Py_BuildValue("{s:O,s:O,s:O,s:O,s:O,s:O,s:O}","sol",pysol,"dsol",pydsol,"t",pytimes,"types",pywkbs,"x_eval",pyx_eval,"dx_eval",pydx_eval,"cts_rep",pycts_rep);
     //std::cout << "built output dict" << std::endl;
     // Clean up
     Py_DECREF(tsarray);
@@ -231,6 +246,8 @@ suitable independent variable.",1);
     Py_DECREF(pydsol);
     Py_DECREF(pytimes);
     Py_DECREF(pywkbs);
+    // Py_DECREF(pycts_rep_element);
+    Py_DECREF(pycts_rep);
     //std::cout << "cleaned up" << std::endl;
 //    Py_DECREF(t_evalarray);
 //    Py_DECREF(pyx_eval);

@@ -87,6 +87,9 @@ rtol=1e-4, atol=0.0, h=None, full_output="", even_grid=False, check_grid=False):
         dx_eval: list [complex]
             Values of the derivative of the solution at the points specified in
             t_eval.
+
+        cts_rep: list [list [complex]]
+            List containing a list of the polynomial coefficients needed to construct a continuous representation of the solution within each internal step the algorithm takes.
      
     """
     # Set direction of integration if initial stepsize, h, not given
