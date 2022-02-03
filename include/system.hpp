@@ -11,7 +11,8 @@ class de_system
         template<typename X, typename Y, typename Z, typename X_it>de_system(X
         &ts, Y &ws, Z &gs, X_it x_it, int size, bool isglogw=false, bool
         islogg=false, int even=0, int check_grid=0);
-        de_system(std::complex<double> (*w)(double), std::complex<double> (*g)(double));
+        de_system(std::complex<double> (*)(double, void*), std::complex<double> (*)(double, void*), void*);
+        de_system(std::complex<double> (*)(double), std::complex<double> (*)(double));
         de_system();
         std::function<std::complex<double>(double)> w;
         std::function<std::complex<double>(double)> g;
@@ -85,6 +86,17 @@ islogg, int even, int check_grid){
 
 /** Constructor for the case when the frequency and damping terms have been
  * defined as functions
+ */
+de_system::de_system(std::complex<double> (*W)(double, void*),
+std::complex<double> (*G)(double, void*), void *p){
+    
+    is_interpolated = 0;
+    w = [W, p](double x){ return W(x, p); };
+    g = [G, p](double x){ return G(x, p); };
+};
+
+/** Constructor for the case when the frequency and damping terms have been
+ * defined as functions (and there are no additional parameters that the function might need)
  */
 de_system::de_system(std::complex<double> (*W)(double), std::complex<double> (*G)(double)){
     

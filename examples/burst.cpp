@@ -42,7 +42,7 @@ std::complex<double> dxburst(double t){
     std::complex<double>(-n,t)*std::sin(n*std::atan(t))); 
 };
 
-/** \brif Routine to call oscode to solve an example ODE, to illustrate basic
+/** \brief Routine to call oscode to solve an example ODE, to illustrate basic
  * functionality.
  *
  * Routine to call oscode to solve the example ODE (the "burst" equation):
