@@ -228,7 +228,7 @@ a_tol, double h_0, const char* full_output){
     dodsol.resize(dosize);
     int docount = 0;
     auto doit = do_times.begin();
-    if(de_sys_->Winterp.sign_ == 1){
+    if(de_sys_->Winterp.sign_ == 1 or sign == 1){
         for(auto it=dotimes.begin(); it!=dotimes.end(); it++){
             *it = *doit;
             docount++; doit++;
