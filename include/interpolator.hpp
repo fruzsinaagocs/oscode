@@ -71,8 +71,6 @@ struct LinearInterpolator{
             int i=int((x-xstart)/dx);
             std::complex<double> y0=y_[i];
             std::complex<double> y1=y_[i+1];
-            double x1 = xstart + (i+1)*dx;
-            double x0 = xstart + i*dx; 
             result = (y0+(y1-y0)*(x-xstart-dx*i)/dx);
         }
         else{

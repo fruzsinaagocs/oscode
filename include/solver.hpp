@@ -50,7 +50,7 @@ class Solution
     
     /** Successful, total attempted, and successful WKB steps the solver took,
      * respectively  */
-    int ssteps,totsteps,wkbsteps;
+    int ssteps, totsteps, wkbsteps;
     /** Lists to contain the solution and its derivative evaluated at internal
      * points taken by the solver (i.e. not dense output) after a run */
     std::list<std::complex<double>> sol, dsol;
@@ -61,9 +61,9 @@ class Solution
      * solver after a run */
     std::list<bool> wkbs;
     /** Lists to contain the timepoints at which dense output was evaluated */
-    std::list<double> dotimes, dotimes_rk;
+    std::list<double> dotimes;
     /** Lists to contain the dense output of the solution and its derivative */
-    std::list<std::complex<double>> dosol, dodsol, dosol_rk, dodsol_rk;
+    std::list<std::complex<double>> dosol, dodsol;
     /** Iterator to iterate over the dense output timepoints, for when these
      * need to be written out to file */
     std::list<double>::iterator dotit;
@@ -131,7 +131,7 @@ a_tol, double h_0, const char* full_output){
             sign = 1;
     }
     else{
-        throw "Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h. ";
+        throw std::logic_error("Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h.");
         return;
     }
 
@@ -217,7 +217,7 @@ a_tol, double h_0, const char* full_output){
             sign = 1;
     }
     else{
-        throw "Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h. ";
+        throw std::logic_error("Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h.");
         return;
     }
 
