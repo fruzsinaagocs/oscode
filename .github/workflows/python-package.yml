@@ -4,6 +4,9 @@ on:
   pull_request:
   push:
   workflow_dispatch:
+  # Here temporarily 
+  issue_comment:
+    types: [created]
 
 jobs:
   build:
