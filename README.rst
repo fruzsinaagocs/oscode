@@ -5,9 +5,9 @@ oscode: Oscillatory ordinary differential equation solver
 .. image:: https://codecov.io/gh/fruzsinaagocs/oscode/branch/joss-paper/graph/badge.svg
         :target: https://codecov.io/gh/fruzsinaagocs/oscode
         :alt: codecov status
-.. image:: https://travis-ci.org/fruzsinaagocs/oscode.svg?branch=master
-        :target: https://travis-ci.org/fruzsinaagocs/oscode
-        :alt: Travis CI build status
+.. image:: https://github.com/fruzsinaagocs/oscode/actions/workflows/python-package.yml/badge.svg
+        :target: https://github.com/fruzsinaagocs/oscode/actions
+        :alt: GH workflow status
 .. image:: https://readthedocs.org/projects/oscode/badge/?version=latest
         :target: https://oscode.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
