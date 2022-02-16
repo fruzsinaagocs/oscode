@@ -227,23 +227,18 @@ a_tol, double h_0, const char* full_output){
     dosol.resize(dosize);
     dodsol.resize(dosize);
 
-    // Sort
-    auto do_times_copy = do_times;
-    std::sort(do_times_copy.begin(), do_times_copy.end());
-    auto doit = do_times_copy.begin();
-
-    // Reverse if integrating backwards
-    if((de_sys_->is_interpolated == 1 and de_sys_->Winterp.sign_ == 1) or (de_sys_->is_interpolated == 0 and sign == 1)){
-        for(auto it=dotimes.begin(); it!=dotimes.end(); it++){
-            *it = *doit;
-            doit++;
-        }
+    // Copy dense output points to list
+    auto doit = do_times.begin();
+    for(auto it=dotimes.begin(); it!=dotimes.end(); it++){
+        *it = *doit;
+        doit++;
     }
-    else{
-        for(auto it=dotimes.rbegin(); it!=dotimes.rend(); ++it){
-            *it = *doit;
-            ++doit;
-        }
+    // Sort to ensure ascending order
+    dotimes.sort();
+
+    // Reverse if necessary
+    if((de_sys_->is_interpolated == 1 and de_sys_->Winterp.sign_ == 0) or (de_sys_->is_interpolated == 0 and sign == 0)){
+        dotimes.reverse();
     }
 
     dotit = dotimes.begin();
