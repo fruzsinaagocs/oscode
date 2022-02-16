@@ -60,7 +60,7 @@ class Solution
     /** List to contain the "type" of each step (RK/WKB) taken internally by the
      * solver after a run */
     std::list<bool> wkbs;
-    /** Lists to contain the timepoints at which dense output was evaluated */
+    /** Lists to contain the timepoints at which dense output was evaluated. This list will always be sorted in ascending order (with possible duplicates), regardless of the order the timepoints were specified upon input. */
     std::list<double> dotimes;
     /** Lists to contain the dense output of the solution and its derivative */
     std::list<std::complex<double>> dosol, dodsol;
@@ -166,7 +166,7 @@ a_tol, double h_0, const char* full_output){
  * the start of the integration range
  * @param[in] t_i start of integration range
  * @param[in] t_f end of integration range
- * @param[in] do_times timepoints at which dense output is to be produced
+ * @param[in] do_times timepoints at which dense output is to be produced. Doesn't need to be sorted, and duplicated are allowed.
  * @param[in] o order of WKB approximation to be used
  * @param[in] r_tol (local) relative tolerance
  * @param[in] a_tol (local) absolute tolerance 
