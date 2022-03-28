@@ -113,7 +113,7 @@ def test_airy_backward_uneven():
     dense = np.asarray(sol['x_eval'])
     dense_d = np.asarray(sol['dx_eval'])   
     types = np.asarray(sol['types'])
-    ana_t = np.linspace(ti,tf,5000)
+    ana_t = t_eval
     ana_x = np.asarray([airy(-T)[0]+1j*airy(-T)[2] for T in t])
     dense_ana_x = np.asarray([airy(-T)[0]+1j*airy(-T)[2] for T in ana_t])
     dense_ana_dx = np.asarray([-airy(-T)[1]-1j*airy(-T)[3] for T in ana_t])
@@ -121,7 +121,5 @@ def test_airy_backward_uneven():
     dense_error_d = np.abs((dense_d-dense_ana_dx)/dense_ana_dx)/0.01 > 1.0
     error =  np.abs((x-ana_x)/ana_x)/0.01 > 1.0
     assert (np.any(dense_error) == False and np.any(dense_error_d) == False and np.any(error) == False )
-
-
 
 

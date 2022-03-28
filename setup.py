@@ -20,7 +20,7 @@ pyoscode_module = Extension(
 
 setup(
     name="pyoscode",
-    version="1.0.4",
+    version="1.0.5",
     description=readme(short=True),
     long_description=readme(),
     url="https://github.com/fruzsinaagocs/oscode",
