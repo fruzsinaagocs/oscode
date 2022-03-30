@@ -105,3 +105,38 @@ rtol=1e-4, atol=0.0, h=None, full_output="", even_grid=False, check_grid=False):
     even_grid=even_grid, check_grid=check_grid) 
     
     return resdict
+
+def solve_fn(w, g, ti, tf, x0, dx0, t_eval=[], order=3,
+rtol=1e-4, atol=0.0, h=None, full_output=""):
+    """
+    Solves the differential equation x'' + 2g(t)x' + w^2(t)y = 0 for y(t) and
+    y'(t) on an interval (ti, tf) given initial conditions [x(ti), x'(ti)] and
+    function handles w(t), g(t).
+    """
+     # Set direction of integration if initial stepsize, h, not given
+    if h==None:
+        h = numpy.sign(tf - ti)
+        # Handle the case of ti = tf
+        if h==0:
+            h=1
+    
+    # Run oscode from module library
+    print("Calling pyoscode.solve_fn in init")
+    resdict = _pyoscode.solve_fn(w, g, ti, tf, x0, dx0, t_eval=t_eval,
+    order=order, rtol=rtol, atol=atol, h=h, full_output=full_output) 
+    print(resdict) 
+
+    return resdict
+
+  
+
+
+
+
+
+
+
+
+
+    
+
