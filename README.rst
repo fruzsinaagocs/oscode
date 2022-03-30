@@ -179,9 +179,10 @@ C++
 To compile and run:
 
 .. code:: bash
-
-    g++ -g -Wall -std=c++11 -c -o burst.o burst.cpp
-    g++ -g -Wall -std=c++11 -o burst burst.o
+    
+    cd examples/
+    g++ -I../include/ -g -Wall -std=c++11 -c -o burst.o burst.cpp
+    g++ -I../include/ -g -Wall -std=c++11 -o burst burst.o
     ./burst
 
 
@@ -258,6 +259,13 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 Changelog
 ---------
 
+- 1.0.6:
+    - Fix issues related to dense output not being correctly generated, e.g. when timepoints at which dense output was asked for are in descending order, etc. 
+- 1.0.5:
+    - Fixes related to dense output generation
+    - Support for w, g to be given as class member functions in C++
+    - Switched to GH actions for continuous integration, and fixed code such that unit tests would run again
+    - Minor tweaks
 - 1.0.4:
     - set minimally required numpy version: numpy>=1.20.0
     - drop Python 2.7 support, instead support 3.8 and 3.9 in addition to 3.7
