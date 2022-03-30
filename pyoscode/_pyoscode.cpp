@@ -66,7 +66,6 @@ static std::complex<double> gfun(double t){
 /* Function to run the solver when w, g are provided as functions */
 static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kwargs){
 
-    std::cout << "Calling pyoscode.solve_fn from pyoscode.cpp" << std::endl;
     int order=3;
     const char* full_output="";
     double ti, tf, rtol, atol, h0;
@@ -78,33 +77,17 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
     // Interpret input arguments
     if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OOddDD|Oiddds",const_cast<char**>(kwlist),&wobj,&gobj,&ti,&tf,&x0,&dx0,&t_evalobj,&order,&rtol,&atol,&h0,&full_output))
         return NULL;
-    std::cout << "Parsed arguments" << std::endl;
     // Set w, g functions
     if(!(PyCallable_Check(wobj) && PyCallable_Check(gobj))){
-        std::cout << "Parameter not callable" << std::endl;
         PyErr_SetString(PyExc_TypeError, "Parameter must be callable");
         return NULL;
     }
-    // Test call to wobj, gobj
-    std::cout << "Initial test call to wobj" << std::endl;
-    PyObject *arglist = Py_BuildValue("(d)", 100.0);
-    PyObject *py_result = PyEval_CallObject(wobj, arglist);
-    if(py_result == NULL){
-        std::cout << "py result is NULL" << std::endl;
-        return NULL;
-    }
-    // Check if return value was the correct type (complex)
-    std::cout << "W realasdouble: " << PyComplex_RealAsDouble(py_result) << std::endl;
-  
-
-
     // Add reference to new callback
     Py_XINCREF(wobj); Py_XINCREF(gobj);
     // Dispose of previous callback
     Py_XDECREF(w_callback); Py_XDECREF(g_callback);
     // Remember new callback
     w_callback = wobj; g_callback = gobj;
-    std::cout << "Set w, g functions" << std::endl;
 
     // If given, read in t_eval, points at which dense output is requested
     PyObject *t_evalarray = NULL;
@@ -128,7 +111,6 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
         *it = t_eval[i];
         i++;
     }
-    std::cout << "Set t_eval list" << std::endl;
     // Checks
     try{
         // Check: dense output points must be inside integration range, and
@@ -151,11 +133,7 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
         PyErr_SetString(PyExc_TypeError, errormsg);
         return (PyObject *) NULL;
     }
-    std::cout << "Completed checks" << std::endl;
     de_system sys = de_system(&wfun, &gfun);
-    std::cout << "w(100.0): " << wfun(100.0) << std::endl;
-    std::cout << "g(100.0): " << gfun(100.0) << std::endl;
-    std::cout << "Defined ODE system" << std::endl;
     std::list<std::complex<double>> sol,dsol;
     std::list<double> times;
     std::list<bool> wkbs;
@@ -163,10 +141,8 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
     std::list<Eigen::Matrix<std::complex<double>,7,1>> cts_rep;
 
     if(t_evalobj!=NULL){
-        std::cout << "calling solution with dense output" << std::endl;
         Solution solution(sys,x0,dx0,ti,tf,t_evallist,order,rtol,atol,h0,full_output);
         solution.solve();
-        std::cout << "solution returned" << std::endl;
         x_eval = solution.dosol;
         dx_eval = solution.dodsol;
         sol = solution.sol;
@@ -174,7 +150,6 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
         times = solution.times;
         wkbs = solution.wkbs;
         cts_rep = solution.sol_vdm;
-        std::cout << "Extracted std::lists from solver" << std::endl;
     }
     else{ 
         Solution solution(sys,x0,dx0,ti,tf,order,rtol,atol,h0,full_output);
@@ -191,7 +166,6 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
     int Ndense = x_eval.size();
     PyObject *pyx_eval = PyList_New(Ndense), *pydx_eval = PyList_New(Ndense);
     int Neval = 0;
-    std::cout << "building output dict" << std::endl;
     auto itx_eval = x_eval.begin();
     auto itdx_eval = dx_eval.begin();
     for(int Neval=0; Neval<Ndense; Neval++){
@@ -204,9 +178,7 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
         PyList_SetItem(pydx_eval,Neval,Py_BuildValue("D",&dx_eval_complex));
         ++itx_eval;
         ++itdx_eval;
-        std::cout << *itx_eval << std::endl;
     }
-    std::cout << "built dense output list " << std::endl;
     auto itd = dsol.begin();
     auto itt = times.begin();
     auto itwkb = wkbs.begin();
@@ -229,18 +201,14 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
             for(int i=0; i<=6; i++){
                 coeff_complex.real = std::real((*itctsrep)(i));
                 coeff_complex.imag = std::imag((*itctsrep)(i));
-                std::cout << " Extracted real and imag parts at index " << i << ": " << std::real((*itctsrep)(i)) << ", " << std::imag((*itctsrep)(i)) << std::endl;
                 PyList_SetItem(pycts_rep_element,i,Py_BuildValue("D",&coeff_complex));
             }
             PyList_SetItem(pycts_rep,Nsol-1,pycts_rep_element);
             ++itctsrep;
         }
-        std::cout << *it << ", " << *itd << ", " <<  *itt <<  ", " <<  *itwkb << std::endl;
         ++itd; ++itt; ++itwkb; ++Nsol;
     };
-    std::cout << "built other lists" << std::endl;
         retdict = Py_BuildValue("{s:O,s:O,s:O,s:O,s:O,s:O,s:O}","sol",pysol,"dsol",pydsol,"t",pytimes,"types",pywkbs,"x_eval",pyx_eval,"dx_eval",pydx_eval,"cts_rep",pycts_rep);
-    std::cout << "built output dict" << std::endl;
     // Clean up
     Py_DECREF(pysol);
     Py_DECREF(pydsol);
@@ -248,7 +216,6 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
     Py_DECREF(pywkbs);
     // Py_DECREF(pycts_rep_element);
     Py_DECREF(pycts_rep);
-    std::cout << "cleaned up" << std::endl;
 //    Py_DECREF(t_evalarray);
 //    Py_DECREF(pyx_eval);
     return retdict;
@@ -277,7 +244,6 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     if(t_evalobj!=NULL){
         t_evalarray = PyArray_FROM_OTF(t_evalobj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
     }
-    //std::cout << "read in args" << t_evalarray << std::endl;
     // If that didn't work, throw an exception
     if(tsarray==NULL or wsarray==NULL or gsarray==NULL){
         Py_XDECREF(tsarray);    
@@ -294,7 +260,6 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     if(t_evalobj!=NULL){
         t_evalarray_arr = reinterpret_cast<PyArrayObject*>(t_evalarray);
     }
-    //std::cout << "converted args" << t_evalarray_arr << std::endl;
     double *ts = (double*)PyArray_DATA(tsarray_arr);
     std::complex<double> *ws = (std::complex<double>*)PyArray_DATA(wsarray_arr);
     std::complex<double> *gs = (std::complex<double>*)PyArray_DATA(gsarray_arr);
@@ -306,14 +271,11 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
     }
     std::list<double> t_evallist;
     t_evallist.resize(t_evalsize);
-    //std::cout << "resized vector to " << t_evalsize << std::endl;
     int i=0;
     for(auto it=t_evallist.begin(); it!=t_evallist.end(); it++){
         *it = t_eval[i];
-        //std::cout << *it << std::endl;
         i++;
     }
-    //std::cout << "filled up vector " << std::endl;
 
     // Get array sizes
     int tssize = (int)PyArray_SIZE(tsarray_arr);
@@ -391,9 +353,7 @@ suitable independent variable.",1);
     std::list<Eigen::Matrix<std::complex<double>,7,1>> cts_rep;
 
     if(t_evalobj!=NULL){
-        //std::cout << "calling solution with dense output" << std::endl;
         Solution solution(sys,x0,dx0,ti,tf,t_evallist,order,rtol,atol,h0,full_output);
-        //std::cout << "solution returned" << std::endl;
         solution.solve();
         x_eval = solution.dosol;
         dx_eval = solution.dodsol;
@@ -418,7 +378,6 @@ suitable independent variable.",1);
     int Ndense = x_eval.size();
     PyObject *pyx_eval = PyList_New(Ndense), *pydx_eval = PyList_New(Ndense);
     int Neval = 0;
-    //std::cout << "building output dict" << std::endl;
     auto itx_eval = x_eval.begin();
     auto itdx_eval = dx_eval.begin();
     for(int Neval=0; Neval<Ndense; Neval++){
@@ -431,9 +390,7 @@ suitable independent variable.",1);
         PyList_SetItem(pydx_eval,Neval,Py_BuildValue("D",&dx_eval_complex));
         ++itx_eval;
         ++itdx_eval;
-        //std::cout << *itx_eval << std::endl;
     }
-    //std::cout << "built dense output list " << std::endl;
     auto itd = dsol.begin();
     auto itt = times.begin();
     auto itwkb = wkbs.begin();
@@ -456,18 +413,14 @@ suitable independent variable.",1);
             for(int i=0; i<=6; i++){
                 coeff_complex.real = std::real((*itctsrep)(i));
                 coeff_complex.imag = std::imag((*itctsrep)(i));
-                //std::cout << " Extracted real and imag parts at index " << i << ": " << std::real((*itctsrep)(i)) << ", " << std::imag((*itctsrep)(i)) << std::endl;
                 PyList_SetItem(pycts_rep_element,i,Py_BuildValue("D",&coeff_complex));
             }
             PyList_SetItem(pycts_rep,Nsol-1,pycts_rep_element);
             ++itctsrep;
         }
-        //std::cout << *itd << ", " <<  *itt <<  ", " <<  *itwkb << std::endl;
         ++itd; ++itt; ++itwkb; ++Nsol;
     };
-    //std::cout << "built other lists" << std::endl;
         retdict = Py_BuildValue("{s:O,s:O,s:O,s:O,s:O,s:O,s:O}","sol",pysol,"dsol",pydsol,"t",pytimes,"types",pywkbs,"x_eval",pyx_eval,"dx_eval",pydx_eval,"cts_rep",pycts_rep);
-    //std::cout << "built output dict" << std::endl;
     // Clean up
     Py_DECREF(tsarray);
     Py_DECREF(wsarray);
@@ -478,7 +431,6 @@ suitable independent variable.",1);
     Py_DECREF(pywkbs);
     // Py_DECREF(pycts_rep_element);
     Py_DECREF(pycts_rep);
-    //std::cout << "cleaned up" << std::endl;
 //    Py_DECREF(t_evalarray);
 //    Py_DECREF(pyx_eval);
     return retdict;

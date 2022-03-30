@@ -89,7 +89,9 @@ rtol=1e-4, atol=0.0, h=None, full_output="", even_grid=False, check_grid=False):
             t_eval.
 
         cts_rep: list [list [complex]]
-            List containing a list of the polynomial coefficients needed to construct a continuous representation of the solution within each internal step the algorithm takes.
+            List containing a list of the polynomial coefficients needed to
+            construct a continuous representation of the solution within each
+            internal step the algorithm takes.
      
     """
     # Set direction of integration if initial stepsize, h, not given
@@ -112,7 +114,75 @@ rtol=1e-4, atol=0.0, h=None, full_output=""):
     Solves the differential equation x'' + 2g(t)x' + w^2(t)y = 0 for y(t) and
     y'(t) on an interval (ti, tf) given initial conditions [x(ti), x'(ti)] and
     function handles w(t), g(t).
+
+    Parameters
+    ----------
+    w: callable(t)
+        Computes the frequency at point t, may return a complex number.
+
+    g: callable(t)
+        Computes the damping term at point t, may return a complex number.
+
+    ti,tf: float
+        Start and end of integration range.
+
+    x0, dx0: complex
+        Initial values of the dependent variable and its derivative.
+
+    t_eval: numpy.ndarray [float] or list [float]
+        An array of times where the solution is to be returned.
+
+    order: int, optional
+        Order of WKB approximation to use, 3 (the highest value) by default.
+    
+    rtol, atol: float, optional
+        Relative and absolute tolerance of the solver, 1e-4 and 0 by default.
+        Note that atol at the moment is not implemented. 
+
+    h: float, optional
+        Size of the initial step, 1 by default.
+
+    full_output: str , optional
+        If given, the return dictionary will be written to a file with the
+        supplied name.
+   
+    Returns
+    -------
+    A dictionary with the following keywords and values:
+
+        sol: list [complex]
+            A list containing the solution evaluated at timepoints listed under
+            the 't' keyword.
+
+        dsol: list [complex]
+            A list containint the first deriv ative of the solution evaluated at
+            timepoints listed under the 't' keyword.
+
+        t: list [float]
+            Contains the values of the independent variable where the solver
+            stepped, i.e. evaluated the solution at. This is not determined by
+            the user, rather these are the internal steps the solver naturally
+            takes when integrating.
+
+        types: list [float]
+            A list of True/False values corresponding to the step types the
+            solver chose at the timepoints listed under the keyword 't'. If
+            True, the step was WKB, and RK otherwise.
+
+        x_eval: list [complex]
+            Values of the solution at the points specified in t_eval.
+
+        dx_eval: list [complex]
+            Values of the derivative of the solution at the points specified in
+            t_eval.
+
+        cts_rep: list [list [complex]]
+            List containing a list of the polynomial coefficients needed to
+            construct a continuous representation of the solution within each
+            internal step the algorithm takes.
+     
     """
+
      # Set direction of integration if initial stepsize, h, not given
     if h==None:
         h = numpy.sign(tf - ti)
@@ -121,10 +191,8 @@ rtol=1e-4, atol=0.0, h=None, full_output=""):
             h=1
     
     # Run oscode from module library
-    print("Calling pyoscode.solve_fn in init")
     resdict = _pyoscode.solve_fn(w, g, ti, tf, x0, dx0, t_eval=t_eval,
     order=order, rtol=rtol, atol=atol, h=h, full_output=full_output) 
-    print(resdict) 
 
     return resdict
 
