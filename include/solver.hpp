@@ -69,6 +69,8 @@ class Solution
     std::list<double>::iterator dotit;
     // Experimental: list to contain continuous representation of the solution
     std::list<Eigen::Matrix<std::complex<double>,7,1>> sol_vdm;
+    // Time, stepsize, rejected true/false
+    std::list<Eigen::Matrix<double, 1, 3>> allhs;
 
 };
 
@@ -277,8 +279,9 @@ void Solution::solve(){
     Eigen::Matrix<std::complex<double>,1,2> rkerr, wkberr, truncerr;
     Eigen::Matrix<double,1,2> errmeasure_rk; 
     Eigen::Matrix<double,1,4> errmeasure_wkb;
+    Eigen::Matrix<double,1,3> h_stat;
     double tnext, hnext, h, hrk, hwkb;
-    double wkbdelta, rkdelta;
+    double wkbdelta, rkdelta, prev_rkdelta = 1.0;
     std::complex<double> xnext, dxnext;
     bool wkb = false;
     Eigen::Index maxindex_wkb, maxindex_rk;
@@ -348,18 +351,21 @@ void Solution::solve(){
             }
 
             // predict next stepsize 
-            hrk = h*std::pow((1.0/rkdelta),1.0/nrk);
+            hrk = h*std::pow((1.0/rkdelta),2.0/(3*nrk))*std::pow((1.0/prev_rkdelta),-1.0/(3.0*nrk));
             if(maxindex_wkb<=1)
                 hwkb = h*std::pow(1.0/wkbdelta,1.0/nwkb1);
             else
                 hwkb = h*std::pow(1.0/wkbdelta,1.0/nwkb2);
-            // choose step with larger predicted stepsize
-            if(std::abs(hwkb) >= std::abs(hrk)){
-                wkb = true;
-            }
-            else{
-                wkb = false;
-            }
+            // Manually disable wkb steps:
+            wkb = false;
+
+            // // choose step with larger predicted stepsize
+            // if(std::abs(hwkb) >= std::abs(hrk)){
+            //     wkb = true;
+            // }
+            // else{
+            //     wkb = false;
+            // }
             if(wkb){
                 xnext = wkbx(0);
                 dxnext = wkbx(1);
@@ -383,7 +389,7 @@ void Solution::solve(){
             }
 
             // check if chosen step was successful
-            if(std::abs(hnext)>=std::abs(h)){
+            if(std::abs(hnext)>=0.8*std::abs(h)){
 //                std::cout << "All dense output points: " << std::endl;
                 if(dotit!=dotimes.end()){
 //                    std::cout << *dotit << std::endl;
@@ -431,10 +437,17 @@ void Solution::solve(){
                     wkbs.push_back(false);
                     xvdm = rksolver.x_vdm; 
                 }
+                prev_rkdelta = rkdelta;
                 sol.push_back(xnext);
                 dsol.push_back(dxnext);
                 sol_vdm.push_back(xvdm);
                 times.push_back(tnext);
+                // Store stepsize statistics
+                h_stat << t, h, 1;
+                allhs.push_back(h_stat);
+                // Cap stepsize-increase factor at 1.2
+                //if(std::abs(hnext) > 1.2*std::abs(h))
+                //    hnext = 1.2*h;
                 tnext += hnext;
                 x = xnext;
                 dx = dxnext;
@@ -469,7 +482,10 @@ void Solution::solve(){
                         hnext = h*std::pow(1.0/wkbdelta,1.0/(nwkb2-1));
                 }
                 else
-                    hnext = h*std::pow(1.0/rkdelta,1.0/(nrk-1));
+                    //hnext = h*std::pow(1.0/rkdelta,1.0/(nrk-1));
+                    hnext = 0.8*h;
+                h_stat << t, h, 0;
+                allhs.push_back(h_stat);
                 h = hnext;
                 tnext = t + hnext;
                 if(h>0){
