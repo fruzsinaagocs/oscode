@@ -241,7 +241,25 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 Changelog
 ---------
 
-- 1.0.0: current version
+- 1.1.0: current version
+    - Users can now define w, g as functions in Python (pyoscode) and call the solver via pyoscode.solve_fn(...)
+- 1.0.6:
+    - Fix issues related to dense output not being correctly generated, e.g. when timepoints at which dense output was asked for are in descending order, etc. 
+- 1.0.5:
+    - Fixes related to dense output generation
+    - Support for w, g to be given as class member functions in C++
+    - Switched to GH actions for continuous integration, and fixed code such that unit tests would run again
+    - Minor tweaks
+- 1.0.4:
+    - set minimally required numpy version: numpy>=1.20.0
+    - drop Python 2.7 support, instead support 3.8 and 3.9 in addition to 3.7
+- 1.0.3: 
+    - paper accepted to JOSS
+- 1.0.2:
+    - Fixed getting correct numpy include directories
+- 1.0.1:
+    - Added `pyproject.toml` to handle build dependencies (numpy)
+- 1.0.0:
     - Dense output
     - Arrays for frequency and damping term need not be evenly spaced
     - Automatic C++ documentation on readthedocs

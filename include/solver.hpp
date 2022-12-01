@@ -67,6 +67,8 @@ class Solution
     /** Iterator to iterate over the dense output timepoints, for when these
      * need to be written out to file */
     std::list<double>::iterator dotit;
+    // Experimental: list to contain continuous representation of the solution
+    std::list<Eigen::Matrix<std::complex<double>,7,1>> sol_vdm;
 
 };
 
@@ -297,6 +299,8 @@ void Solution::solve(){
     auto it_dodsol = dodsol.begin();
     Eigen::Matrix<std::complex<double>,1,2> y_dense_rk;
     std::complex<double> x_dense_rk, dx_dense_rk;
+    // Experimental continuous solution, vandermonde representation
+    Eigen::Matrix<std::complex<double>,7,1> xvdm;
 
     while(fend > 0){
         // Check if we are reaching the end of integration
@@ -380,7 +384,9 @@ void Solution::solve(){
 
             // check if chosen step was successful
             if(std::abs(hnext)>=std::abs(h)){
+//                std::cout << "All dense output points: " << std::endl;
                 if(dotit!=dotimes.end()){
+//                    std::cout << *dotit << std::endl;
                     while((*dotit-t>=0 && tnext-*dotit>=0) or (*dotit-t<=0 && tnext-*dotit<=0)){
                         inner_dotimes.push_back(*dotit);
                         dotit++;
@@ -390,6 +396,8 @@ void Solution::solve(){
                         inner_dodsols.resize(inner_dotimes.size());
                         if(wkb){
                             // Dense output after successful WKB step
+//                            std::cout << "Attempting " << inner_dosols.size() << " dense output points after successful WKB step from " << t << " to " << t+h << std::endl;
+
                             wkbsolver->dense_step(t,inner_dotimes,inner_dosols,inner_dodsols);
                         }
                         else{
@@ -417,12 +425,15 @@ void Solution::solve(){
                 if(wkb){
                     wkbsteps +=1;
                     wkbs.push_back(true);
+                    xvdm = wkbsolver->x_vdm;
                 }
                 else{
                     wkbs.push_back(false);
+                    xvdm = rksolver.x_vdm; 
                 }
                 sol.push_back(xnext);
                 dsol.push_back(dxnext);
+                sol_vdm.push_back(xvdm);
                 times.push_back(tnext);
                 tnext += hnext;
                 x = xnext;

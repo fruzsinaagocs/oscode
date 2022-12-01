@@ -100,6 +100,8 @@ class WKBSolver
     std::list<std::complex<double>> doxs, dodxs, dows;
     Eigen::Matrix<std::complex<double>,1,4> dense_s_, dense_ds_, dense_ds_i;
     std::complex<double> dense_ap_, dense_am_, dense_bp_, dense_bm_;
+    // experimental dense output + quadrature
+    Eigen::Matrix<double,6,6> integ_vandermonde, interp_vandermonde;
 
     public:
     // constructor
@@ -119,6 +121,8 @@ class WKBSolver
     &denseweights6, const Eigen::Matrix<std::complex<double>,6,1> &integrand6);
     std::complex<double> dense_interpolate(const Eigen::Matrix<double,6,1>
     &denseweights6, const Eigen::Matrix<std::complex<double>,6,1> &integrand6);
+    // Experimental continuous representation of solution
+    Eigen::Matrix<std::complex<double>,7,1> x_vdm;
 
 
 };
@@ -190,6 +194,26 @@ WKBSolver::WKBSolver(de_system &de_sys, int order){
         0.360673032443906e-10, 2.67316915534181, -0.750000000213853;
     d1w4_5_w << -0.518019493788065, 1.52752523062733,
         -3.49148624058568, -0.560400043118500e-8, 2.48198050935041;
+    // Set polynomial Gauss--Lobatto coefficients for dense output + quadrature
+    double a = std::sqrt(147+42*std::sqrt(7.));
+    double b = std::sqrt(147-42*std::sqrt(7.));
+
+    interp_vandermonde << 0.06250000000, -0.1946486424, 0.6321486424, 0.6321486424, -0.1946486424, 0.06250000000,
+              -0.06250000000, 0.2544242701, -2.216265054, 2.216265054, -0.2544242701, 0.06250000000,
+               -0.8750000000, 2.587172940, -1.712172940, -1.712172940, 2.587172940, -0.8750000000,
+                0.8750000000, -3.381680853, 6.002748088, -6.002748088, 3.381680853, -0.8750000000,
+                 1.312500000, -2.392524298, 1.080024298, 1.080024298, -2.392524298, 1.312500000,
+                  -1.312500000, 3.127256583, -3.786483034, 3.786483034, -3.127256583, 1.312500000;
+
+   
+    integ_vandermonde << 0.06250000000, -0.1946486424, 0.6321486424, 0.6321486424, -0.1946486424, 0.06250000000,
+              -0.03125000000, 0.1272121350, -1.108132527, 1.108132527, -0.1272121350, 0.03125000000,
+               -0.2916666667, 0.8623909801, -0.5707243134, -0.5707243134, 0.8623909801, -0.2916666667,
+                0.2187500000, -0.8454202132, 1.500687022, -1.500687022, 0.8454202132, -0.2187500000,
+                 0.2625000000, -0.4785048596, 0.2160048596, 0.2160048596, -0.4785048596, 0.2625000000,
+                  -0.2187500000, 0.5212094304, -0.6310805056, 0.6310805056, -0.5212094304, 0.2187500000;
+ 
+
 };
 
 /** Computes a WKB step of a given order and returns the solution and its local
@@ -224,6 +248,20 @@ Eigen::Matrix<std::complex<double>,6,1> &ws, const
 Eigen::Matrix<std::complex<double>,6,1> &gs, const
 Eigen::Matrix<std::complex<double>,5,1> &ws5, const
 Eigen::Matrix<std::complex<double>,5,1> &gs5){
+
+
+    // Vandermonde dense output
+    Eigen::Matrix<std::complex<double>,6,1> s0_vdm_vec,s1_vdm_vec,s2_vdm_vec,s3_vdm_vec;
+    std::complex<double> s0_vdm,s1_vdm,s2_vdm,s3_vdm;
+    Eigen::Matrix<std::complex<double>,7,1> s_vdm_vec;
+    Eigen::Matrix<double,6,1> dows6, dodws6; // weights for dense integration/interpolation
+    Eigen::Matrix<std::complex<double>,6,1> integrand6, s3_interp, s2_interp, s1_interp;
+    Eigen::Matrix<std::complex<double>,6,1> ds1_interp, ds2_interp, ds3_interp; 
+    double t_trans;
+    std::complex<double> s0,s1,s2,s3,dense_fp,dense_fm,dense_x;
+    std::complex<double> ds0,ds1,ds2,ds3,dense_dfpf,dense_dfmf,dense_dx;
+
+
     
     Eigen::Matrix<std::complex<double>,3,2> result;
     result << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
@@ -268,6 +306,41 @@ Eigen::Matrix<std::complex<double>,5,1> &gs5){
         err_dfm = std::conj(err_dfp);
         result(2,0) = ap_*err_fp + am_*err_fm;
         result(2,1) = bp_*err_dfp + bm_*err_dfm;
+    
+    // Experimental continuous representation
+        // Compute some derivatives only necessary for dense output
+        d1g2(); d1g3(); d1g4(); d1g5(); d2w2(); d2w3(); d2w4(); d2w5();
+        dgs_ << d1g1_, d1g2_, d1g3_, d1g4_, d1g5_, d1g6_;
+        d2ws_ << d2w1_, d2w2_, d2w3_, d2w4_, d2w5_, d2w6_;      
+        
+        integrand6 = 4.0*gs_.cwiseProduct(gs_).cwiseQuotient(ws_) +
+        4.0*dws_.cwiseProduct(gs_).cwiseQuotient(ws_.cwiseProduct(ws_)) +
+        dws_.cwiseProduct(dws_).cwiseQuotient(ws_.cwiseProduct(ws_.cwiseProduct(ws_)));
+        for(int i=0; i<=5; i++)
+            s1_interp(i) = -1./2*std::log(ws_(i));
+        s2_interp = -1/4.0*(dws_.cwiseQuotient(ws_.cwiseProduct(ws_)) + 2.0*gs_.cwiseQuotient(ws_));
+        s3_interp =
+        1/4.0*(gs_.cwiseProduct(gs_).cwiseQuotient((ws_.cwiseProduct(ws_)))) +
+        1/4.0*(dgs_.cwiseQuotient(ws_.cwiseProduct(ws_))) -
+        3/16.0*(dws_.cwiseProduct(dws_).cwiseQuotient(ws_.cwiseProduct(ws_).cwiseProduct(ws_.cwiseProduct(ws_))))
+        + 1/8.0*(d2ws_.cwiseQuotient(ws_.cwiseProduct(ws_).cwiseProduct(ws_)));
+       
+        // S0
+        s0_vdm_vec = h/2.0*std::complex<double>(0,1)*integ_vandermonde*ws_;
+        // S1
+        s1_vdm_vec = -h/2.0*integ_vandermonde*gs_;
+        s1_vdm_vec.head(5) += (interp_vandermonde*s1_interp).tail(5);
+        // S2
+        s2_vdm_vec = -h/2.0*1/8.0*integ_vandermonde*integrand6;
+        s2_vdm_vec.head(5) += (interp_vandermonde*s2_interp).tail(5);
+        // S3
+        s3_vdm_vec = Eigen::Matrix<std::complex<double>,6,1>::Zero(); 
+        s3_vdm_vec.head(5) += (interp_vandermonde*s3_interp).tail(5);
+        
+        x_vdm.tail(6) = s0_vdm_vec + s1_vdm_vec + std::complex<double>(0,1)*s2_vdm_vec + s3_vdm_vec; 
+        x_vdm(0) = ap_;
+
+        
     // Lower order step for correction
         // A, B
         dsi_(order_) = 0.0; dds_(order_) = 0.0;
@@ -308,6 +381,13 @@ void WKBSolver::dense_step(double t0, const std::list<double> &dots, std::list<s
     double t_trans;
     std::complex<double> s0,s1,s2,s3,dense_fp,dense_fm,dense_x;
     std::complex<double> ds0,ds1,ds2,ds3,dense_dfpf,dense_dfmf,dense_dx;
+    // Vandermonde dense output
+    Eigen::Matrix<std::complex<double>,6,1> s0_vdm_vec,s1_vdm_vec,s2_vdm_vec,s3_vdm_vec;
+    Eigen::Matrix<double,6,1> t_trans_vec,t_trans_vec_interp;
+    std::complex<double> s0_vdm,s1_vdm,s2_vdm,s3_vdm;
+    Eigen::Matrix<std::complex<double>,7,1> s_vdm_vec;
+    double tt1,tt2,tt3,tt4,tt5,tt6;
+
    
     // Compute some derivatives only necessary for dense output
     d1g2(); d1g3(); d1g4(); d1g5(); d2w2(); d2w3(); d2w4(); d2w5();
@@ -353,6 +433,47 @@ void WKBSolver::dense_step(double t0, const std::list<double> &dots, std::list<s
             dense_x = dense_ap_*dense_fp + dense_am_*dense_fm;
             *doxit = dense_x;
             doxit++;
+
+            // Same, but with Vandermonde matrix:
+            tt1 = t_trans; 
+            tt2 = tt1*t_trans;
+            tt3 = tt2*t_trans;
+            tt4 = tt3*t_trans;
+            tt5 = tt4*t_trans;
+            tt6 = tt5*t_trans;
+            t_trans_vec << tt1+1, tt2-1, tt3+1, tt4-1, tt5+1, tt6-1; 
+            t_trans_vec_interp << 0, tt1+1, tt2-1, tt3+1, tt4-1, tt5+1;
+            // S0
+            s0_vdm_vec = h/2.0*std::complex<double>(0,1)*integ_vandermonde*ws_;
+            s0_vdm = t_trans_vec.dot(s0_vdm_vec); 
+            // S1
+            s1_vdm = -h/2.0*t_trans_vec.dot(integ_vandermonde*gs_) + t_trans_vec_interp.dot(interp_vandermonde*s1_interp);
+            s1_vdm_vec = -h/2.0*integ_vandermonde*gs_;
+            s1_vdm_vec.head(5) += (interp_vandermonde*s1_interp).tail(5);
+            s1_vdm = t_trans_vec.dot(s1_vdm_vec);
+            // S2
+            s2_vdm_vec = -h/2.0*1/8.0*integ_vandermonde*integrand6;
+            s2_vdm_vec.head(5) += (interp_vandermonde*s2_interp).tail(5);
+            s2_vdm = t_trans_vec.dot(s2_vdm_vec);
+            // S3
+            s3_vdm_vec = Eigen::Matrix<std::complex<double>,6,1>::Zero(); 
+            s3_vdm_vec.head(5) += (interp_vandermonde*s3_interp).tail(5);
+            s3_vdm = t_trans_vec.dot(s3_vdm_vec) ;
+            //x_vdm = dense_ap_*(s0_vdm_vec + s1_vdm_vec + s2_vdm_vec + s3_vdm_vec); 
+
+            //std::cout << std::setprecision(15) << "dense S0 with Vandermonde matrix: " << s0_vdm << std::endl;
+            //std::cout << "dense S0 with classical theory: " << s0 << std::endl;
+            //std::cout << std::setprecision(15) << "dense S1 with Vandermonde matrix: " << s1_vdm << std::endl;
+            //std::cout << "dense S1 with classical theory: " << s1 << std::endl;
+            //std::cout << std::setprecision(15) << "dense S2 with Vandermonde matrix: " << s2_vdm << std::endl;
+            //std::cout << "dense S1 with classical theory: " << s2 << std::endl;
+            //std::cout << std::setprecision(15) << "dense S3 with Vandermonde matrix: " << s3_vdm << std::endl;
+            //std::cout << "dense S3 with classical theory: " << s3 << std::endl;
+
+            //std::cout << "Representation of S0: " << s0_vdm_vec << std::endl;
+            //std::cout << "Representation of S1: " << s1_vdm_vec << std::endl;
+            //std::cout << "Ap: " << dense_ap_ << ", Am: " << dense_am_ << std::endl;
+
 
             // Dense output dx
             ds0 = std::complex<double>(0,1)*dense_interpolate(dodws6,ws_);
