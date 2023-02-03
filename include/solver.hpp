@@ -483,7 +483,7 @@ void Solution::solve(){
     }
 
     // Write output to file if prompted
-    if(not (*fo==0)){
+    if(!(*fo==0)){
         std::string output(fo);
         std::ofstream f;
         f.open(output);

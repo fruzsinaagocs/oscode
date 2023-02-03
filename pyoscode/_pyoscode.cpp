@@ -39,7 +39,7 @@ static std::complex<double> wfun(double t){
     if(py_result == NULL)
         return NULL;
     // Check if return value was the correct type (complex)
-    if(PyComplex_Check(py_result) or PyFloat_Check(py_result)){
+    if(PyComplex_Check(py_result) || PyFloat_Check(py_result)){
         result = std::complex<double>(PyComplex_RealAsDouble(py_result), PyComplex_ImagAsDouble(py_result));
     }
     Py_DECREF(py_result);
@@ -57,7 +57,7 @@ static std::complex<double> gfun(double t){
     if(py_result == NULL)
         return NULL;
     // Check if return value was the correct type (complex)
-    if(PyComplex_Check(py_result) or PyFloat_Check(py_result))
+    if(PyComplex_Check(py_result) || PyFloat_Check(py_result))
         result = std::complex<double>(PyComplex_RealAsDouble(py_result), PyComplex_ImagAsDouble(py_result));
     Py_DECREF(py_result);
     return result;
@@ -118,15 +118,15 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
         if(t_evalsize!=0){
             if(std::is_sorted(t_evallist.begin(), t_evallist.end()) == false)
                 throw "The points at which dense output is requested are not in ascending order.";
-            else if(h0>0 and (t_evallist.front() < ti or t_evallist.back() > tf)){
+            else if(h0>0 && (t_evallist.front() < ti || t_evallist.back() > tf)){
                 throw "The point at which dense output is requested must lie in the integration range (between ti, tf).";
             }
-            else if(h0<0 and (t_evallist.front() < tf or t_evallist.back() > ti)){
+            else if(h0<0 && (t_evallist.front() < tf || t_evallist.back() > ti)){
                 throw "The point at which dense output is requested must lie in the integration range (between ti, tf).";
             }
         } 
         // Check: direction of integration must match initial stepsize sign
-        if( ((tf-ti)>0 and h0<0) or ((tf-ti)<0 and h0>0) )
+        if( ((tf-ti)>0 && h0<0) || ((tf-ti)<0 && h0>0) )
             throw "Direction of integration ( tf-ti ) in conflict with sign of initial step (h).";
     }
     catch(const char* errormsg){
@@ -245,7 +245,7 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
         t_evalarray = PyArray_FROM_OTF(t_evalobj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
     }
     // If that didn't work, throw an exception
-    if(tsarray==NULL or wsarray==NULL or gsarray==NULL){
+    if(tsarray==NULL || wsarray==NULL || gsarray==NULL){
         Py_XDECREF(tsarray);    
         Py_XDECREF(wsarray);    
         Py_XDECREF(gsarray);    
@@ -284,7 +284,7 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
 
     try{
         // Check 1: same size arrays, large enough arrays
-        if(tssize != wssize or wssize != gssize or tssize != gssize)
+        if(tssize != wssize || wssize != gssize || tssize != gssize)
             throw "The sizes of the input arrays (ts, ws, gs) do not match. Please supply arrays of the same size.";
         else if(tssize < 2)
             throw "The input arrays (ts, ws, gs) have to have at least size 2.";
@@ -302,9 +302,9 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
         }
 
         // Check 3: integration limits ti, tf must lie inside ts
-        if(ti < ts[0] or ti > ts[tssize-1])
+        if(ti < ts[0] || ti > ts[tssize-1])
             throw "The start of integration, ti, must lie inside the array ts.";
-        else if(tf < ts[0] or tf > ts[tssize-1])
+        else if(tf < ts[0] || tf > ts[tssize-1])
             throw "The end of integration, tf, must lie inside of the array ts.";
 
         // Check 4: dense output points must be inside integration range, and
@@ -312,15 +312,15 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
         if(t_evalsize!=0){
             if(std::is_sorted(t_evallist.begin(), t_evallist.end()) == false)
                 throw "The points at which dense output is requested are not in ascending order.";
-            else if(h0>0 and (t_evallist.front() < ti or t_evallist.back() > tf)){
+            else if(h0>0 && (t_evallist.front() < ti || t_evallist.back() > tf)){
                 throw "The point at which dense output is requested must lie in the integration range (between ti, tf).";
             }
-            else if(h0<0 and (t_evallist.front() < tf or t_evallist.back() > ti)){
+            else if(h0<0 && (t_evallist.front() < tf || t_evallist.back() > ti)){
                 throw "The point at which dense output is requested must lie in the integration range (between ti, tf).";
             }
         } 
         // Check 5: direction of integration must match initial stepsize sign
-        if( ((tf-ti)>0 and h0<0) or ((tf-ti)<0 and h0>0) )
+        if( ((tf-ti)>0 && h0<0) || ((tf-ti)<0 && h0>0) )
             throw "Direction of integration ( tf-ti ) in conflict with sign of initial step (h).";
         
     }
