@@ -70,7 +70,7 @@ class Solution
     // Experimental: list to contain continuous representation of the solution
     std::list<Eigen::Matrix<std::complex<double>,7,1>> sol_vdm;
 
-};
+}
 
 /** Constructor for when dense output was not requested. Sets up solution of the
  * ODE.
@@ -120,7 +120,7 @@ a_tol, double h_0, const char* full_output){
         else
             sign = 0;
 
-    };
+    }
     else if((t<=tf) && h0>0){
         // forward
         fend = tf-t;
@@ -131,11 +131,11 @@ a_tol, double h_0, const char* full_output){
         }
         else
             sign = 1;
-    };
+    }
     else{
         throw std::logic_error("Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h.");
         return;
-    };
+    }
 
     // No dense output desired if this constructor was called, so only output
     // answer at t_i and t_f
@@ -157,7 +157,7 @@ a_tol, double h_0, const char* full_output){
                 wkbsolver = &wkbsolver3;
                 break;
     };
-};
+}
 
 /** Constructor for when dense output was requested. Sets up solution of the
  * ODE.
@@ -203,10 +203,10 @@ a_tol, double h_0, const char* full_output){
         if(de_sys_->is_interpolated == 1){
             de_sys_->Winterp.sign_ = 0;
             de_sys_->Ginterp.sign_ = 0;
-        };
+        }
         else
             sign = 0;
-    };
+    }
     else if((t<=tf) && h0>0){
         // forward
         fend = tf-t;
@@ -214,14 +214,14 @@ a_tol, double h_0, const char* full_output){
         if(de_sys_->is_interpolated == 1){
             de_sys_->Winterp.sign_ = 1;
             de_sys_->Ginterp.sign_ = 1;
-        };
+        }
         else
             sign = 1;
-    };
+    }
     else{
         throw std::logic_error("Direction of integration in conflict with direction of initial step, terminating. Please check your values for ti, tf, and h.");
         return;
-    };
+    }
 
     // Dense output preprocessing: sort and reverse if necessary
     int dosize = do_times.size();
@@ -234,14 +234,14 @@ a_tol, double h_0, const char* full_output){
     for(auto it=dotimes.begin(); it!=dotimes.end(); it++){
         *it = *doit;
         doit++;
-    };
+    }
     // Sort to ensure ascending order
     dotimes.sort();
 
     // Reverse if necessary
     if((de_sys_->is_interpolated == 1 && de_sys_->Winterp.sign_ == 0) || (de_sys_->is_interpolated == 0 && sign == 0)){
         dotimes.reverse();
-    };
+    }
 
     dotit = dotimes.begin();
     switch(order){
@@ -255,7 +255,7 @@ a_tol, double h_0, const char* full_output){
                 wkbsolver = &wkbsolver3;
                 break;
     };
-};
+}
 
 /** \brief Function to solve the ODE \f$ \ddot{x} + 2\gamma(t)\dot{x} +
  * \omega^2(t)x = 0 \f$ for \f$ x(t), \frac{dx}{dt} \f$.
@@ -307,7 +307,7 @@ void Solution::solve(){
         if(fnext < 0){
             h = tf - t;
             tnext = tf;
-        };
+        }
 
         // Keep updating stepsize until step is accepted
         while(true){
@@ -342,10 +342,10 @@ void Solution::solve(){
                std::isnan(std::real(wkbx(1)))==false &&
                std::isnan(std::imag(wkbx(1)))==false){
                 wkbdelta = std::max(1e-10, errmeasure_wkb.maxCoeff(&maxindex_wkb));
-            };
+            }
             else{
                 wkbdelta = std::numeric_limits<double>::infinity();
-            };
+            }
 
             // predict next stepsize 
             hrk = h*std::pow((1.0/rkdelta),1.0/nrk);
@@ -356,10 +356,10 @@ void Solution::solve(){
             // choose step with larger predicted stepsize
             if(std::abs(hwkb) >= std::abs(hrk)){
                 wkb = true;
-            };
+            }
             else{
                 wkb = false;
-            };
+            }
             if(wkb){
                 xnext = wkbx(0);
                 dxnext = wkbx(1);
@@ -367,20 +367,20 @@ void Solution::solve(){
                 // stepsize-increase
                 wkbdelta = std::max(1e-10, errmeasure_wkb.tail(2).maxCoeff());
                 hnext = h*std::pow(1.0/wkbdelta,1.0/nwkb2);
-            };
+            }
             else{
                 xnext = rkx(0);
                 dxnext = rkx(1);
                 hnext = hrk;
-            };
+            }
             totsteps += 1;
             // Checking for too many steps and low acceptance ratio:
             if(totsteps % 5000 == 0){
                 std::cerr << "Warning: the solver took " << totsteps << " steps, and may take a while to converge." << std::endl; 
                 if(ssteps/totsteps < 0.05){
                     std::cerr << "Warning: the step acceptance ratio is below 5%, the solver may take a while to converge." << std::endl;
-                };
-            };
+                }
+            }
 
             // check if chosen step was successful
             if(std::abs(hnext)>=std::abs(h)){
@@ -390,7 +390,7 @@ void Solution::solve(){
                     while((*dotit-t>=0 && tnext-*dotit>=0) || (*dotit-t<=0 && tnext-*dotit<=0)){
                         inner_dotimes.push_back(*dotit);
                         dotit++;
-                    };
+                    }
                     if(inner_dotimes.size() > 0){
                         inner_dosols.resize(inner_dotimes.size());
                         inner_dodsols.resize(inner_dotimes.size());
@@ -399,14 +399,14 @@ void Solution::solve(){
 //                            std::cout << "Attempting " << inner_dosols.size() << " dense output points after successful WKB step from " << t << " to " << t+h << std::endl;
 
                             wkbsolver->dense_step(t,inner_dotimes,inner_dosols,inner_dodsols);
-                        };
+                        }
                         else{
                             // Dense output after successful RK step
                             for(auto it=inner_dotimes.begin(); it!=inner_dotimes.end(); it++)
                                 rksolver.dense_step(t,h,x,dx,inner_dotimes,inner_dosols,inner_dodsols);
-                        };
-                    };
-                };
+                        }
+                    }
+                }
                 auto inner_it=inner_dosols.begin();
                 auto inner_dit=inner_dodsols.begin();
                 while(inner_it!=inner_dosols.end() && it_dosol!=dosol.end() && inner_dit!=inner_dodsols.end() && it_dodsol!=dodsol.end()){
@@ -416,7 +416,7 @@ void Solution::solve(){
                     it_dosol++;
                     inner_it++;
                     inner_dit++;
-                };
+                }
                 inner_dotimes.resize(0);
                 inner_dosols.resize(0);
                 inner_dodsols.resize(0);
@@ -426,11 +426,11 @@ void Solution::solve(){
                     wkbsteps +=1;
                     wkbs.push_back(true);
                     xvdm = wkbsolver->x_vdm;
-                };
+                }
                 else{
                     wkbs.push_back(false);
                     xvdm = rksolver.x_vdm; 
-                };
+                }
                 sol.push_back(xnext);
                 dsol.push_back(dxnext);
                 sol_vdm.push_back(xvdm);
@@ -443,20 +443,20 @@ void Solution::solve(){
                 if(h>0){
                     fend=tf-t;
                     fnext=tf-tnext;
-                };
+                }
                 else{
                     fend=t-tf;
                     fnext=tnext-tf;
-                };
+                }
                 ssteps +=1;
                 // Update interpolation bounds
                 if(de_sys_->is_interpolated == 1){
                     de_sys_->Winterp.update_interp_bounds();
                     de_sys_->Ginterp.update_interp_bounds();
-                };
+                }
 
                 break;
-            };
+            }
             else{
                 if(wkb){
                     if(maxindex_wkb<=1){
@@ -464,23 +464,23 @@ void Solution::solve(){
                             hnext = h*std::pow(1.0/wkbdelta,1.0/(nwkb1-1));
                         else
                             hnext = 0.95*h*1.0/wkbdelta;
-                    };
+                    }
                     else
                         hnext = h*std::pow(1.0/wkbdelta,1.0/(nwkb2-1));
-                };
+                }
                 else
                     hnext = h*std::pow(1.0/rkdelta,1.0/(nrk-1));
                 h = hnext;
                 tnext = t + hnext;
                 if(h>0){
                     fnext=tf-tnext;
-                };
+                }
                 else{
                     fnext=tnext-tf;
-                };
-            };
-        };
-    };
+                }
+            }
+        }
+    }
 
     // Write output to file if prompted
     if(not (*fo==0)){
@@ -502,7 +502,7 @@ void Solution::solve(){
             ++it_x;
             ++it_dx;
             ++it_w;
-        };
+        }
         // print all dense output to file
         int dosize = dosol.size();
         auto it_dosol = dosol.begin();
@@ -513,10 +513,10 @@ void Solution::solve(){
             ++it_dosol;
             ++it_dodsol;
             ++it_dotimes;
-        };
+        }
 
         f.close();
-    };
+    }
  
     // If integrating backwards, reverse dense output (because it will have been
     // reversed at the start)
@@ -524,14 +524,14 @@ void Solution::solve(){
         if(de_sys_->Winterp.sign_ == 0){
             dosol.reverse();
             dodsol.reverse();
-        };
-    };
+        }
+    }
     else{
         if(sign == 0){
             dosol.reverse();
-            dodsol.reverse();
-        };
-    };
+            dodsol.reverse()
+        }
+    }
 
    
-};
+}
