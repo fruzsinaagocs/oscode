@@ -70,7 +70,7 @@ class Solution
     // Experimental: list to contain continuous representation of the solution
     std::list<Eigen::Matrix<std::complex<double>,7,1>> sol_vdm;
 
-}
+};
 
 /** Constructor for when dense output was not requested. Sets up solution of the
  * ODE.
@@ -157,7 +157,7 @@ a_tol, double h_0, const char* full_output){
                 wkbsolver = &wkbsolver3;
                 break;
     };
-}
+};
 
 /** Constructor for when dense output was requested. Sets up solution of the
  * ODE.
@@ -255,7 +255,7 @@ a_tol, double h_0, const char* full_output){
                 wkbsolver = &wkbsolver3;
                 break;
     };
-}
+};
 
 /** \brief Function to solve the ODE \f$ \ddot{x} + 2\gamma(t)\dot{x} +
  * \omega^2(t)x = 0 \f$ for \f$ x(t), \frac{dx}{dt} \f$.
@@ -529,9 +529,9 @@ void Solution::solve(){
     else{
         if(sign == 0){
             dosol.reverse();
-            dodsol.reverse()
+            dodsol.reverse();
         }
     }
 
    
-}
+};
