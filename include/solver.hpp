@@ -387,7 +387,7 @@ void Solution::solve(){
 //                std::cout << "All dense output points: " << std::endl;
                 if(dotit!=dotimes.end()){
 //                    std::cout << *dotit << std::endl;
-                    while((*dotit-t>=0 && tnext-*dotit>=0) or (*dotit-t<=0 && tnext-*dotit<=0)){
+                    while((*dotit-t>=0 && tnext-*dotit>=0) || (*dotit-t<=0 && tnext-*dotit<=0)){
                         inner_dotimes.push_back(*dotit);
                         dotit++;
                     }
