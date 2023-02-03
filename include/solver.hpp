@@ -109,7 +109,7 @@ a_tol, double h_0, const char* full_output){
 
     // Determine direction of integration, fend>0 and integration ends when
     // it crosses zero
-    if((t>=tf) and h0<0){
+    if((t>=tf) && h0<0){
         // backwards
         fend = t-tf;
         fnext = fend;
@@ -121,7 +121,7 @@ a_tol, double h_0, const char* full_output){
             sign = 0;
 
     }
-    else if((t<=tf) and h0>0){
+    else if((t<=tf) && h0>0){
         // forward
         fend = tf-t;
         fnext = fend;
@@ -196,7 +196,7 @@ a_tol, double h_0, const char* full_output){
 
     // Determine direction of integration, fend>0 and integration ends when
     // it crosses zero
-    if((t>=tf) and h0<0){
+    if((t>=tf) && h0<0){
         // backwards
         fend = t-tf;
         fnext = fend;
@@ -207,7 +207,7 @@ a_tol, double h_0, const char* full_output){
         else
             sign = 0;
     }
-    else if((t<=tf) and h0>0){
+    else if((t<=tf) && h0>0){
         // forward
         fend = tf-t;
         fnext = fend;
@@ -239,7 +239,7 @@ a_tol, double h_0, const char* full_output){
     dotimes.sort();
 
     // Reverse if necessary
-    if((de_sys_->is_interpolated == 1 and de_sys_->Winterp.sign_ == 0) or (de_sys_->is_interpolated == 0 and sign == 0)){
+    if((de_sys_->is_interpolated == 1 && de_sys_->Winterp.sign_ == 0) || (de_sys_->is_interpolated == 0 && sign == 0)){
         dotimes.reverse();
     }
 
@@ -307,7 +307,7 @@ void Solution::solve(){
         if(fnext < 0){
             h = tf - t;
             tnext = tf;
-        };
+        }
 
         // Keep updating stepsize until step is accepted
         while(true){
@@ -372,7 +372,7 @@ void Solution::solve(){
                 xnext = rkx(0);
                 dxnext = rkx(1);
                 hnext = hrk;
-            };
+            }
             totsteps += 1;
             // Checking for too many steps and low acceptance ratio:
             if(totsteps % 5000 == 0){
@@ -387,7 +387,7 @@ void Solution::solve(){
 //                std::cout << "All dense output points: " << std::endl;
                 if(dotit!=dotimes.end()){
 //                    std::cout << *dotit << std::endl;
-                    while((*dotit-t>=0 && tnext-*dotit>=0) or (*dotit-t<=0 && tnext-*dotit<=0)){
+                    while((*dotit-t>=0 && tnext-*dotit>=0) || (*dotit-t<=0 && tnext-*dotit<=0)){
                         inner_dotimes.push_back(*dotit);
                         dotit++;
                     }
@@ -447,7 +447,7 @@ void Solution::solve(){
                 else{
                     fend=t-tf;
                     fnext=tnext-tf;
-                };
+                }
                 ssteps +=1;
                 // Update interpolation bounds
                 if(de_sys_->is_interpolated == 1){
@@ -477,13 +477,13 @@ void Solution::solve(){
                 }
                 else{
                     fnext=tnext-tf;
-                };
-            };
-        };
-    };
+                }
+            }
+        }
+    }
 
     // Write output to file if prompted
-    if(not (*fo==0)){
+    if(!(*fo==0)){
         std::string output(fo);
         std::ofstream f;
         f.open(output);

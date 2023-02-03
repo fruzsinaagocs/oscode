@@ -259,6 +259,8 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 Changelog
 ---------
 
+- 1.1.1: 
+    - Support for mac and Windows OS at CI.
 - 1.1.0:
     - Users can now define w, g as functions in Python (pyoscode) and call the solver via pyoscode.solve_fn(...)
 - 1.0.6:
