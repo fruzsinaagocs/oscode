@@ -522,14 +522,14 @@ void Solution::solve(){
     // reversed at the start)
     if(de_sys_->is_interpolated == 1){
         if(de_sys_->Winterp.sign_ == 0){
-            dosol.reverse();
-            dodsol.reverse();
+            std::reverse(dosol.begin(), dosol.end());
+            std::reverse(dodsol.begin(), dodsol.end());
         }
     }
     else{
         if(sign == 0){
-            dosol.reverse();
-            dodsol.reverse();
+            std::reverse(dosol.begin(), dosol.end());
+            std::reverse(dodsol.begin(), dodsol.end());
         }
     }
 
