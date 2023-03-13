@@ -241,7 +241,11 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 Changelog
 ---------
 
-- 1.1.0: current version
+- 1.1.2: current version
+    - Dense output bug fix at the C++ interface 
+- 1.1.1:
+    - Support for mac and Windows OS at CI. 
+- 1.1.0: 
     - Users can now define w, g as functions in Python (pyoscode) and call the solver via pyoscode.solve_fn(...)
 - 1.0.6:
     - Fix issues related to dense output not being correctly generated, e.g. when timepoints at which dense output was asked for are in descending order, etc. 
