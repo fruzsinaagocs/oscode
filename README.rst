@@ -259,6 +259,8 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 Changelog
 ---------
 
+- 1.1.2:
+    - Dense output bug fix at the C++ interface 
 - 1.1.1: 
     - Support for mac and Windows OS at CI.
 - 1.1.0:
