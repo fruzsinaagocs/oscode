@@ -1,11 +1,4 @@
-*
 !/examples/*.py
 !/examples/*.ipynb
-!/examples/*.cpp
 !/examples/images/**
-!Dockerfile
 !/JOSS-paper/*
-!LICENSE
-!README.md
-!setup.py
-!requirements.txt
