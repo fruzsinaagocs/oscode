@@ -1,8 +1,8 @@
 #pragma once
-#include <interpolator.hpp>
-#include <rksolver.hpp>
-#include <system.hpp>
-#include <wkbsolver.hpp>
+#include <oscode/interpolator.hpp>
+#include <oscode/rksolver.hpp>
+#include <oscode/system.hpp>
+#include <oscode/wkbsolver.hpp>
 #include <Eigen/Dense>
 #include <fstream>
 #include <iomanip>

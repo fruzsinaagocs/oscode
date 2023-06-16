@@ -1,5 +1,5 @@
 #pragma once
-#include <system.hpp>
+#include <oscode/system.hpp>
 #include <Eigen/Dense>
 #include <complex>
 #include <functional>

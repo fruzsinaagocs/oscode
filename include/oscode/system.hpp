@@ -1,5 +1,5 @@
 #pragma once
-#include "interpolator.hpp"
+#include <oscode/interpolator.hpp>
 
 /** */
 class de_system {

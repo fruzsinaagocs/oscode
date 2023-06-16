@@ -2,3 +2,5 @@
 !/examples/*.ipynb
 !/examples/images/**
 !/JOSS-paper/*
+/examples/*
+!/examples/*.cpp

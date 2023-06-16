@@ -103,7 +103,7 @@ or via the setup.py
 
 .. code:: bash
 
-   git clone https://github.com/fruzsinaagocs/oscode
+   git clone --recursive https://github.com/fruzsinaagocs/oscode
    cd oscode
    python setup.py install --user
 
@@ -111,7 +111,7 @@ or
 
 .. code:: bash
 
-   git clone https://github.com/fruzsinaagocs/oscode
+   git clone --recursive https://github.com/fruzsinaagocs/oscode
    cd oscode
    pip install .
 
@@ -133,14 +133,14 @@ C++
 
 .. code:: bash
 
-   git clone https://github.com/fruzsinaagocs/oscode
+   git clone --recursive https://github.com/fruzsinaagocs/oscode
 
 and then include the relevant header files in your C++ code:
 
 .. code:: c
 
-    #include "solver.hpp"
-    #include "system.hpp"
+    #include <oscode/solver.hpp>
+    #include <oscode/system.hpp>
 
 
 Quick start
