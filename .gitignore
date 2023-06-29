@@ -4,3 +4,16 @@
 !/JOSS-paper/*
 /examples/*
 !/examples/*.cpp
+.eggs/*
+.vscode/*
+bin/*
+build/*
+dist/*
+env/*
+lib/*
+lib64
+pyoscode.egg-info/*
+pyoscode/__pycache__/*
+pyvenv.cfg
+tests/__pycache__/*
+_pyoscode.cpython-*
