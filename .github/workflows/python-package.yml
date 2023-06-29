@@ -23,7 +23,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Git submodule update
         run: |
-          git pull --recurse-submodules
           git submodule update --remote --recursive
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
