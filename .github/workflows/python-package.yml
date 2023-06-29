@@ -25,6 +25,7 @@ jobs:
         uses: actions/setup-python@v2
         with: 
           python-version: ${{ matrix.python-version }} 
+        with: 
           submodules: recursive
       - name: Install dependencies
         run: |
