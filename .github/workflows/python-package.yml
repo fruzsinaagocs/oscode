@@ -54,7 +54,7 @@ jobs:
           mkdir test_build
           cd test_build
           cmake ..
-          cmake --build . --target test -C Testing
+          cmake --build . --target test 
 
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v2
