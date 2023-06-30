@@ -46,7 +46,8 @@ endif()
 add_compile_options(
   -DNO_FPRINTF_OUTPUT 
   -DBOOST_DISABLE_ASSERTS 
-  -Wno-deprecated-declarations -O3)
+  -O3)
+
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   add_compile_options(-DDEBUG)
 endif()
