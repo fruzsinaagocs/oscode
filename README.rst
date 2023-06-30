@@ -258,7 +258,8 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 
 Changelog
 ---------
-
+- 1.2.0:
+    - Update the version of Eigen to 3.4.0
 - 1.1.2:
     - Dense output bug fix at the C++ interface 
 - 1.1.1: 
