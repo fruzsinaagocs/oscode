@@ -245,6 +245,37 @@ Installation
     where  ``/usr/include/eigen3`` should be replaced with your system-specific
     eigen location.
 
+Development
+-------------
+
+Run the following to setup an environment for development:
+
+    .. code:: bash
+        python -m venv env
+        source ./env/bin/activate
+        pip install numpy scipy pytest
+        python setup.py build_ext -i
+        pip install -e .
+        # Rerun tests after making changes
+        # inplace and force comple
+        python setup.py build_ext -if && pytest ./tests
+
+Tests for the C++ and python can be run via cmake with 
+
+    .. code:: bash
+        # This can take a while the first time because of boost
+        cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Testing
+        cd ./build
+        make -j4 test
+
+
+Once in the build folder you can run the following to rebuild the cmake if you need to.
+
+    .. code:: bash
+        cmake .. -DCMAKE_BUILD_TYPE=Testing
+        make -j4 test
+
+
 Thanks
 ------
 
