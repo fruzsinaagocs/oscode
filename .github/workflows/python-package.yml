@@ -57,17 +57,12 @@ jobs:
 
       - name: Configure CMake
         run: |
-          mkdir build
-          cd build
+          mkdir test_build
+          cd test_build
           cmake ..
-
-      - name: Build with CMake
-        run: |
-          cd build
-          make
 
       - name: Test with CMake
         run: |
-          cd build
+          cd test_build
           make test
 
