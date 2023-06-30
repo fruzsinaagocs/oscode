@@ -53,7 +53,7 @@ jobs:
         run: |
           mkdir test_build
           cd test_build
-          cmake ..
+          cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target test 
 
       - name: Upload coverage to codecov
