@@ -1,8 +1,8 @@
 #define PY_SSIZE_T_CLEAN
 #include "_python.hpp"
 #include "_pyoscode.hpp"
-#include "system.hpp"
-#include "solver.hpp"
+#include <oscode/system.hpp>
+#include <oscode/solver.hpp>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <vector>

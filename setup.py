@@ -13,14 +13,14 @@ def readme(short=False):
 pyoscode_module = Extension(
     name="_pyoscode",
     sources=["pyoscode/_pyoscode.cpp"],
-    include_dirs=['include','pyoscode',np.get_include()],
+    include_dirs=['include','pyoscode',np.get_include(),'deps/eigen'],
     depends=["pyoscode/_python.hpp", "pyoscode/_pyoscode.hpp"],
-    extra_compile_args=['-std=c++11','-Wall']
+    extra_compile_args=['-std=c++17','-Wall']
     )
 
 setup(
     name="pyoscode",
-    version="1.1.2",
+    version="1.2.0",
     description=readme(short=True),
     long_description=readme(),
     url="https://github.com/fruzsinaagocs/oscode",

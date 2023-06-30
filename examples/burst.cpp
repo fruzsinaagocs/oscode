@@ -1,4 +1,4 @@
-#include "solver.hpp"
+#include <oscode/solver.hpp>
 #include <cmath>
 #include <fstream>
 #include <string>
