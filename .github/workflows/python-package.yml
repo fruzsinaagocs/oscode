@@ -49,16 +49,13 @@ jobs:
         with:
           cmake-version: 3.21.1
 
-      - name: Configure CMake
+      - name: Configure and run CMake
         run: |
           mkdir test_build
           cd test_build
           cmake ..
-      
-      - name: Test with CMake
-        run: |
-          cd test_build
           make test
+
 
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v2
