@@ -69,9 +69,8 @@ TEST(SolverTest, SolveBurst) {
     /** Create differential equation "system" */
     /** Method 1: Give frequency and damping term as functions */
     de_system sys(&w, &g);
-    std::vector<double> times = linspace(ti, tf, 5000);
     /** Solve the ODE */    
-    Solution solution(sys, x0, dx0, ti, tf, times);
+    Solution solution(sys, x0, dx0, ti, tf);
     solution.solve();
 
     EXPECT_TRUE(true);
