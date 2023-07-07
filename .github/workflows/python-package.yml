@@ -50,6 +50,7 @@ jobs:
           cmake-version: 3.21.1
 
       - name: Configure and run CMake
+        shell: bash
         run: |
           mkdir test_build
           cd test_build
