@@ -38,7 +38,7 @@ jobs:
 
       - name: Install testing packages
         run: |
-          pip3 install pytest numpy
+          pip3 install pytest
           pip3 install pytest-cov pytest-xdist codecov
 
 
@@ -54,7 +54,7 @@ jobs:
           mkdir test_build
           cd test_build
           cmake .. -DCMAKE_BUILD_TYPE=Debug -DPYTHON_VERSION=${{matrix.python-version}}
-          cmake --build . --target test 
+          cmake --build . -DCMAKE_BUILD_TYPE=Debug -DPYTHON_VERSION=${{matrix.python-version}} --target test 
 
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v2
