@@ -60,7 +60,7 @@ set(oscode_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(Python3_FIND_STRATEGY "VERSION")
 set(Python3_FIND_REGISTRY "FIRST")
 if (DEFINED PYTHON_VERSION)
-  set(Python3_FIND_VERSION_EXACT ${PYTHON_VERSION})
+  set(Python3_FIND_VERSION ${PYTHON_VERSION})
 endif()
 find_package(Python3 COMPONENTS Interpreter)
 if(${Python3_FOUND})
@@ -79,7 +79,7 @@ if(${Python3_FOUND})
     )
   else()
     add_custom_target(pyoscode ALL
-      COMMAND ${Python3_EXECUTABLE} ../setup.py .
+      COMMAND ${Python3_EXECUTABLE} setup.py .
       COMMAND pip3 install -e .
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT "Building Python package using setup.py"
