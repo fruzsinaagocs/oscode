@@ -60,13 +60,13 @@ set(oscode_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 find_package(Python3 COMPONENTS Interpreter)
 if(${Python3_FOUND})
 if (CMAKE_BUILD_TYPE MATCHES Debug)    
-add_custom_target(pyoscode ALL
-  COMMAND ${Python3_EXECUTABLE} setup.py build_ext -i 
-  COMMAND pip install -e .
-  COMMAND python setup.py build_ext -if
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMENT "Building Python package using setup.py"
-)
+  add_custom_target(pyoscode ALL
+    COMMAND ${Python3_EXECUTABLE} setup.py build_ext -i 
+    COMMAND pip install -e .
+    COMMAND python setup.py build_ext -if
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Building Python package using setup.py"
+  )
 else()
   add_custom_target(pyoscode ALL
     COMMAND ${Python3_EXECUTABLE} ../setup.py .
