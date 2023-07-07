@@ -63,23 +63,21 @@ if(NOT PYTHON_EXECUTABLE)
   message(FATAL_ERROR "PYTHON_EXECUTABLE must be provided")
 endif()
 
-if(${Python3_FOUND})
-  if (CMAKE_BUILD_TYPE MATCHES Debug)    
-    add_custom_target(pyoscode ALL
-      COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -i 
-      COMMAND pip3 install -e .
-      COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -if
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMENT "Building Python package using setup.py"
-    )
-  else()
-    add_custom_target(pyoscode ALL
-      COMMAND ${PYTHON_EXECUTABLE} setup.py .
-      COMMAND pip3 install -e .
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMENT "Building Python package using setup.py"
-    )
-  endif()
+if (CMAKE_BUILD_TYPE MATCHES Debug)    
+  add_custom_target(pyoscode ALL
+    COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -i 
+    COMMAND pip3 install -e .
+    COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -if
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Building Python package using setup.py"
+  )
+else()
+  add_custom_target(pyoscode ALL
+    COMMAND ${PYTHON_EXECUTABLE} setup.py .
+    COMMAND pip3 install -e .
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Building Python package using setup.py"
+  )
 endif()
 
 include_directories(tests)
