@@ -33,7 +33,7 @@ set(Boost_USE_STATIC_RUNTIME ON)
 set(BOOST_ENABLE_CMAKE ON)
 FetchContent_Declare(
   boost
-  URL https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz
+  URL https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_1_82_0.tar.gz
 )
 
 FetchContent_GetProperties(boost)
@@ -64,22 +64,26 @@ if (DEFINED PYTHON_VERSION)
 endif()
 find_package(Python3 COMPONENTS Interpreter)
 if(${Python3_FOUND})
-if (CMAKE_BUILD_TYPE MATCHES Debug)    
-  add_custom_target(pyoscode ALL
-    COMMAND ${Python3_EXECUTABLE} setup.py build_ext -i 
-    COMMAND pip install -e .
-    COMMAND python setup.py build_ext -if
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Building Python package using setup.py"
-  )
-else()
-  add_custom_target(pyoscode ALL
-    COMMAND ${Python3_EXECUTABLE} ../setup.py .
-    COMMAND pip install -e .
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Building Python package using setup.py"
-  )
-endif()
+  add_custom_target(pyoscode_requires ALL COMMAND pip3 install -r requirements.txt)
+  if (CMAKE_BUILD_TYPE MATCHES Debug)    
+    add_custom_target(pyoscode ALL
+      COMMAND pip3 install -r requirements.txt
+      COMMAND ${Python3_EXECUTABLE} setup.py build_ext -i 
+      COMMAND pip3 install -e .
+      COMMAND ${Python3_EXECUTABLE} setup.py build_ext -if
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Building Python package using setup.py"
+      DEPENDS pyoscode_requires
+    )
+  else()
+    add_custom_target(pyoscode ALL
+      COMMAND ${Python3_EXECUTABLE} ../setup.py .
+      COMMAND pip3 install -e .
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Building Python package using setup.py"
+      DEPENDS pyoscode_requires
+    )
+  endif()
 endif()
 
 include_directories(tests)
