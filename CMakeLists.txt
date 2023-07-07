@@ -64,10 +64,12 @@ if (DEFINED PYTHON_VERSION)
 endif()
 find_package(Python3 COMPONENTS Interpreter)
 if(${Python3_FOUND})
-  add_custom_target(pyoscode_requires ALL COMMAND pip3 install -r requirements.txt)
+  add_custom_target(pyoscode_requires ALL 
+    COMMAND pip3 install -r requirements.txt
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
   if (CMAKE_BUILD_TYPE MATCHES Debug)    
     add_custom_target(pyoscode ALL
-      COMMAND pip3 install -r requirements.txt
       COMMAND ${Python3_EXECUTABLE} setup.py build_ext -i 
       COMMAND pip3 install -e .
       COMMAND ${Python3_EXECUTABLE} setup.py build_ext -if
