@@ -38,7 +38,7 @@ jobs:
 
       - name: Install testing packages
         run: |
-          pip install pytest
+          pip install pytest numpy
           pip install pytest-cov pytest-xdist codecov
 
 
