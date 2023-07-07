@@ -264,7 +264,7 @@ Tests for the C++ and python can be run via cmake with
 
     .. code:: bash
         # This can take a while the first time because of boost
-        cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Testing
+        cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Debug
         cd ./build
         make -j4 test
 
@@ -272,7 +272,7 @@ Tests for the C++ and python can be run via cmake with
 Once in the build folder you can run the following to rebuild the cmake if you need to.
 
     .. code:: bash
-        cmake .. -DCMAKE_BUILD_TYPE=Testing
+        cmake .. -DCMAKE_BUILD_TYPE=Debug
         make -j4 test
 
 

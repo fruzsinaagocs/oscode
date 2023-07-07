@@ -43,27 +43,35 @@ std::complex<double> dxburst(double t){
     std::complex<double>(-n,t)*std::sin(n*std::atan(t))); 
 };
 
+template <typename T>
+std::vector<T> linspace(T start, T end, std::size_t points) {
+  std::vector<T> res(points);
+  float step = (end - start) / (points - 1);
+  size_t i = 0;
+  for (auto& e : res) {
+    e = start + step * i++;
+  }
+  return res;
+}
+
 TEST(SolverTest, SolveBurst) {
-    std::ofstream f;
     /** File to write solution of ODE to */
     std::string output = "output.txt"; 
-    std::complex<double> x0, dx0;
-    double ti, tf;
    
     /** Define integration range */
-    ti = -2*n;
-    tf = 2*n;
+    double ti = -2*n;
+    double tf = 2*n;
 
     /** Define initial conditions */
-    x0 = xburst(ti); 
-    dx0 = dxburst(ti); 
+    std::complex<double> x0 = xburst(ti); 
+    std::complex<double> dx0 = dxburst(ti); 
 
     /** Create differential equation "system" */
     /** Method 1: Give frequency and damping term as functions */
     de_system sys(&w, &g);
-
+    std::vector<double> times = linspace(ti, tf, 5000);
     /** Solve the ODE */    
-    Solution solution(sys, x0, dx0, ti, tf);
+    Solution solution(sys, x0, dx0, ti, tf, times);
     solution.solve();
     EXPECT_TRUE(true);
 }
