@@ -73,6 +73,12 @@ TEST(SolverTest, SolveBurst) {
     /** Solve the ODE */    
     Solution solution(sys, x0, dx0, ti, tf, times);
     solution.solve();
+    std::list<std::complex<double>>& xs = solution.sol;
+    std::list<double>& ts = solution.times;
+    std::list<bool>& types = solution.wkbs;
+    
+    int steps = solution.ssteps;
+
     EXPECT_TRUE(true);
 }
 
