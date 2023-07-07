@@ -57,33 +57,27 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG)
 set(oscode_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-set(Python3_FIND_STRATEGY "VERSION")
-set(Python3_FIND_REGISTRY "FIRST")
-if (DEFINED PYTHON_VERSION)
-  set(Python3_FIND_VERSION ${PYTHON_VERSION})
+set(PYTHON_EXECUTABLE "" CACHE FILEPATH "Python interpreter to use")
+
+if(NOT PYTHON_EXECUTABLE)
+  message(FATAL_ERROR "PYTHON_EXECUTABLE must be provided")
 endif()
-find_package(Python3 COMPONENTS Interpreter)
+
 if(${Python3_FOUND})
-  add_custom_target(pyoscode_requires ALL 
-    COMMAND pip3 install -r requirements.txt
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  )
   if (CMAKE_BUILD_TYPE MATCHES Debug)    
     add_custom_target(pyoscode ALL
-      COMMAND ${Python3_EXECUTABLE} setup.py build_ext -i 
+      COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -i 
       COMMAND pip3 install -e .
-      COMMAND ${Python3_EXECUTABLE} setup.py build_ext -if
+      COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -if
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT "Building Python package using setup.py"
-      DEPENDS pyoscode_requires
     )
   else()
     add_custom_target(pyoscode ALL
-      COMMAND ${Python3_EXECUTABLE} setup.py .
+      COMMAND ${PYTHON_EXECUTABLE} setup.py .
       COMMAND pip3 install -e .
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT "Building Python package using setup.py"
-      DEPENDS pyoscode_requires
     )
   endif()
 endif()
