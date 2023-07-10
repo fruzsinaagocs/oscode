@@ -14,5 +14,5 @@ add_test(NAME burst COMMAND ${CMAKE_CURRENT_BINARY_DIR}${config_subdir}/burst_te
 find_package(Python COMPONENTS Interpreter REQUIRED)
 add_test(NAME python_tests COMMAND python -m pytest ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_custom_target(test COMMAND ${CMAKE_CTEST_COMMAND} -C Debug --extra-verbose DEPENDS burst pyoscode)
+add_custom_target(test COMMAND ${CMAKE_CTEST_COMMAND} -C Debug --extra-verbose DEPENDS burst_test pyoscode)
 
