@@ -54,28 +54,6 @@ std::vector<T> linspace(T start, T end, std::size_t points) {
   return res;
 }
 
-TEST(SolverTest, SolveBurst) {
-    /** File to write solution of ODE to */
-    std::string output = "output.txt"; 
-   
-    /** Define integration range */
-    double ti = -2*n;
-    double tf = 2*n;
-
-    /** Define initial conditions */
-    std::complex<double> x0 = xburst(ti); 
-    std::complex<double> dx0 = dxburst(ti); 
-
-    /** Create differential equation "system" */
-    /** Method 1: Give frequency and damping term as functions */
-    de_system sys(&w, &g);
-    /** Solve the ODE */    
-    Solution solution(sys, x0, dx0, ti, tf);
-    solution.solve();
-
-    EXPECT_TRUE(true);
-}
-
 /** \brief Routine to call oscode to solve an example ODE, to illustrate basic
  * functionality.
  *
@@ -102,4 +80,94 @@ TEST(SolverTest, SolveBurst) {
  * a file called \a output.txt, the contents of which you can plot with the
  * Python script \a plot_burst.py, or any other script of your choice.
  */
+
+TEST(SolverTest, SolveBurstEvenFwd) {
+    /** Define integration range */
+    double ti = -2*n;
+    double tf = 2*n;
+
+    /** Define initial conditions */
+    std::complex<double> x0 = xburst(ti); 
+    std::complex<double> dx0 = dxburst(ti); 
+
+    /** Create differential equation "system" */
+    /** Method 1: Give frequency and damping term as functions */
+    de_system sys(&w, &g);
+    /** Solve the ODE */    
+    std::vector<double> times = linspace(ti, tf, 1000);
+    Solution solution(sys, x0, dx0, ti, tf, times, 3, 1e-8);
+    solution.solve();
+    std::vector<double> time_comp_vec = linspace(ti, tf, 1000);
+    std::vector<std::complex<double>> sol_vec;
+    for (auto& sol : solution.dosol) { 
+      sol_vec.push_back(sol);
+    }
+    std::vector<std::complex<double>> true_sol_vec;
+    for (auto& t : time_comp_vec) {
+      true_sol_vec.push_back(xburst(t));
+    }
+    std::vector<std::complex<double>> dsol_vec;
+    for (auto& dsol : solution.dodsol) { 
+      dsol_vec.push_back(dsol);
+    }
+
+    std::vector<std::complex<double>> true_dsol_vec;
+    for (auto& t : time_comp_vec) {
+      true_dsol_vec.push_back(dxburst(t));
+    }
+    for (int i = 0; i < time_comp_vec.size(); ++i) {
+        EXPECT_NEAR((std::real(sol_vec[i]) - std::real(true_sol_vec[i])), 0.0f, 1.0f);
+        EXPECT_NEAR((std::imag(sol_vec[i]) - std::imag(true_sol_vec[i])), 0.0f, 0.4f);
+        EXPECT_NEAR((std::real(dsol_vec[i]) - std::real(true_dsol_vec[i])), 0.0f, 5e-2);
+        EXPECT_NEAR((std::imag(dsol_vec[i]) - std::imag(true_dsol_vec[i])), 0.0f, 5e-2);
+//        std::cout << true_sol_vec[i] << ", " << sol_vec[i] << ": " <<  sol_vec[i] - true_sol_vec[i] << std::endl;
+//        std::cout << true_dsol_vec[i] << ", " << dsol_vec[i] << ": " <<  dsol_vec[i] - true_dsol_vec[i] << std::endl;
+    }
+}
+
+
+TEST(SolverTest, SolveBurstEvenRev) {
+    /** Define integration range */
+    double ti = -2*n;
+    double tf = 2*n;
+
+    /** Define initial conditions */
+    std::complex<double> x0 = xburst(tf); 
+    std::complex<double> dx0 = dxburst(tf); 
+
+    /** Create differential equation "system" */
+    /** Method 1: Give frequency and damping term as functions */
+    de_system sys(&w, &g);
+    /** Solve the ODE */    
+    std::vector<double> times = linspace(ti, tf, 1000);
+    std::reverse(times.begin(), times.end());
+
+    Solution solution(sys, x0, dx0, tf, ti, times, 3, 1e-8, 0, -1);
+    solution.solve();
+    std::vector<std::complex<double>> sol_vec;
+    for (auto& sol : solution.dosol) { 
+      sol_vec.push_back(sol);
+    }
+    std::vector<double> time_comp_vec = linspace(ti, tf, 1000);
+    std::reverse(time_comp_vec.begin(), time_comp_vec.end());
+    std::vector<std::complex<double>> true_sol_vec;
+    for (auto& t : time_comp_vec) {
+      true_sol_vec.push_back(xburst(t));
+    }
+    std::vector<std::complex<double>> dsol_vec;
+    for (auto& dsol : solution.dodsol) { 
+      dsol_vec.push_back(dsol);
+    }
+
+    std::vector<std::complex<double>> true_dsol_vec;
+    for (auto& t : time_comp_vec) {
+      true_dsol_vec.push_back(dxburst(t));
+    }
+    for (int i = 0; i < time_comp_vec.size(); ++i) {
+        EXPECT_NEAR((std::real(sol_vec[i]) - std::real(true_sol_vec[i])), 0.0f, 1.0f) << "i = " << i << " sol = " << sol_vec[i] << " true_sol = " << true_sol_vec[i];
+        EXPECT_NEAR((std::imag(sol_vec[i]) + std::imag(true_sol_vec[i])), 0.0f, 0.4f) << "i = " << i << " sol = " << sol_vec[i] << " true_sol = " << true_sol_vec[i];
+        EXPECT_NEAR((std::real(dsol_vec[i]) + std::real(true_dsol_vec[i])), 0.0f, 5e-2)  << "i = " << i << " dsol = " << dsol_vec[i] << " true_dsol = " << true_dsol_vec[i];
+        EXPECT_NEAR((std::imag(dsol_vec[i]) - std::imag(true_dsol_vec[i])), 0.0f, 5e-2)  << "i = " << i << " dsol = " << dsol_vec[i] << " true_dsol = " << true_dsol_vec[i];
+    }
+}
 

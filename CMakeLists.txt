@@ -12,7 +12,6 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-find_package(codecov)
 include(FetchContent)
 # Externally provided libraries
 FetchContent_Declare(googletest
