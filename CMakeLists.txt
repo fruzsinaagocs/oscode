@@ -1,13 +1,18 @@
 cmake_minimum_required(VERSION 3.20.2)
 project(
     oscode
-    VERSION 1.1.2
+    VERSION 1.3.0
     LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS NO)
-set(CMAKE_VERBOSE_MAKEFILE YES)
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+  set(CMAKE_VERBOSE_MAKEFILE YES)
+endif()
+
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+find_package(codecov)
 include(FetchContent)
 # Externally provided libraries
 FetchContent_Declare(googletest

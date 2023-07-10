@@ -56,7 +56,6 @@ jobs:
           cd test_build
           PYTHON_PATH=$(which python)
           cmake .. -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=${PYTHON_PATH}
-          echo "111 CMake configured successfully"
           cmake --build . --target test 
 
       - name: Upload coverage to codecov
