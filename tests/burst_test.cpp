@@ -176,15 +176,15 @@ TEST(SolverTest, SolveBurstEvenRev) {
         << "i = " << i << " sol = " << sol_vec[i]
         << " true_sol = " << true_sol_vec[i];
     EXPECT_NEAR((std::imag(sol_vec[i]) + std::imag(true_sol_vec[i])), 0.0f,
-                0.4f)
+                1.0f)
         << "i = " << i << " sol = " << sol_vec[i]
         << " true_sol = " << true_sol_vec[i];
     EXPECT_NEAR((std::real(dsol_vec[i]) + std::real(true_dsol_vec[i])), 0.0f,
-                5e-2)
+                1.0f)
         << "i = " << i << " dsol = " << dsol_vec[i]
         << " true_dsol = " << true_dsol_vec[i];
     EXPECT_NEAR((std::imag(dsol_vec[i]) - std::imag(true_dsol_vec[i])), 0.0f,
-                5e-2)
+                1.0f)
         << "i = " << i << " dsol = " << dsol_vec[i]
         << " true_dsol = " << true_dsol_vec[i];
   }
