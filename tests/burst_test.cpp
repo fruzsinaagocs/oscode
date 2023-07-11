@@ -119,13 +119,13 @@ TEST(SolverTest, SolveBurstEvenFwd) {
   }
   for (int i = 0; i < time_comp_vec.size(); ++i) {
     EXPECT_NEAR((std::real(sol_vec[i]) - std::real(true_sol_vec[i])), 0.0f,
-                1.0f);
+                1e-2f);
     EXPECT_NEAR((std::imag(sol_vec[i]) - std::imag(true_sol_vec[i])), 0.0f,
-                0.4f);
+                1e-2f);
     EXPECT_NEAR((std::real(dsol_vec[i]) - std::real(true_dsol_vec[i])), 0.0f,
-                5e-2);
+                1e-2);
     EXPECT_NEAR((std::imag(dsol_vec[i]) - std::imag(true_dsol_vec[i])), 0.0f,
-                5e-2);
+                1e-2);
     //        std::cout << true_sol_vec[i] << ", " << sol_vec[i] << ": " <<
     //        sol_vec[i] - true_sol_vec[i] << std::endl; std::cout <<
     //        true_dsol_vec[i] << ", " << dsol_vec[i] << ": " <<  dsol_vec[i] -
@@ -149,7 +149,7 @@ TEST(SolverTest, SolveBurstEvenRev) {
   std::vector<double> times = linspace(ti, tf, 1000);
   std::reverse(times.begin(), times.end());
 
-  Solution solution(sys, x0, dx0, tf, ti, times, 3, 1e-8, 0, -1);
+  Solution solution(sys, x0, dx0, tf, ti, times, 3, 1e-12, 0, -1);
   solution.solve();
   std::vector<std::complex<double>> sol_vec;
   for (auto &sol : solution.dosol) {
@@ -172,19 +172,19 @@ TEST(SolverTest, SolveBurstEvenRev) {
   }
   for (int i = 0; i < time_comp_vec.size(); ++i) {
     EXPECT_NEAR((std::real(sol_vec[i]) - std::real(true_sol_vec[i])), 0.0f,
-                1.0f)
+                1e-3f)
         << "i = " << i << " sol = " << sol_vec[i]
         << " true_sol = " << true_sol_vec[i];
     EXPECT_NEAR((std::imag(sol_vec[i]) + std::imag(true_sol_vec[i])), 0.0f,
-                1.0f)
+                1e-4f)
         << "i = " << i << " sol = " << sol_vec[i]
         << " true_sol = " << true_sol_vec[i];
     EXPECT_NEAR((std::real(dsol_vec[i]) + std::real(true_dsol_vec[i])), 0.0f,
-                1.0f)
+                1e-4f)
         << "i = " << i << " dsol = " << dsol_vec[i]
         << " true_dsol = " << true_dsol_vec[i];
     EXPECT_NEAR((std::imag(dsol_vec[i]) - std::imag(true_dsol_vec[i])), 0.0f,
-                1.0f)
+                1e-4f)
         << "i = " << i << " dsol = " << dsol_vec[i]
         << " true_dsol = " << true_dsol_vec[i];
   }
