@@ -268,6 +268,8 @@ Tests for the C++ and python can be run via cmake with
         cd ./build
         make -j4 test
 
+Valid `CMAKE_BUILD_TYPE`s are `Release` `Debug`, `LSAN`, `MSAN`, `ASAN`, and `TSAN`
+
 
 Once in the build folder you can run the following to rebuild the cmake if you need to.
 

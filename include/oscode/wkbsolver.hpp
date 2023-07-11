@@ -103,7 +103,7 @@ protected:
   // error estimate on step
   std::complex<double> err_fp, err_fm, err_dfp, err_dfm;
   // dense output
-  std::list<std::complex<double>> doxs, dodxs, dows;
+  std::vector<std::complex<double>> doxs, dodxs, dows;
   Eigen::Matrix<std::complex<double>, 1, 4> dense_s_, dense_ds_, dense_ds_i;
   std::complex<double> dense_ap_, dense_am_, dense_bp_, dense_bm_;
   // experimental dense output + quadrature
@@ -120,9 +120,9 @@ public:
        const Eigen::Matrix<std::complex<double>, 5, 1> &ws5,
        const Eigen::Matrix<std::complex<double>, 5, 1> &gs5);
   // dense output
-  void dense_step(double t0, const std::list<double> &dots,
-                  std::list<std::complex<double>> &doxs,
-                  std::list<std::complex<double>> &dodxs);
+  void dense_step(double t0, const std::vector<double> &dots,
+                  std::vector<std::complex<double>> &doxs,
+                  std::vector<std::complex<double>> &dodxs);
   Eigen::Matrix<double, 6, 1> dense_weights_6(double t);
   Eigen::Matrix<double, 6, 1> dense_weights_derivs_6(double t);
   std::complex<double>
@@ -427,9 +427,9 @@ WKBSolver::step(std::complex<double> x0, std::complex<double> dx0, double t0,
  * @param dodxs[in,out] dense output for the derivative of the solution
  * \f$\dot{x}\f$
  */
-void WKBSolver::dense_step(double t0, const std::list<double> &dots,
-                           std::list<std::complex<double>> &doxs,
-                           std::list<std::complex<double>> &dodxs) {
+void WKBSolver::dense_step(double t0, const std::vector<double> &dots,
+                           std::vector<std::complex<double>> &doxs,
+                           std::vector<std::complex<double>> &dodxs) {
 
   // We have: ws_, gs_, ws5_, gs5_, ws7_, x, dx, ddx, h, dws_, dws5_, d2wx,
   // d3wx, etc.,

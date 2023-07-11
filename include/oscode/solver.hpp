@@ -52,24 +52,24 @@ public:
   int ssteps, totsteps, wkbsteps;
   /** Lists to contain the solution and its derivative evaluated at internal
    * points taken by the solver (i.e. not dense output) after a run */
-  std::list<std::complex<double>> sol, dsol;
+  std::vector<std::complex<double>> sol, dsol;
   /** List to contain the timepoints at which the solution and derivative are
    * internally evaluated by the solver */
-  std::list<double> times;
+  std::vector<double> times;
   /** List to contain the "type" of each step (RK/WKB) taken internally by the
    * solver after a run */
-  std::list<bool> wkbs;
+  std::vector<bool> wkbs;
   /** Lists to contain the timepoints at which dense output was evaluated. This
    * list will always be sorted in ascending order (with possible duplicates),
    * regardless of the order the timepoints were specified upon input. */
-  std::list<double> dotimes;
+  std::vector<double> dotimes;
   /** Lists to contain the dense output of the solution and its derivative */
-  std::list<std::complex<double>> dosol, dodsol;
+  std::vector<std::complex<double>> dosol, dodsol;
   /** Iterator to iterate over the dense output timepoints, for when these
    * need to be written out to file */
-  //std::list<double>::iterator dotit;
+  //std::vector<double>::iterator dotit;
   // Experimental: list to contain continuous representation of the solution
-  std::list<Eigen::Matrix<std::complex<double>, 7, 1>> sol_vdm;
+  std::vector<Eigen::Matrix<std::complex<double>, 7, 1>> sol_vdm;
 };
 
 /** Constructor for when dense output was not requested. Sets up solution of the
@@ -227,24 +227,19 @@ Solution::Solution(de_system &de_sys, std::complex<double> x0,
   }
 
   // Dense output preprocessing: sort and reverse if necessary
-  int dosize = do_times.size();
-  dotimes.resize(dosize);
+  std::size_t dosize = do_times.size();
   dosol.resize(dosize);
   dodsol.resize(dosize);
 
   // Copy dense output points to list
-  auto doit = do_times.begin();
-  for (auto it = dotimes.begin(); it != dotimes.end(); it++) {
-    *it = *doit;
-    doit++;
-  }
+  dotimes = do_times;
   // Sort to ensure ascending order
-  dotimes.sort();
+  std::sort(dotimes.begin(), dotimes.end());
 
   // Reverse if necessary
   if ((de_sys_->is_interpolated == 1 && de_sys_->Winterp.sign_ == 0) ||
       (de_sys_->is_interpolated == 0 && sign == 0)) {
-    dotimes.reverse();
+    std::reverse(dotimes.begin(), dotimes.end());
   }
 
   //dotit = dotimes.begin();
@@ -300,10 +295,8 @@ void Solution::solve() {
   totsteps = 0;
   wkbsteps = 0;
   // Dense output
-  std::list<double> inner_dotimes;
-  std::list<std::complex<double>> inner_dosols, inner_dodsols;
-  auto it_dosol = dosol.begin();
-  auto it_dodsol = dodsol.begin();
+  std::vector<double> inner_dotimes;
+  std::vector<std::complex<double>> inner_dosols, inner_dodsols;
   Eigen::Matrix<std::complex<double>, 1, 2> y_dense_rk;
   std::complex<double> x_dense_rk, dx_dense_rk;
   // Experimental continuous solution, vandermonde representation
@@ -396,13 +389,13 @@ void Solution::solve() {
       // check if chosen step was successful
       if (std::abs(hnext) >= std::abs(h)) {
         //                std::cout << "All dense output points: " << std::endl;
-        if (dense_output_) {
+        if (dense_output_ && do_solve_count < dotimes.size()) {
           //                    std::cout << *dotit << std::endl;
               auto dot_it = dotimes.begin();
               std::advance(dot_it, do_solve_count);
-              for (;
-                   (*dot_it - t >= 0 && tnext - *dot_it >= 0) ||
-                   (*dot_it - t <= 0 && tnext - *dot_it <= 0);
+              for (; dot_it != dotimes.end() &&
+                   ((*dot_it - t >= 0 && tnext - *dot_it >= 0) ||
+                   (*dot_it - t <= 0 && tnext - *dot_it <= 0));
                    ++dot_it) {
                 inner_dotimes.push_back(*dot_it);
                 do_solve_count++;
@@ -505,15 +498,15 @@ void Solution::solve() {
   // reversed at the start)
   if (de_sys_->is_interpolated == 1) {
     if (de_sys_->Winterp.sign_ == 0) {
-      dotimes.reverse();
-      dosol.reverse();
-      dodsol.reverse();
+      std::reverse(dotimes.begin(), dotimes.end());
+      std::reverse(dosol.begin(), dosol.end());
+      std::reverse(dodsol.begin(), dodsol.end());
     }
   } else {
     if (sign == 0) {
-      dotimes.reverse();
-      dosol.reverse();
-      dodsol.reverse();
+      std::reverse(dotimes.begin(), dotimes.end());
+      std::reverse(dosol.begin(), dosol.end());
+      std::reverse(dodsol.begin(), dodsol.end());
     }
   }
 

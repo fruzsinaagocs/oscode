@@ -73,9 +73,9 @@ public:
   Eigen::Matrix<std::complex<double>, 7, 2> k_dense;
   Eigen::Matrix<double, 7, 4> P_dense;
   void dense_step(double t0, double h0, std::complex<double> y0,
-                  std::complex<double> dy0, const std::list<double> &dots,
-                  std::list<std::complex<double>> &doxs,
-                  std::list<std::complex<double>> &dodxs);
+                  std::complex<double> dy0, const std::vector<double> &dots,
+                  std::vector<std::complex<double>> &doxs,
+                  std::vector<std::complex<double>> &dodxs);
   // Experimental continuous representation of solution
   Eigen::Matrix<std::complex<double>, 7, 1> x_vdm;
 };
@@ -180,9 +180,9 @@ RKSolver::dense_point(std::complex<double> x, std::complex<double> dx,
  */
 void RKSolver::dense_step(double t0, double h0, std::complex<double> y0,
                           std::complex<double> dy0,
-                          const std::list<double> &dots,
-                          std::list<std::complex<double>> &doxs,
-                          std::list<std::complex<double>> &dodxs) {
+                          const std::vector<double> &dots,
+                          std::vector<std::complex<double>> &doxs,
+                          std::vector<std::complex<double>> &dodxs) {
 
   int docount = dots.size();
   double h = h0;

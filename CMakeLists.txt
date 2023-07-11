@@ -7,9 +7,48 @@ project(
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS NO)
-if (CMAKE_BUILD_TYPE MATCHES Debug)
+if (CMAKE_BUILD_TYPE MATCHES Release)
+  set(CMAKE_VERBOSE_MAKEFILE NO)
+else()
   set(CMAKE_VERBOSE_MAKEFILE YES)
 endif()
+
+# Build Types
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
+    CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel tsan asan lsan msan ubsan"
+    FORCE)
+
+# ThreadSanitizer
+set(CMAKE_C_FLAGS_TSAN
+    "-fsanitize=thread -g -O1 -march=native -mtune=native"
+    CACHE STRING "Flags used by the C compiler during ThreadSanitizer builds."
+    FORCE)
+set(CMAKE_CXX_FLAGS_TSAN
+    "-fsanitize=thread -g -O1 -march=native -mtune=native"
+    CACHE STRING "Flags used by the C++ compiler during ThreadSanitizer builds."
+    FORCE)
+
+# AddressSanitize
+set(CMAKE_C_FLAGS_ASAN
+    "-fsanitize=address -fno-optimize-sibling-calls -fsanitize-address-use-after-scope -fno-omit-frame-pointer -g -Og -march=native -mtune=native"
+    CACHE STRING "Flags used by the C compiler during AddressSanitizer builds."
+    FORCE)
+set(CMAKE_CXX_FLAGS_ASAN
+    "-fsanitize=address -fno-optimize-sibling-calls -fsanitize-address-use-after-scope -fno-omit-frame-pointer -g -Og -Wall -march=native -mtune=native"
+    CACHE STRING "Flags used by the C++ compiler during AddressSanitizer builds."
+    FORCE)
+
+# LeakSanitizer
+set(CMAKE_C_FLAGS_LSAN
+    "-fsanitize=leak -fno-omit-frame-pointer -g -O1"
+    CACHE STRING "Flags used by the C compiler during LeakSanitizer builds."
+    FORCE)
+set(CMAKE_CXX_FLAGS_LSAN
+    "-fsanitize=leak -fno-omit-frame-pointer -g -O1"
+    CACHE STRING "Flags used by the C++ compiler during LeakSanitizer builds."
+    FORCE)
+
+
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(FetchContent)
@@ -50,15 +89,13 @@ endif()
 add_compile_options(
   -DNO_FPRINTF_OUTPUT 
   -DBOOST_DISABLE_ASSERTS 
+  -Wall
   -O3)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
-  add_compile_options(-DDEBUG)
+  add_compile_options(-DDEBUG -Wall)
 endif()
-if (CMAKE_BUILD_TYPE MATCHES Testing)
-  add_compile_options(-Wall)
-endif()
-set(CMAKE_CXX_FLAGS_DEBUG)
+
 set(oscode_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 set(PYTHON_EXECUTABLE "" CACHE FILEPATH "Python interpreter to use")
@@ -67,18 +104,18 @@ if(NOT PYTHON_EXECUTABLE)
   message(FATAL_ERROR "PYTHON_EXECUTABLE must be provided")
 endif()
 
-if (CMAKE_BUILD_TYPE MATCHES Debug)    
+if (CMAKE_BUILD_TYPE MATCHES Release)    
   add_custom_target(pyoscode ALL
-    COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -i 
+    COMMAND ${PYTHON_EXECUTABLE} setup.py .
     COMMAND pip3 install -e .
-    COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -if
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Building Python package using setup.py"
   )
 else()
   add_custom_target(pyoscode ALL
-    COMMAND ${PYTHON_EXECUTABLE} setup.py .
+    COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -i 
     COMMAND pip3 install -e .
+    COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -if
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Building Python package using setup.py"
   )
