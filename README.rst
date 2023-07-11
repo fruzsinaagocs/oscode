@@ -171,7 +171,7 @@ C++
 :Introduction to oscode: `examples/burst.cpp`
 :To plot results from `burst.cpp`: `examples/plot_burst.py`
 
-To compile and run the burst example you canuse the following:
+To compile and run the burst example you can use the following:
 
 .. code:: bash
     
@@ -181,7 +181,7 @@ To compile and run the burst example you canuse the following:
 
 
 The `OSCODE_HEADER_ONLY` flag tells cmake to not create the python package target.
-You can use the `CMakeLists.txt` file as a reference point for including `oscode` into your own package.
+You can use the `CMakeLists.txt` file in the examples folder as a reference point for including `oscode` into your own package.
 
 Documentation
 -------------
