@@ -1,5 +1,4 @@
 add_executable(burst_test burst_test.cpp)
-list(APPEND LCOV_REMOVE_PATTERNS "'${PROJECT_SOURCE_DIR}/_deps/**'")
 target_include_directories(burst_test PRIVATE ${oscode_INCLUDE_DIR})
 target_link_libraries(burst_test PRIVATE Eigen3::Eigen gtest gtest_main)
 enable_testing()

@@ -98,7 +98,7 @@ set(oscode_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 set(PYTHON_EXECUTABLE "" CACHE FILEPATH "Python interpreter to use")
 
-set(OSCODE_HEADER_ONLY OFF "Whether the headers are only included or if the python package should be built")
+option(OSCODE_HEADER_ONLY "Whether the headers are only included or if the python package should be built. Default builds the python package" OFF)
 
 if (NOT OSCODE_HEADER_ONLY)
   if(NOT PYTHON_EXECUTABLE)
@@ -123,6 +123,7 @@ if (NOT OSCODE_HEADER_ONLY)
     )
   endif()
 endif()
+unset(OSCODE_HEADER_ONLY CACHE)
 # Allows upstream users to call fetch_content etc.
 add_library(oscode INTERFACE)
 
