@@ -1,8 +1,10 @@
 from __future__ import absolute_import, with_statement, print_function, division
 from setuptools import setup, Extension, find_packages
+import sys
 import os
 import numpy as np
 
+source_dir = os.getenv('OSCODE_EIGEN_INCLUDE_DIR')
 def readme(short=False):
     with open("README.rst") as f:
         if short:
@@ -13,7 +15,7 @@ def readme(short=False):
 pyoscode_module = Extension(
     name="_pyoscode",
     sources=["pyoscode/_pyoscode.cpp"],
-    include_dirs=['include','pyoscode',np.get_include(),'deps/eigen'],
+    include_dirs=['include','pyoscode',np.get_include(), source_dir],
     depends=["pyoscode/_python.hpp", "pyoscode/_pyoscode.hpp"],
     extra_compile_args=['-std=c++17','-Wall']
     )

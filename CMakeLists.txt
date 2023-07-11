@@ -71,6 +71,7 @@ set(EIGEN_BUILD_DOC OFF)
 set(BUILD_TESTING OFF)
 set(EIGEN_BUILD_PKGCONFIG OFF)
 FetchContent_MakeAvailable(Eigen)
+
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 set(BOOST_ENABLE_CMAKE ON)
@@ -103,19 +104,21 @@ set(PYTHON_EXECUTABLE "" CACHE FILEPATH "Python interpreter to use")
 if(NOT PYTHON_EXECUTABLE)
   message(FATAL_ERROR "PYTHON_EXECUTABLE must be provided")
 endif()
-
+# Set the location of the eigen headers
+#set(ENV{SOURCE_DIR} ${eigen_SOURCE_DIR})
 if (CMAKE_BUILD_TYPE MATCHES Release)    
+  message(Eigen src: ${eigen_SOURCE_DIR})
   add_custom_target(pyoscode ALL
-    COMMAND ${PYTHON_EXECUTABLE} setup.py 
-    COMMAND pip3 install -e .
+    COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" ${PYTHON_EXECUTABLE} setup.py build 
+    COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" pip3 install -e .
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Building Python package using setup.py"
   )
 else()
   add_custom_target(pyoscode ALL
-    COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -i 
-    COMMAND pip3 install -e .
-    COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -if
+    COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" ${PYTHON_EXECUTABLE} setup.py build_ext -i  
+    COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" pip3 install -e .
+    COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" ${PYTHON_EXECUTABLE} setup.py build_ext -if 
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Building Python package using setup.py"
   )
