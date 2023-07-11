@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include <complex>
 #include <iomanip>
-#include <list>
+#include <vector>
 
 /** Class to carry out WKB steps of varying orders.  */
 class WKBSolver {

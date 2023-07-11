@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include <complex>
 #include <functional>
-#include <list>
+#include <vector>
 
 /** Class that defines a 4 and 5th order Runge-Kutta method.
  *
