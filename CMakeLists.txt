@@ -87,14 +87,17 @@ if(NOT boost_POPULATED)
 endif()
 
 
-add_compile_options(
-  -DNO_FPRINTF_OUTPUT 
-  -DBOOST_DISABLE_ASSERTS 
-  -Wall
-  -O3)
-
-if (CMAKE_BUILD_TYPE MATCHES Debug)
-  add_compile_options(-DDEBUG -Wall)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  add_compile_options(
+    /DNO_FPRINTF_OUTPUT 
+    /W0
+    /Ox
+  )
+else()
+  add_compile_options(
+    -DNO_FPRINTF_OUTPUT 
+    -Wall
+    -O3)
 endif()
 
 set(oscode_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -123,6 +126,15 @@ else()
     COMMENT "Building Python package using setup.py"
   )
 endif()
+
+# Allows upstream users to call fetch_content etc.
+add_library(oscode INTERFACE)
+
+target_include_directories(oscode PUBLIC
+  ${oscode_INCLUDE_DIR}
+)
+
+target_link_libraries(mylib INTERFACE Eigen3::Eigen)
 
 include_directories(tests)
 add_subdirectory(tests)

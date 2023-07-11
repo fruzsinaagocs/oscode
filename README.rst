@@ -99,32 +99,26 @@ Python
    
    pip install pyoscode
 
-or via the setup.py
+Installing from source can be done via cmake with the following
 
 .. code:: bash
-
-   git clone --recursive https://github.com/fruzsinaagocs/oscode
+   git clone https://github.com/fruzsinaagocs/oscode
    cd oscode
-   python setup.py install --user
-
-or
-
-.. code:: bash
-
-   git clone --recursive https://github.com/fruzsinaagocs/oscode
-   cd oscode
-   pip install .
+   # For mac this will be $(which python3)
+   PYTHON_PATH=$(which python)
+   cmake .. -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=${PYTHON_PATH}
+   make oscode
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
 you wish to install globally or in a virtual environment. If you have any
 difficulties, check out the `FAQs - Installation
 <https://github.com/fruzsinaagocs/oscode#installation-1>`__ section below. 
 
-You can check that things are working by running `tests/` (also ran by Travis continuous integration):
+You can check that things are working by running the tests in `tests/` (also ran by github actions):
 
 .. code:: bash
 
-   pytest tests/
+   make tests
 
 C++
 ~~~
@@ -133,7 +127,7 @@ C++
 
 .. code:: bash
 
-   git clone --recursive https://github.com/fruzsinaagocs/oscode
+   git clone https://github.com/fruzsinaagocs/oscode
 
 and then include the relevant header files in your C++ code:
 
