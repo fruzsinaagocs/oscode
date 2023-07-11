@@ -110,7 +110,6 @@ endif()
 # Set the location of the eigen headers
 #set(ENV{SOURCE_DIR} ${eigen_SOURCE_DIR})
 if (CMAKE_BUILD_TYPE MATCHES Release)    
-  message(Eigen src: ${eigen_SOURCE_DIR})
   add_custom_target(pyoscode ALL
     COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" ${PYTHON_EXECUTABLE} setup.py build 
     COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" pip3 install -e .
@@ -130,11 +129,11 @@ endif()
 # Allows upstream users to call fetch_content etc.
 add_library(oscode INTERFACE)
 
-target_include_directories(oscode PUBLIC
+target_include_directories(oscode PUBLIC INTERFACE
   ${oscode_INCLUDE_DIR}
 )
 
-target_link_libraries(mylib INTERFACE Eigen3::Eigen)
+target_link_libraries(oscode INTERFACE Eigen3::Eigen)
 
 include_directories(tests)
 add_subdirectory(tests)
