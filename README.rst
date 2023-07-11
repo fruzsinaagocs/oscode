@@ -106,7 +106,8 @@ Installing from source can be done via cmake with the following
    cd oscode
    # For mac this will be $(which python3)
    PYTHON_PATH=$(which python)
-   cmake .. -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=${PYTHON_PATH}
+   cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=${PYTHON_PATH}
+   cd build
    make oscode
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if

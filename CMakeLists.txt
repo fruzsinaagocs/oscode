@@ -87,13 +87,7 @@ if(NOT boost_POPULATED)
 endif()
 
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  add_compile_options(
-    /DNO_FPRINTF_OUTPUT 
-    /W0
-    /Ox
-  )
-else()
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   add_compile_options(
     -DNO_FPRINTF_OUTPUT 
     -Wall
@@ -104,28 +98,31 @@ set(oscode_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 set(PYTHON_EXECUTABLE "" CACHE FILEPATH "Python interpreter to use")
 
-if(NOT PYTHON_EXECUTABLE)
-  message(FATAL_ERROR "PYTHON_EXECUTABLE must be provided")
-endif()
-# Set the location of the eigen headers
-#set(ENV{SOURCE_DIR} ${eigen_SOURCE_DIR})
-if (CMAKE_BUILD_TYPE MATCHES Release)    
-  add_custom_target(pyoscode ALL
-    COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" ${PYTHON_EXECUTABLE} setup.py build 
-    COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" pip3 install -e .
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Building Python package using setup.py"
-  )
-else()
-  add_custom_target(pyoscode ALL
-    COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" ${PYTHON_EXECUTABLE} setup.py build_ext -i  
-    COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" pip3 install -e .
-    COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" ${PYTHON_EXECUTABLE} setup.py build_ext -if 
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Building Python package using setup.py"
-  )
-endif()
+set(OSCODE_HEADER_ONLY OFF "Whether the headers are only included or if the python package should be built")
 
+if (NOT OSCODE_HEADER_ONLY)
+  if(NOT PYTHON_EXECUTABLE)
+    message(FATAL_ERROR "PYTHON_EXECUTABLE must be provided")
+  endif()
+  # Set the location of the eigen headers
+  #set(ENV{SOURCE_DIR} ${eigen_SOURCE_DIR})
+  if (CMAKE_BUILD_TYPE MATCHES Release)    
+    add_custom_target(pyoscode ALL
+      COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" ${PYTHON_EXECUTABLE} setup.py build 
+      COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" pip3 install -e .
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Building Python package using setup.py"
+    )
+  else()
+    add_custom_target(pyoscode ALL
+      COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" ${PYTHON_EXECUTABLE} setup.py build_ext -i  
+      COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" pip3 install -e .
+      COMMAND ${CMAKE_COMMAND} -E env "OSCODE_EIGEN_INCLUDE_DIR=${eigen_SOURCE_DIR}" ${PYTHON_EXECUTABLE} setup.py build_ext -if 
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Building Python package using setup.py"
+    )
+  endif()
+endif()
 # Allows upstream users to call fetch_content etc.
 add_library(oscode INTERFACE)
 
