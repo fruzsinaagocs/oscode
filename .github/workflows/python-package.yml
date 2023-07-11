@@ -54,7 +54,7 @@ jobs:
           mkdir test_build
           cd test_build
           PYTHON_PATH=$(which python)
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=${PYTHON_PATH}
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=${PYTHON_PATH}
           cmake --build . --target test 
 
       - name: Upload coverage to codecov
