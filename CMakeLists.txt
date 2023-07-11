@@ -106,7 +106,7 @@ endif()
 
 if (CMAKE_BUILD_TYPE MATCHES Release)    
   add_custom_target(pyoscode ALL
-    COMMAND ${PYTHON_EXECUTABLE} setup.py .
+    COMMAND ${PYTHON_EXECUTABLE} setup.py 
     COMMAND pip3 install -e .
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Building Python package using setup.py"
