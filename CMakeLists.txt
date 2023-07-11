@@ -6,6 +6,9 @@ project(
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
+if(MSVC)
+    add_compile_options(/std:c++17)
+else()
 set(CMAKE_CXX_EXTENSIONS NO)
 if (CMAKE_BUILD_TYPE MATCHES Release)
   set(CMAKE_VERBOSE_MAKEFILE NO)

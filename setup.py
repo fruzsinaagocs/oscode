@@ -12,12 +12,23 @@ def readme(short=False):
         else:
             return f.read()
 
+extra_compile_args = []
+if platform.system() == 'Windows':  # For Windows
+    if "MSC" in platform.python_compiler():
+        # Visual Studio (MSVC)
+        extra_compile_args = ['/std:c++17']
+    else:
+        # assume MinGW or similar
+        extra_compile_args = ['-std=c++17', '-Wall']
+else:  # For Unix/Linux/MacOS
+    extra_compile_args = ['-std=c++17', '-Wall']
+
 pyoscode_module = Extension(
     name="_pyoscode",
     sources=["pyoscode/_pyoscode.cpp"],
     include_dirs=['include','pyoscode',np.get_include(), source_dir],
     depends=["pyoscode/_python.hpp", "pyoscode/_pyoscode.hpp"],
-    extra_compile_args=['-std=c++17','-Wall']
+    extra_compile_args=extra_compile_args
     )
 
 setup(
