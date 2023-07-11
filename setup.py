@@ -2,6 +2,7 @@ from __future__ import absolute_import, with_statement, print_function, division
 from setuptools import setup, Extension, find_packages
 import sys
 import os
+import platform
 import numpy as np
 
 source_dir = os.getenv('OSCODE_EIGEN_INCLUDE_DIR')
