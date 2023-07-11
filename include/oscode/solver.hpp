@@ -30,7 +30,7 @@ private:
   double fend, fnext;
   /** a boolean encoding the direction of integration: 1/True for forward. */
   bool sign;
-
+  bool dense_output_{false};
 public:
   Solution(de_system &de_sys, std::complex<double> x0, std::complex<double> dx0,
            double t_i, double t_f, int o = 3, double r_tol = 1e-4,
@@ -67,7 +67,7 @@ public:
   std::list<std::complex<double>> dosol, dodsol;
   /** Iterator to iterate over the dense output timepoints, for when these
    * need to be written out to file */
-  std::list<double>::iterator dotit;
+  //std::list<double>::iterator dotit;
   // Experimental: list to contain continuous representation of the solution
   std::list<Eigen::Matrix<std::complex<double>, 7, 1>> sol_vdm;
 };
@@ -142,7 +142,7 @@ Solution::Solution(de_system &de_sys, std::complex<double> x0,
   dotimes.push_back(t_f);
   dosol.push_back(x0);
   dodsol.push_back(dx0);
-  dotit = dotimes.end();
+  //dotit = dotimes.end();
 
   switch (order) {
   case 1:
@@ -186,6 +186,7 @@ Solution::Solution(de_system &de_sys, std::complex<double> x0,
 
   // Make underlying equation system accessible
   de_sys_ = &de_sys;
+  dense_output_ = true;
   // Set parameters for solver
   x = x0;
   dx = dx0;
@@ -246,7 +247,7 @@ Solution::Solution(de_system &de_sys, std::complex<double> x0,
     dotimes.reverse();
   }
 
-  dotit = dotimes.begin();
+  //dotit = dotimes.begin();
   switch (order) {
   case 1:
     wkbsolver1 = WKBSolver1(*de_sys_, order);
@@ -307,7 +308,8 @@ void Solution::solve() {
   std::complex<double> x_dense_rk, dx_dense_rk;
   // Experimental continuous solution, vandermonde representation
   Eigen::Matrix<std::complex<double>, 7, 1> xvdm;
-
+  std::size_t do_solve_count = 0;
+  std::size_t do_dodsol_count = 0;
   while (fend > 0) {
     // Check if we are reaching the end of integration
     if (fnext < 0) {
@@ -394,13 +396,17 @@ void Solution::solve() {
       // check if chosen step was successful
       if (std::abs(hnext) >= std::abs(h)) {
         //                std::cout << "All dense output points: " << std::endl;
-        if (dotit != dotimes.end()) {
+        if (dense_output_) {
           //                    std::cout << *dotit << std::endl;
-          while ((*dotit - t >= 0 && tnext - *dotit >= 0) ||
-                 (*dotit - t <= 0 && tnext - *dotit <= 0)) {
-            inner_dotimes.push_back(*dotit);
-            dotit++;
-          }
+              auto dot_it = dotimes.begin();
+              std::advance(dot_it, do_solve_count);
+              for (;
+                   (*dot_it - t >= 0 && tnext - *dot_it >= 0) ||
+                   (*dot_it - t <= 0 && tnext - *dot_it <= 0);
+                   ++dot_it) {
+                inner_dotimes.push_back(*dot_it);
+                do_solve_count++;
+              }
           if (inner_dotimes.size() > 0) {
             inner_dosols.resize(inner_dotimes.size());
             inner_dodsols.resize(inner_dotimes.size());
@@ -423,16 +429,18 @@ void Solution::solve() {
             }
           }
         }
-        auto inner_it = inner_dosols.begin();
-        auto inner_dit = inner_dodsols.begin();
-        while (inner_it != inner_dosols.end() && it_dosol != dosol.end() &&
-               inner_dit != inner_dodsols.end() && it_dodsol != dodsol.end()) {
-          *it_dosol = *inner_it;
-          *it_dodsol = *inner_dit;
-          it_dodsol++;
-          it_dosol++;
-          inner_it++;
-          inner_dit++;
+        auto it_dosol = dosol.begin();
+        std::advance(it_dosol, do_dodsol_count);
+        auto it_dodsol = dodsol.begin();
+        std::advance(it_dodsol, do_dodsol_count);
+        for (auto inner_it = inner_dosols.begin(),
+                  inner_dit = inner_dodsols.begin();
+              inner_it != inner_dosols.end() && it_dosol != dosol.end() &&
+              inner_dit != inner_dodsols.end() && it_dodsol != dodsol.end();
+              it_dodsol++, it_dosol++, inner_it++, inner_dit++,
+                  do_dodsol_count++) {
+          *it_dosol = std::move(*inner_it);
+          *it_dodsol = std::move(*inner_dit);
         }
         inner_dotimes.resize(0);
         inner_dosols.resize(0);
