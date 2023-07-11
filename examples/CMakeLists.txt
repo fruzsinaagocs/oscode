@@ -1,3 +1,10 @@
+cmake_minimum_required(VERSION 3.20.2)
+project(
+    oscode_examples
+    VERSION 1.3.0
+    LANGUAGES C CXX)
+
+
 set(CMAKE_VERBOSE_MAKEFILE YES)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)

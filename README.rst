@@ -171,15 +171,17 @@ C++
 :Introduction to oscode: `examples/burst.cpp`
 :To plot results from `burst.cpp`: `examples/plot_burst.py`
 
-To compile and run:
+To compile and run the burst example you canuse the following:
 
 .. code:: bash
     
     cd examples/
-    g++ -I../include/ -g -Wall -std=c++11 -c -o burst.o burst.cpp
-    g++ -I../include/ -g -Wall -std=c++11 -o burst burst.o
-    ./burst
+    cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Release -DOSCODE_HEADER_ONLY=YES
+    cd build && make burst_ex && ./burst_ex
 
+
+The `OSCODE_HEADER_ONLY` flag tells cmake to not create the python package target.
+You can use the `CMakeLists.txt` file as a reference point for including `oscode` into your own package.
 
 Documentation
 -------------
@@ -215,30 +217,6 @@ Further help
 
 You can get help by submitting an issue or posting a message on `Gitter <https://gitter.im/oscode-help/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge>`__.
 
-FAQs
-----
-
-Installation
-~~~~~~~~~~~~
-
-1. Eigen import errors:
-    .. code:: bash
-
-       pyoscode/_pyoscode.hpp:6:10: fatal error: Eigen/Dense: No such file or directory
-        #include <Eigen/Dense>
-                  ^~~~~~~~~~~~~
-
-    Try explicitly including the location of your Eigen library via the
-    ``CPLUS_INCLUDE_PATH`` environment variable, for example:
-
-    .. code:: bash
-
-       CPLUS_INCLUDE_PATH=/usr/include/eigen3 python setup.py install --user
-       # or 
-       CPLUS_INCLUDE_PATH=/usr/include/eigen3 pip install pyoscode
-
-    where  ``/usr/include/eigen3`` should be replaced with your system-specific
-    eigen location.
 
 Development
 -------------
@@ -249,17 +227,19 @@ Run the following to setup an environment for development:
         python -m venv env
         source ./env/bin/activate
         pip install numpy scipy pytest
-        python setup.py build_ext -i
-        pip install -e .
-        # Rerun tests after making changes
-        # inplace and force comple
-        python setup.py build_ext -if && pytest ./tests
+        PYTHON_PATH=$(which python)
+        cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=${PYTHON_PATH}
+        cd build
+        make oscode
+        make -j4 test
 
 Tests for the C++ and python can be run via cmake with 
 
     .. code:: bash
         # This can take a while the first time because of boost
-        cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Debug
+        cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=${PYTHON_PATH}
+        # If your already inside of the build folder then run
+        # cmake .. -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=${PYTHON_PATH}
         cd ./build
         make -j4 test
 
