@@ -153,10 +153,10 @@ int main(){
     solution.solve();
 
     /** Extract the solution and the types of steps taken by oscode */
-    std::list<std::complex<double>> xs = solution.sol;
-    std::list<double> ts = solution.times;
-    std::list<bool> types = solution.wkbs;
-    std::list<std::complex<double>> dosol = solution.dosol;
+    std::vector<std::complex<double>> xs = solution.sol;
+    std::vector<double> ts = solution.times;
+    std::vector<bool> types = solution.wkbs;
+    std::vector<std::complex<double>> dosol = solution.dosol;
     int steps = solution.ssteps;
 
     /** Write result in file */

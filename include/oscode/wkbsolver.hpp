@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include <complex>
 #include <iomanip>
-#include <list>
+#include <vector>
 
 /** Class to carry out WKB steps of varying orders.  */
 class WKBSolver {
@@ -103,7 +103,7 @@ protected:
   // error estimate on step
   std::complex<double> err_fp, err_fm, err_dfp, err_dfm;
   // dense output
-  std::list<std::complex<double>> doxs, dodxs, dows;
+  std::vector<std::complex<double>> doxs, dodxs, dows;
   Eigen::Matrix<std::complex<double>, 1, 4> dense_s_, dense_ds_, dense_ds_i;
   std::complex<double> dense_ap_, dense_am_, dense_bp_, dense_bm_;
   // experimental dense output + quadrature
@@ -120,9 +120,9 @@ public:
        const Eigen::Matrix<std::complex<double>, 5, 1> &ws5,
        const Eigen::Matrix<std::complex<double>, 5, 1> &gs5);
   // dense output
-  void dense_step(double t0, const std::list<double> &dots,
-                  std::list<std::complex<double>> &doxs,
-                  std::list<std::complex<double>> &dodxs);
+  void dense_step(double t0, const std::vector<double> &dots,
+                  std::vector<std::complex<double>> &doxs,
+                  std::vector<std::complex<double>> &dodxs);
   Eigen::Matrix<double, 6, 1> dense_weights_6(double t);
   Eigen::Matrix<double, 6, 1> dense_weights_derivs_6(double t);
   std::complex<double>
@@ -205,8 +205,7 @@ WKBSolver::WKBSolver(de_system &de_sys, int order) {
   d1w4_5_w << -0.518019493788065, 1.52752523062733, -3.49148624058568,
       -0.560400043118500e-8, 2.48198050935041;
   // Set polynomial Gauss--Lobatto coefficients for dense output + quadrature
-  double a = std::sqrt(147 + 42 * std::sqrt(7.));
-  double b = std::sqrt(147 - 42 * std::sqrt(7.));
+
 
   interp_vandermonde << 0.06250000000, -0.1946486424, 0.6321486424,
       0.6321486424, -0.1946486424, 0.06250000000, -0.06250000000, 0.2544242701,
@@ -270,7 +269,6 @@ WKBSolver::step(std::complex<double> x0, std::complex<double> dx0, double t0,
   Eigen::Matrix<std::complex<double>, 6, 1> integrand6, s3_interp, s2_interp,
       s1_interp;
   Eigen::Matrix<std::complex<double>, 6, 1> ds1_interp, ds2_interp, ds3_interp;
-  double t_trans;
   std::complex<double> s0, s1, s2, s3, dense_fp, dense_fm, dense_x;
   std::complex<double> ds0, ds1, ds2, ds3, dense_dfpf, dense_dfmf, dense_dx;
 
@@ -427,9 +425,9 @@ WKBSolver::step(std::complex<double> x0, std::complex<double> dx0, double t0,
  * @param dodxs[in,out] dense output for the derivative of the solution
  * \f$\dot{x}\f$
  */
-void WKBSolver::dense_step(double t0, const std::list<double> &dots,
-                           std::list<std::complex<double>> &doxs,
-                           std::list<std::complex<double>> &dodxs) {
+void WKBSolver::dense_step(double t0, const std::vector<double> &dots,
+                           std::vector<std::complex<double>> &doxs,
+                           std::vector<std::complex<double>> &dodxs) {
 
   // We have: ws_, gs_, ws5_, gs5_, ws7_, x, dx, ddx, h, dws_, dws5_, d2wx,
   // d3wx, etc.,

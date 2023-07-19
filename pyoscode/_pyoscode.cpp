@@ -104,7 +104,7 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
         t_eval = (double*)PyArray_DATA(t_evalarray_arr);  
         t_evalsize = (int)PyArray_SIZE(t_evalarray_arr);
     }
-    std::list<double> t_evallist;
+    std::vector<double> t_evallist;
     t_evallist.resize(t_evalsize);
     int i=0;
     for(auto it=t_evallist.begin(); it!=t_evallist.end(); it++){
@@ -134,11 +134,11 @@ static PyObject *_pyoscode_solve_fn(PyObject *self, PyObject *args, PyObject *kw
         return (PyObject *) NULL;
     }
     de_system sys = de_system(&wfun, &gfun);
-    std::list<std::complex<double>> sol,dsol;
-    std::list<double> times;
-    std::list<bool> wkbs;
-    std::list<std::complex<double>> x_eval, dx_eval;
-    std::list<Eigen::Matrix<std::complex<double>,7,1>> cts_rep;
+    std::vector<std::complex<double>> sol,dsol;
+    std::vector<double> times;
+    std::vector<bool> wkbs;
+    std::vector<std::complex<double>> x_eval, dx_eval;
+    std::vector<Eigen::Matrix<std::complex<double>,7,1>> cts_rep;
 
     if(t_evalobj!=NULL){
         Solution solution(sys,x0,dx0,ti,tf,t_evallist,order,rtol,atol,h0,full_output);
@@ -269,7 +269,7 @@ static PyObject *_pyoscode_solve(PyObject *self, PyObject *args, PyObject *kwarg
         t_eval = (double*)PyArray_DATA(t_evalarray_arr);  
         t_evalsize = (int)PyArray_SIZE(t_evalarray_arr);
     }
-    std::list<double> t_evallist;
+    std::vector<double> t_evallist;
     t_evallist.resize(t_evalsize);
     int i=0;
     for(auto it=t_evallist.begin(); it!=t_evallist.end(); it++){
@@ -346,11 +346,11 @@ regions of the solution efficiently and numerical inaccuracies. Please \
 consider refining the sampling of the array(s) or switching to a more \
 suitable independent variable.",1);
     }
-    std::list<std::complex<double>> sol,dsol;
-    std::list<double> times;
-    std::list<bool> wkbs;
-    std::list<std::complex<double>> x_eval, dx_eval;
-    std::list<Eigen::Matrix<std::complex<double>,7,1>> cts_rep;
+    std::vector<std::complex<double>> sol,dsol;
+    std::vector<double> times;
+    std::vector<bool> wkbs;
+    std::vector<std::complex<double>> x_eval, dx_eval;
+    std::vector<Eigen::Matrix<std::complex<double>,7,1>> cts_rep;
 
     if(t_evalobj!=NULL){
         Solution solution(sys,x0,dx0,ti,tf,t_evallist,order,rtol,atol,h0,full_output);

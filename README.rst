@@ -99,32 +99,27 @@ Python
    
    pip install pyoscode
 
-or via the setup.py
+Installing from source can be done via cmake with the following
 
 .. code:: bash
-
-   git clone --recursive https://github.com/fruzsinaagocs/oscode
+   git clone https://github.com/fruzsinaagocs/oscode
    cd oscode
-   python setup.py install --user
-
-or
-
-.. code:: bash
-
-   git clone --recursive https://github.com/fruzsinaagocs/oscode
-   cd oscode
-   pip install .
+   # For mac this will be $(which python3)
+   PYTHON_PATH=$(which python)
+   cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=${PYTHON_PATH}
+   cd build
+   make oscode
 
 You can then import ``pyoscode`` from anywhere. Omit the ``--user`` option if
 you wish to install globally or in a virtual environment. If you have any
 difficulties, check out the `FAQs - Installation
 <https://github.com/fruzsinaagocs/oscode#installation-1>`__ section below. 
 
-You can check that things are working by running `tests/` (also ran by Travis continuous integration):
+You can check that things are working by running the tests in `tests/` (also ran by github actions):
 
 .. code:: bash
 
-   pytest tests/
+   make tests
 
 C++
 ~~~
@@ -133,7 +128,7 @@ C++
 
 .. code:: bash
 
-   git clone --recursive https://github.com/fruzsinaagocs/oscode
+   git clone https://github.com/fruzsinaagocs/oscode
 
 and then include the relevant header files in your C++ code:
 
@@ -176,15 +171,17 @@ C++
 :Introduction to oscode: `examples/burst.cpp`
 :To plot results from `burst.cpp`: `examples/plot_burst.py`
 
-To compile and run:
+To compile and run the burst example you can use the following:
 
 .. code:: bash
     
     cd examples/
-    g++ -I../include/ -g -Wall -std=c++11 -c -o burst.o burst.cpp
-    g++ -I../include/ -g -Wall -std=c++11 -o burst burst.o
-    ./burst
+    cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Release -DOSCODE_HEADER_ONLY=YES
+    cd build && make burst_ex && ./burst_ex
 
+
+The `OSCODE_HEADER_ONLY` flag tells cmake to not create the python package target.
+You can use the `CMakeLists.txt` file in the examples folder as a reference point for including `oscode` into your own package.
 
 Documentation
 -------------
@@ -220,30 +217,41 @@ Further help
 
 You can get help by submitting an issue or posting a message on `Gitter <https://gitter.im/oscode-help/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge>`__.
 
-FAQs
-----
 
-Installation
-~~~~~~~~~~~~
+Development
+-------------
 
-1. Eigen import errors:
-    .. code:: bash
-
-       pyoscode/_pyoscode.hpp:6:10: fatal error: Eigen/Dense: No such file or directory
-        #include <Eigen/Dense>
-                  ^~~~~~~~~~~~~
-
-    Try explicitly including the location of your Eigen library via the
-    ``CPLUS_INCLUDE_PATH`` environment variable, for example:
+Run the following to setup an environment for development:
 
     .. code:: bash
+        python -m venv env
+        source ./env/bin/activate
+        pip install numpy scipy pytest
+        PYTHON_PATH=$(which python)
+        cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=${PYTHON_PATH}
+        cd build
+        make oscode
+        make -j4 test
 
-       CPLUS_INCLUDE_PATH=/usr/include/eigen3 python setup.py install --user
-       # or 
-       CPLUS_INCLUDE_PATH=/usr/include/eigen3 pip install pyoscode
+Tests for the C++ and python can be run via cmake with 
 
-    where  ``/usr/include/eigen3`` should be replaced with your system-specific
-    eigen location.
+    .. code:: bash
+        # This can take a while the first time because of boost
+        cmake -S . -B "build" -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=${PYTHON_PATH}
+        # If your already inside of the build folder then run
+        # cmake .. -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=${PYTHON_PATH}
+        cd ./build
+        make -j4 test
+
+Valid `CMAKE_BUILD_TYPE`s are `Release` `Debug`, `LSAN`, `MSAN`, `ASAN`, and `TSAN`
+
+
+Once in the build folder you can run the following to rebuild the cmake if you need to.
+
+    .. code:: bash
+        cmake .. -DCMAKE_BUILD_TYPE=Debug
+        make -j4 test
+
 
 Thanks
 ------
@@ -258,6 +266,8 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 
 Changelog
 ---------
+- 1.3.0:
+    - Add support for cmake build and tests
 - 1.2.0:
     - Update the version of Eigen to 3.4.0
 - 1.1.2:

@@ -98,5 +98,3 @@ def test_not_monotonous():
     with pytest.raises(TypeError):
         pyoscode.solve(ts,ws,gs,ti,tf,x0,dx0)
     return None;
-
-

@@ -4,10 +4,13 @@
 !/JOSS-paper/*
 /examples/*
 !/examples/*.cpp
+/examples/*.txt
+examples/output.txt
 .eggs/*
 .vscode/*
 bin/*
 build/*
+test_build/*
 dist/*
 env/*
 lib/*
