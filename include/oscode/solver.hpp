@@ -283,7 +283,7 @@ void Solution::solve() {
   double wkbdelta, rkdelta;
   std::complex<double> xnext, dxnext;
   bool wkb = false;
-  Eigen::Index maxindex_wkb, maxindex_rk;
+  Eigen::Index maxindex_wkb{0}, maxindex_rk;
   h = h0;
   tnext = t + h;
   // Initialise stats

@@ -4,8 +4,8 @@
 !/JOSS-paper/*
 /examples/*
 !/examples/*.cpp
-!/examples/*.txt
-
+/examples/*.txt
+examples/output.txt
 .eggs/*
 .vscode/*
 bin/*

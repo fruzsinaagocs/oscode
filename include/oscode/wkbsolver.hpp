@@ -205,8 +205,7 @@ WKBSolver::WKBSolver(de_system &de_sys, int order) {
   d1w4_5_w << -0.518019493788065, 1.52752523062733, -3.49148624058568,
       -0.560400043118500e-8, 2.48198050935041;
   // Set polynomial Gauss--Lobatto coefficients for dense output + quadrature
-  double a = std::sqrt(147 + 42 * std::sqrt(7.));
-  double b = std::sqrt(147 - 42 * std::sqrt(7.));
+
 
   interp_vandermonde << 0.06250000000, -0.1946486424, 0.6321486424,
       0.6321486424, -0.1946486424, 0.06250000000, -0.06250000000, 0.2544242701,
@@ -270,7 +269,6 @@ WKBSolver::step(std::complex<double> x0, std::complex<double> dx0, double t0,
   Eigen::Matrix<std::complex<double>, 6, 1> integrand6, s3_interp, s2_interp,
       s1_interp;
   Eigen::Matrix<std::complex<double>, 6, 1> ds1_interp, ds2_interp, ds3_interp;
-  double t_trans;
   std::complex<double> s0, s1, s2, s3, dense_fp, dense_fm, dense_x;
   std::complex<double> ds0, ds1, ds2, ds3, dense_dfpf, dense_dfmf, dense_dx;
 
