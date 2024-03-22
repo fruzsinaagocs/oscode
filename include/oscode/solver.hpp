@@ -493,21 +493,6 @@ void Solution::solve() {
     }
   }
 
-  // If integrating backwards, reverse dense output (because it will have been
-  // reversed at the start)
-  if (de_sys_->is_interpolated == 1) {
-    if (de_sys_->Winterp.sign_ == 0) {
-      dotimes.reverse();
-      dosol.reverse();
-      dodsol.reverse();
-    }
-  } else {
-    if (sign == 0) {
-      dotimes.reverse();
-      dosol.reverse();
-      dodsol.reverse();
-    }
-  }
 
   // Write output to file if prompted
   if (!(*fo == 0)) {
