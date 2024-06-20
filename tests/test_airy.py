@@ -21,20 +21,20 @@ def test_no_integration():
 
 def test_airy_forward_even():
     # Integration forward on even grid
-    ts = np.linspace(1,100,5000)
-    ws = np.sqrt(ts)
-    gs = np.zeros_like(ws)
-    ti = 1.0
-    tf = 100.0
-    x0 = airy(-ti)[0] + 1j*airy(-ti)[2]
-    dx0 = -airy(-ti)[1] - 1j*airy(-ti)[3]
-    t_eval = np.linspace(ti,tf,5000)
-    sol = pyoscode.solve(ts, ws, gs, ti, tf, x0, dx0, t_eval=t_eval, even_grid=True)
+    time_space = np.linspace(1,100,5000)
+    weights = np.sqrt(time_space)
+    gradients = np.zeros_like(weights)
+    initial_timepoint = 1.0
+    final_timepoint = 100.0
+    initial_value = airy(-initial_timepoint)[0] + 1j*airy(-initial_timepoint)[2]
+    initial_deriv_value = -airy(-initial_timepoint)[1] - 1j*airy(-initial_timepoint)[3]
+    t_eval = np.linspace(initial_timepoint,final_timepoint,5000)
+    sol = pyoscode.solve(time_space, weights, gradients, initial_timepoint, final_timepoint, initial_value, initial_deriv_value, t_eval=t_eval, even_grid=True)
     t = np.asarray(sol['t'])
     x = np.asarray(sol['sol'])
     dense = np.asarray(sol['x_eval'])
     dense_d = np.asarray(sol['dx_eval'])
-    ana_t = np.linspace(ti,tf,5000)
+    ana_t = np.linspace(initial_timepoint,final_timepoint,5000)
     ana_x = np.asarray([airy(-T)[0]+1j*airy(-T)[2] for T in t])
     dense_ana_x = np.asarray([airy(-T)[0]+1j*airy(-T)[2] for T in ana_t])
     dense_ana_dx = np.asarray([-airy(-T)[1]-1j*airy(-T)[3] for T in ana_t])

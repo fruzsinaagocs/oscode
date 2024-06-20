@@ -30,7 +30,7 @@ private:
   double fend, fnext;
   /** a boolean encoding the direction of integration: 1/True for forward. */
   bool sign;
-
+  bool dense_output_{false};
 public:
   Solution(de_system &de_sys, std::complex<double> x0, std::complex<double> dx0,
            double t_i, double t_f, int o = 3, double r_tol = 1e-4,
@@ -52,24 +52,24 @@ public:
   int ssteps, totsteps, wkbsteps;
   /** Lists to contain the solution and its derivative evaluated at internal
    * points taken by the solver (i.e. not dense output) after a run */
-  std::list<std::complex<double>> sol, dsol;
+  std::vector<std::complex<double>> sol, dsol;
   /** List to contain the timepoints at which the solution and derivative are
    * internally evaluated by the solver */
-  std::list<double> times;
+  std::vector<double> times;
   /** List to contain the "type" of each step (RK/WKB) taken internally by the
    * solver after a run */
-  std::list<bool> wkbs;
+  std::vector<bool> wkbs;
   /** Lists to contain the timepoints at which dense output was evaluated. This
    * list will always be sorted in ascending order (with possible duplicates),
    * regardless of the order the timepoints were specified upon input. */
-  std::list<double> dotimes;
+  std::vector<double> dotimes;
   /** Lists to contain the dense output of the solution and its derivative */
-  std::list<std::complex<double>> dosol, dodsol;
+  std::vector<std::complex<double>> dosol, dodsol;
   /** Iterator to iterate over the dense output timepoints, for when these
    * need to be written out to file */
-  std::list<double>::iterator dotit;
+  //std::vector<double>::iterator dotit;
   // Experimental: list to contain continuous representation of the solution
-  std::list<Eigen::Matrix<std::complex<double>, 7, 1>> sol_vdm;
+  std::vector<Eigen::Matrix<std::complex<double>, 7, 1>> sol_vdm;
 };
 
 /** Constructor for when dense output was not requested. Sets up solution of the
@@ -142,7 +142,7 @@ Solution::Solution(de_system &de_sys, std::complex<double> x0,
   dotimes.push_back(t_f);
   dosol.push_back(x0);
   dodsol.push_back(dx0);
-  dotit = dotimes.end();
+  //dotit = dotimes.end();
 
   switch (order) {
   case 1:
@@ -186,6 +186,7 @@ Solution::Solution(de_system &de_sys, std::complex<double> x0,
 
   // Make underlying equation system accessible
   de_sys_ = &de_sys;
+  dense_output_ = true;
   // Set parameters for solver
   x = x0;
   dx = dx0;
@@ -226,27 +227,22 @@ Solution::Solution(de_system &de_sys, std::complex<double> x0,
   }
 
   // Dense output preprocessing: sort and reverse if necessary
-  int dosize = do_times.size();
-  dotimes.resize(dosize);
+  std::size_t dosize = do_times.size();
   dosol.resize(dosize);
   dodsol.resize(dosize);
 
   // Copy dense output points to list
-  auto doit = do_times.begin();
-  for (auto it = dotimes.begin(); it != dotimes.end(); it++) {
-    *it = *doit;
-    doit++;
-  }
+  dotimes = do_times;
   // Sort to ensure ascending order
-  dotimes.sort();
+  std::sort(dotimes.begin(), dotimes.end());
 
   // Reverse if necessary
   if ((de_sys_->is_interpolated == 1 && de_sys_->Winterp.sign_ == 0) ||
       (de_sys_->is_interpolated == 0 && sign == 0)) {
-    dotimes.reverse();
+    std::reverse(dotimes.begin(), dotimes.end());
   }
 
-  dotit = dotimes.begin();
+  //dotit = dotimes.begin();
   switch (order) {
   case 1:
     wkbsolver1 = WKBSolver1(*de_sys_, order);
@@ -287,7 +283,7 @@ void Solution::solve() {
   double wkbdelta, rkdelta;
   std::complex<double> xnext, dxnext;
   bool wkb = false;
-  Eigen::Index maxindex_wkb, maxindex_rk;
+  Eigen::Index maxindex_wkb{0}, maxindex_rk;
   h = h0;
   tnext = t + h;
   // Initialise stats
@@ -299,15 +295,14 @@ void Solution::solve() {
   totsteps = 0;
   wkbsteps = 0;
   // Dense output
-  std::list<double> inner_dotimes;
-  std::list<std::complex<double>> inner_dosols, inner_dodsols;
-  auto it_dosol = dosol.begin();
-  auto it_dodsol = dodsol.begin();
+  std::vector<double> inner_dotimes;
+  std::vector<std::complex<double>> inner_dosols, inner_dodsols;
   Eigen::Matrix<std::complex<double>, 1, 2> y_dense_rk;
   std::complex<double> x_dense_rk, dx_dense_rk;
   // Experimental continuous solution, vandermonde representation
   Eigen::Matrix<std::complex<double>, 7, 1> xvdm;
-
+  std::size_t do_solve_count = 0;
+  std::size_t do_dodsol_count = 0;
   while (fend > 0) {
     // Check if we are reaching the end of integration
     if (fnext < 0) {
@@ -394,13 +389,17 @@ void Solution::solve() {
       // check if chosen step was successful
       if (std::abs(hnext) >= std::abs(h)) {
         //                std::cout << "All dense output points: " << std::endl;
-        if (dotit != dotimes.end()) {
+        if (dense_output_ && do_solve_count < dotimes.size()) {
           //                    std::cout << *dotit << std::endl;
-          while ((*dotit - t >= 0 && tnext - *dotit >= 0) ||
-                 (*dotit - t <= 0 && tnext - *dotit <= 0)) {
-            inner_dotimes.push_back(*dotit);
-            dotit++;
-          }
+              auto dot_it = dotimes.begin();
+              std::advance(dot_it, do_solve_count);
+              for (; dot_it != dotimes.end() &&
+                   ((*dot_it - t >= 0 && tnext - *dot_it >= 0) ||
+                   (*dot_it - t <= 0 && tnext - *dot_it <= 0));
+                   ++dot_it) {
+                inner_dotimes.push_back(*dot_it);
+                do_solve_count++;
+              }
           if (inner_dotimes.size() > 0) {
             inner_dosols.resize(inner_dotimes.size());
             inner_dodsols.resize(inner_dotimes.size());
@@ -423,16 +422,18 @@ void Solution::solve() {
             }
           }
         }
-        auto inner_it = inner_dosols.begin();
-        auto inner_dit = inner_dodsols.begin();
-        while (inner_it != inner_dosols.end() && it_dosol != dosol.end() &&
-               inner_dit != inner_dodsols.end() && it_dodsol != dodsol.end()) {
-          *it_dosol = *inner_it;
-          *it_dodsol = *inner_dit;
-          it_dodsol++;
-          it_dosol++;
-          inner_it++;
-          inner_dit++;
+        auto it_dosol = dosol.begin();
+        std::advance(it_dosol, do_dodsol_count);
+        auto it_dodsol = dodsol.begin();
+        std::advance(it_dodsol, do_dodsol_count);
+        for (auto inner_it = inner_dosols.begin(),
+                  inner_dit = inner_dodsols.begin();
+              inner_it != inner_dosols.end() && it_dosol != dosol.end() &&
+              inner_dit != inner_dodsols.end() && it_dodsol != dodsol.end();
+              it_dodsol++, it_dosol++, inner_it++, inner_dit++,
+                  do_dodsol_count++) {
+          *it_dosol = std::move(*inner_it);
+          *it_dodsol = std::move(*inner_dit);
         }
         inner_dotimes.resize(0);
         inner_dosols.resize(0);
@@ -497,15 +498,15 @@ void Solution::solve() {
   // reversed at the start)
   if (de_sys_->is_interpolated == 1) {
     if (de_sys_->Winterp.sign_ == 0) {
-      dotimes.reverse();
-      dosol.reverse();
-      dodsol.reverse();
+      std::reverse(dotimes.begin(), dotimes.end());
+      std::reverse(dosol.begin(), dosol.end());
+      std::reverse(dodsol.begin(), dodsol.end());
     }
   } else {
     if (sign == 0) {
-      dotimes.reverse();
-      dosol.reverse();
-      dodsol.reverse();
+      std::reverse(dotimes.begin(), dotimes.end());
+      std::reverse(dosol.begin(), dosol.end());
+      std::reverse(dodsol.begin(), dodsol.end());
     }
   }
 
