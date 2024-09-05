@@ -307,7 +307,9 @@ void Solution::solve() {
   std::complex<double> x_dense_rk, dx_dense_rk;
   // Experimental continuous solution, vandermonde representation
   Eigen::Matrix<std::complex<double>, 7, 1> xvdm;
-
+  // So that warnings only happen once
+  bool step_size_warning = true;
+  bool acceptance_ratio_warning = true;
   while (fend > 0) {
     // Check if we are reaching the end of integration
     if (fnext < 0) {
@@ -382,9 +384,13 @@ void Solution::solve() {
       totsteps += 1;
       // Checking for too many steps and low acceptance ratio:
       if (totsteps % 5000 == 0) {
-        std::cerr << "Warning: the solver took " << totsteps
-                  << " steps, and may take a while to converge." << std::endl;
-        if (ssteps / totsteps < 0.05) {
+        if (step_size_warning) {
+          step_size_warning = false;
+          std::cerr << "Warning: the solver took " << totsteps
+                    << " steps, and may take a while to converge." << std::endl;
+        }
+        if (acceptance_ratio_warning && ssteps / totsteps < 0.05) {
+          acceptance_ratio_warning = false;
           std::cerr << "Warning: the step acceptance ratio is below 5%, the "
                        "solver may take a while to converge."
                     << std::endl;
