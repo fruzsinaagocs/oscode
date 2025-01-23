@@ -258,6 +258,8 @@ devs of `exhale <https://pypi.org/project/exhale/>`__ for making the beautiful C
 
 Changelog
 ---------
+- 1.3.0: 
+    - Remove deprecated C API functions from the Python wrapper, `_pyoscode.cpp`. 
 - 1.2.0:
     - Update the version of Eigen to 3.4.0
 - 1.1.2:

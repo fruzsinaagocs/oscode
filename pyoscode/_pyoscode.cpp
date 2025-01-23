@@ -33,7 +33,7 @@ static std::complex<double> wfun(double t){
    
     std::complex<double> result = 0;
     PyObject *arglist = Py_BuildValue("(d)", t);
-    PyObject *py_result = PyEval_CallObject(w_callback, arglist);
+    PyObject *py_result = PyObject_CallObject(w_callback, arglist);
     Py_DECREF(arglist);
     // Check whether Python w(t) returned an exception
     if(py_result == NULL)
@@ -50,7 +50,7 @@ static std::complex<double> gfun(double t){
 
     std::complex<double> result = 0;
     PyObject *arglist = Py_BuildValue("(d)", t);
-    PyObject *py_result = PyEval_CallObject(g_callback, arglist);
+    PyObject *py_result = PyObject_CallObject(g_callback, arglist);
     Py_DECREF(arglist);
     double real, imag;
     // Check whether Python w(t) returned an exception
