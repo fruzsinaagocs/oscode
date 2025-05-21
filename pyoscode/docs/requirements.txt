@@ -5,3 +5,4 @@ coverage
 breathe
 exhale
 mock
+sphinx_rtd_theme
