@@ -38,6 +38,10 @@ jobs:
     - name: Upload coverage to codecov
       uses: codecov/codecov-action@v2
 
+    # Install doxygen
+    - name: Doxygen install
+      uses: ssciwr/doxygen-install@v1
+
     # Build documentation
     - name: Docs
       run: |
