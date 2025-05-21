@@ -13,44 +13,44 @@ jobs:
         python-version: ["3.x"]
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-            submodules: recursive
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with: 
-          python-version: ${{ matrix.python-version }} 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install .
-      - name: Install testing packages
-        run: |
-          # pip install flake8
-          # pip install pydocstyle
-          pip install pytest
-          pip install pytest-cov pytest-xdist codecov
-      - name: Test with pytest
-        run: |
-          pytest --cov=pyoscode tests
-      - name: Upload coverage to codecov
-        uses: codecov/codecov-action@v2
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+          submodules: recursive
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with: 
+        python-version: ${{ matrix.python-version }} 
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install .
+    - name: Install testing packages
+      run: |
+        # pip install flake8
+        # pip install pydocstyle
+        pip install pytest
+        pip install pytest-cov pytest-xdist codecov
+    - name: Test with pytest
+      run: |
+        pytest --cov=pyoscode tests
+    - name: Upload coverage to codecov
+      uses: codecov/codecov-action@v2
 
-      # Build documentation
-      - name: Docs
-        run: |
-          cd pyoscode/docs
-          make html
-  
-      # Upload the book's HTML as an artifact
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
-        with:
-          path: "_build/html"
-  
-      # Deploy the book's HTML to GitHub Pages
-      - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v2
+    # Build documentation
+    - name: Docs
+      run: |
+        cd pyoscode/docs
+        make html
+
+    # Upload the book's HTML as an artifact
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: "_build/html"
+
+    # Deploy the book's HTML to GitHub Pages
+    - name: Deploy to GitHub Pages
+    id: deployment
+    uses: actions/deploy-pages@v2
