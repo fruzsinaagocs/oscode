@@ -71,7 +71,7 @@ exhale_args = {
     # TIP: if using the sphinx-bootstrap-theme, you need
     # "treeViewIsBootstrap": True,
     "exhaleExecutesDoxygen": True,
-    "exhaleDoxygenStdin":    "INPUT = ./../../../include\nRECURSIVE = NO", 
+    "exhaleDoxygenStdin":    "INPUT = ./../../../include/oscode\nRECURSIVE = NO\nGENERATE_HTML = YES", 
     "verboseBuild" : True
 }
 

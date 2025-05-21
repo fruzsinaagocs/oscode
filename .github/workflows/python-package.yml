@@ -39,3 +39,20 @@ jobs:
           pytest --cov=pyoscode tests
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v2
+
+      # Build documentation
+      - name: Docs
+        run: |
+          cd pyoscode/docs
+          make html
+  
+      # Upload the book's HTML as an artifact
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: "_build/html"
+  
+      # Deploy the book's HTML to GitHub Pages
+      - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
