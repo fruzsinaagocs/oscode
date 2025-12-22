@@ -5,10 +5,10 @@
 #include <iomanip>
 #include <list>
 
-/** Class to carry out WKB steps of varying orders.  */
+/** Class to carry out WKB steps of varying orders. */
 class WKBSolver {
 protected:
-  // Derivative terms
+  // Derivative terms 
   void d1w1();
   void d1w2();
   void d1w3();
